@@ -1,0 +1,85 @@
+git clone https://github.com/ShipSoft/FairShip
+
+to update: git pull
+
+cd FairShip
+./localBuild.sh
+
+source FairShipRun/config.sh
+
+inputfile = /eos/experiment/ship/data/Mbias/background-prod-2018/pythia8_Geant4_10.0_withCharmandBeauty0_mu.root
+(from 0 to 66000, by step 1000)
+
+python $FAIRSHIP/macro/run_simScript.py --MuonBack -f inputfile -n nevents -o outputdir
+
+batch: http://batchdocs.web.cern.ch/batchdocs/local/quick.html
+
+File 53 is corrupted
+In file: 0 there are: 13450391 entries 
+In file: 1000 there are: 6240925 entries 
+In file: 2000 there are: 6238126 entries 
+In file: 3000 there are: 6239983 entries 
+In file: 4000 there are: 6237671 entries 
+In file: 5000 there are: 6238535 entries 
+In file: 6000 there are: 6242602 entries 
+In file: 7000 there are: 6246430 entries 
+In file: 8000 there are: 6239151 entries 
+In file: 9000 there are: 6239653 entries 
+In file: 10000 there are: 6237695 entries 
+In file: 11000 there are: 6238705 entries 
+In file: 12000 there are: 6239670 entries 
+In file: 13000 there are: 6244139 entries 
+In file: 14000 there are: 6239735 entries 
+In file: 15000 there are: 6245846 entries 
+In file: 16000 there are: 6242698 entries 
+In file: 17000 there are: 6243827 entries 
+In file: 18000 there are: 6242505 entries 
+In file: 19000 there are: 6234737 entries 
+In file: 20000 there are: 6238057 entries 
+In file: 21000 there are: 6236055 entries 
+In file: 22000 there are: 2110646 entries 
+In file: 23000 there are: 6234706 entries 
+In file: 24000 there are: 6238708 entries 
+In file: 25000 there are: 6236993 entries 
+In file: 26000 there are: 6241631 entries 
+In file: 27000 there are: 6238416 entries 
+In file: 28000 there are: 6234302 entries 
+In file: 29000 there are: 6237372 entries 
+In file: 30000 there are: 6238488 entries 
+In file: 31000 there are: 6238463 entries 
+In file: 32000 there are: 3881168 entries 
+In file: 33000 there are: 6240302 entries 
+In file: 34000 there are: 6241933 entries 
+In file: 35000 there are: 6238593 entries 
+In file: 36000 there are: 6239944 entries 
+In file: 37000 there are: 6238285 entries 
+In file: 38000 there are: 6239812 entries 
+In file: 39000 there are: 6244654 entries 
+In file: 40000 there are: 6237918 entries 
+In file: 41000 there are: 6240065 entries 
+In file: 42000 there are: 6242558 entries 
+In file: 43000 there are: 6239453 entries 
+In file: 44000 there are: 2793980 entries 
+In file: 45000 there are: 6238019 entries 
+In file: 46000 there are: 6240834 entries 
+In file: 47000 there are: 6236843 entries 
+In file: 48000 there are: 6238654 entries 
+In file: 49000 there are: 6238063 entries 
+In file: 50000 there are: 5520395 entries 
+In file: 51000 there are: 6242407 entries 
+In file: 52000 there are: 6243558 entries 
+In file: 54000 there are: 6240632 entries 
+In file: 55000 there are: 6240257 entries 
+In file: 56000 there are: 6239181 entries 
+In file: 57000 there are: 6240829 entries 
+In file: 58000 there are: 6235854 entries 
+In file: 59000 there are: 6235770 entries 
+In file: 60000 there are: 6239611 entries 
+In file: 61000 there are: 6236622 entries 
+In file: 62000 there are: 3702269 entries 
+In file: 63000 there are: 6242811 entries 
+In file: 64000 there are: 6239932 entries 
+In file: 65000 there are: 6239301 entries 
+In file: 66000 there are: 6112412 entries
+Number of total entries: 405709780
+

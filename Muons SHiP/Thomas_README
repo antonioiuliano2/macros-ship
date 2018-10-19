@@ -1,0 +1,80 @@
+files of background production 2018
+
+concatenated files from Yandex production, 10 GeV ecut, dimuon events enhanced by factor 100
+  pythia8_Geant4_10.0_c0.root
+  pythia8_Geant4_10.0_c1000.root
+  ...
+  pythia8_Geant4_10.0_c66000.root
+
+  altogether 64865 runs, 65.041 Billion PoT, weight 768.75 for 5E13 pot
+
+
+concatenated file from CERN small production, mbias, no bias factors:
+  pythia8_Geant4_1000000-1000600_10.0.root 
+                         526 Million POT       
+
+concatenated files from CERN charm hadron production
+ Cascade-run0-19-parp16-MSTP82-1-MSEL4-10Bpot.root  
+ Cascade-run20-39-parp16-MSTP82-1-MSEL4-10Bpot.root  
+ Cascade-run40-59-parp16-MSTP82-1-MSEL4-10Bpot.root  
+ Cascade-run60-79-parp16-MSTP82-1-MSEL4-10Bpot.root  
+ Cascade-run80-99-parp16-MSTP82-1-MSEL4-10Bpot.root
+   Number of charm hadrons: 400 372 348   corresponding to 51.1 Billion PoT equivalent
+
+
+CERN production background from charm
+ pythia8_Geant4_charm_0-19_10.0.root  
+ pythia8_Geant4_charm_20-39_10.0.root  
+ pythia8_Geant4_charm_40-59_10.0.root  
+ pythia8_Geant4_charm_60-79_10.0.root  
+ pythia8_Geant4_charm_80-99_10.0.root
+ pythia8_Geant4_charm_1000-1019_10.0.root
+...
+ pythia8_Geant4_charm_2080-2099_10.0.root
+   corresponding to 153.3 Billion PoT equivalent
+
+concatenated files from CERN beauty hadron production
+ Cascade-run0-19-parp16-MSTP82-1-MSEL5-5338Bpot.root  
+CERN production background from beauty
+ pythia8_Geant4_beauty_5336B_10.0.root
+
+
+concatenated files from Yandex production, 1 GeV ecut, dimuon events enhanced by factor 100
+  pythia8_Geant4_1.0_c0.root
+  ...
+  pythia8_Geant4_1.0_c19000.root
+  1.8 Billion PoT
+
+
+geofiles:
+ geofile_full_Charm_prod.root
+ geofile_full_Yandex_prod.root
+ target position in both cases: -7084.5
+
+files with extracted muons and updated weights:
+ charm
+   pythia8_Geant4_charm_153.3B_10.0_mu.root
+ mbias 66 files (muons from charm discarded)
+   pythia8_Geant4_10.0_cXXXXX_mu.root
+ beauty
+   pythia8_Geant4_beauty_5336B_10.0_mu.root
+
+mixture of charm and mbias:
+  pythia8_Geant4_10.0_withCharmXXXXX_mu.root 
+
+mixture of beauty, charm and mbias:  
+   pythia8_Geant4_10.0_withCharmandBeautyXXXXX_mu.root
+
+
+histograms with neutrino momentum:
+ pythia8_Geant4_10.0_c_nu.root (mbias without charm
+ pythia8_Geant4_charm_nu_10.0.root (charm from cascade
+ pythia8_Geant4_10.0_withCharm_nu.root  (sum of above
+
+ pythia8_Geant4_1.0_c_nu.root (mbias without charm
+ pythia8_Geant4_charm_nu_1.0.root (charm from cascade
+ pythia8_Geant4_1.0_withCharm_nu.root  (sum of above
+  
+
+
+ 
