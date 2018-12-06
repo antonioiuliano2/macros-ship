@@ -42,6 +42,7 @@ void dafile(){
   //c1->Clear();
   hprimary->Draw();
   hprimary->GetXaxis()->SetTitle("cm");
+  hprimary->Fit("expo");
   hsecondary->Draw("SAMES");
   
   TLine *l0 = new TLine(2.8,0,2.8,580);
@@ -62,7 +63,7 @@ void dafile(){
   leg->AddEntry("hprimary", "Primaries");
   leg->AddEntry("hsecondary", "Secondaries");
   leg->Draw();
-
+/*
    TH1D *hprimary0 = (TH1D*) hprimary->Clone("hprimary0"); //we want to highlight a specific area of the histogram
   hprimary0->GetXaxis()->SetRange(0,hprimary->FindBin(2.8)-1);
   hprimary0->SetFillColor(kYellow);
@@ -106,9 +107,10 @@ void dafile(){
   cvertex->Update();
   img->FromPad(cvertex);
   img->WriteImage("/home/utente/Lavoro/Analisi/temporanei/vertici_produzione_charm/ECC5.png");
-  
+  */
   TCanvas *c = new TCanvas();
   hall->Draw();
+  hall->Fit("expo");
   hall->GetXaxis()->SetTitle("cm");
 
 

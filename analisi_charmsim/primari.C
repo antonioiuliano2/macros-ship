@@ -16,6 +16,10 @@ void primari(){
   TTree* cbmsim = (TTree*)inputfile->Get("cbmsim");
   const Int_t neventi = cbmsim->GetEntries();
 
+  Double_t pcut = 0.1; //cut for visibility in emulsion
+  Double_t Tmax = 0.6; //both for TX and TY separately
+  Double_t nmin = 2; //almost 2 tracks for a vertex
+
   TClonesArray *arr0 = new TClonesArray("ShipMCTrack",1000);
   cbmsim->GetBranch("MCTrack")->SetAutoDelete(kFALSE);
   cbmsim->SetBranchAddress("MCTrack",&arr0);
@@ -36,6 +40,8 @@ void primari(){
   TH1D *hEkin_pion = new TH1D("hEkin_pion", "Energia pioni primari",400,0,400);
   TH1D *hmomentum = new TH1D("hmomentum_proton", "Impulso figli di protone", 400, 0, 400);
   TH1I *hmolteplicity = new TH1I("hmolteplicity", "Molteplicity", 40, 0, 40);
+  TH1D *htheta = new TH1D("htheta", "Angle Theta", 3500, 0, 3.5);
+  TH1D *hvz = new TH1D("hvz","Z position", 400, -40000, 0);
 
   //ofstream outputfile("./studiofondo/histopionkinenergy_lead.txt", std::ofstream::out);
   ofstream daughterfile("temp_outputs/proton_daughters.txt",std::ofstream::out);
@@ -44,23 +50,31 @@ void primari(){
     cbmsim->GetEntry(i);
     Double_t Vz = ((ShipMCTrack*) arr0->At(0))->GetStartZ();
     Int_t molteplicity = 0;
+    hvz->Fill((Vz - 124.94)*10000); //in order to compare with MC
     for (int j = 2; j < arr0->GetEntriesFast();j++){
       ShipMCTrack* track = (ShipMCTrack*) arr0->At(j);
       Int_t mumID = track->GetMotherId();
       Int_t pdgcode = track->GetPdgCode();
       Double_t momentum = track->GetP();
       Double_t mass = track->GetMass();
-      
+      Double_t TX = track->GetPx()/track->GetPz();
+      Double_t TY = track->GetPy()/track->GetPz();      
+      Double_t theta = TMath::ATan(TMath::Sqrt(TX * TY + TY * TY));
+
       //escludo le particelle non rivelabili
       if (!isquark(pdgcode) && !isintermediate(pdgcode) && !isunknown(pdgcode)){
-      cout<<pdgcode<<endl;
+     // cout<<pdgcode<<endl;
       //if (mumID == 0){ //figlie del protone iniziale
        if ((track->GetStartZ() == Vz)){ //exactly started at Vz
        //if ((track->GetStartZ() >= Vz) && (track->GetStartZ() <= (Vz + 0.0200))){ //check in a range
        
         if (TMath::Abs(pdg->GetParticle(pdgcode)->Charge()) > 0){
          molteplicity++;
-         hmomentum->Fill(track->GetP());
+
+         if ((track->GetP() > pcut) && (TX < Tmax) && (TY < Tmax)){
+          hmomentum->Fill(track->GetP()); //CUTS ON MOMENTUM AND TRACK ANGLE
+          htheta->Fill(theta);
+          }
          daughterfile<<i<<" "<<pdg->GetParticle(pdgcode)->GetName()<<" "<<track->GetPdgCode()<<" "<<track->GetP()<<" "<<track->GetStartZ()<<endl;
         }        
 	
@@ -70,7 +84,7 @@ void primari(){
      }      
     }    
   daughterfile<<endl;
-  hmolteplicity->Fill(molteplicity);
+  if (molteplicity >= nmin) hmolteplicity->Fill(molteplicity);
   }//fine loop sugli eventi
   hEkin_pion->Draw();
   hEkin_pion->GetXaxis()->SetTitle("GeV");
@@ -79,6 +93,10 @@ void primari(){
   hmolteplicity->Draw();
   TCanvas *c2 = new TCanvas();
   hmomentum->Draw();
+  TCanvas *c3 = new TCanvas();
+  htheta->Draw();
+  TCanvas *c4 = new TCanvas();
+  hvz->Draw();
   //for (int k = 1; k < (hEkin_pion->GetNbinsX() + 1); k++){
    //outputfile<<hEkin_pion->GetXaxis()->GetBinUpEdge(k)<<" "<<hEkin_pion->GetBinContent(k)<<endl;
 // }
