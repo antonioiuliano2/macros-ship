@@ -2,19 +2,19 @@
 
 #include <stdio.h>
 #include <TROOT.h>
-#include "/home/utente/SHIPBuild/FairShip/shipdata/ShipMCTrack.h"
-#include "/home/utente/SHIPBuild/FairShip/charmdet/BoxPoint.h"
-#include "/home/utente/SHIPBuild/FairShip/charmdet/SpectrometerPoint.h"
+#include "/afs/cern.ch/work/a/aiuliano/public/SHIPBuild/FairShip/shipdata/ShipMCTrack.h"
+#include "/afs/cern.ch/work/a/aiuliano/public/SHIPBuild/FairShip/charmdet/BoxPoint.h"
+#include "/afs/cern.ch/work/a/aiuliano/public/SHIPBuild/FairShip/charmdet/SpectrometerPoint.h"
 //#include "/home/utente/SHIPBuild/sw/ubuntu1604_x86-64/ROOT/v6-10-06-ship-1/include/TDatabasePDG.h"
 //#include "/home/utente/SHIPBuild/sw/ubuntu1604_x86-64/FairRoot/Oct17-ship-1/include/FairMCEventHeader.h"*/
 //#include "/home/utente/fedra/include/EdbCouplesTree.h"
 using namespace TMath;
 
-void fromFairShip2Fedra(bool do_invert=true){
- //TFile * inputfile = TFile::Open("/home/utente/SHIPBuild/sim_charmdet/charm_events/ECC1_modifiedgenerator/ship.conical.Pythia8CharmOnly-TGeant4.root");
-TFile * inputfile = TFile::Open("/home/utente/SHIPBuild/sim_charmdet/pot/1ECC_leadbeforeplastic_nofieldnogaps_G4only_uniform/pythia8_Geant4_1_0.001.root");
+void fromFairShip2Fedra(int nplate = 1){
+ TFile * inputfile = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/sim_charm/pot/Charm1_uniform_19_11_2018/pythia8_evtgen_Geant4_1000_0.001.root");
+//TFile * inputfile = TFile::Open("/home/utente/SHIPBuild/sim_charmdet/pot/1ECC_leadbeforeplastic_nofieldnogaps_G4only_uniform/pythia8_Geant4_1_0.001.root");
  TTree* cbmsim = (TTree*)inputfile->Get("cbmsim");
- gInterpreter->AddIncludePath("/home/utente/fedra/include");
+ gInterpreter->AddIncludePath("/afs/cern.ch/work/a/aiuliano/public/fedra/include");
  Double_t tx = 0, ty=0, xem= 0, yem = 0;
  
  TClonesArray *arr0 = new TClonesArray("ShipMCTrack",10000);
@@ -30,22 +30,24 @@ TFile * inputfile = TFile::Open("/home/utente/SHIPBuild/sim_charmdet/pot/1ECC_le
  // TFile * outputfile = new TFile("myfedra.out","RECREATE");
    EdbCouplesTree ect;
  //  EdbCouplesTree ectpixel;
-   ect.InitCouplesTree("couples","emulsion.root","RECREATE");
-  // ectpixel.InitCouplesTree("couples","pixel.root","RECREATE");
+  if (nplate <10) ect.InitCouplesTree("couples",Form("../macro_fedra/b000001/p00%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
+  else ect.InitCouplesTree("couples",Form("../macro_fedra/b000001/p0%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
+   // ectpixel.InitCouplesTree("couples","pixel.root","RECREATE");
    Int_t Flag = 1;
  for (int i = 0; i < nevents; i++){
    arr0->Clear();
    arr1->Clear();
-   arr2->Clear();
    cbmsim->GetEntry(i);
    for (int j = 0; j < arr1->GetEntriesFast(); j++){
      if (j % 2 == 0) continue;
      BoxPoint* emupoint = (BoxPoint*)arr1->At(j);
-     xem = emupoint->GetX()* 1E+4;;
-     yem = emupoint->GetY()* 1E+4;;
+     xem = emupoint->GetX()* 1E+4 + 62500;
+     yem = emupoint->GetY()* 1E+4 + 49500;
      tx = emupoint->GetPx()/emupoint->GetPz();
      ty = emupoint->GetPy()/emupoint->GetPz();
-     ect.eS->Set(i,xem,yem,tx,ty,1,Flag)
+     ect.eS->Set(i,xem,yem,tx,ty,1,Flag);
+     ect.eS->SetW(70.); //need a weight to do tracking
+     if (emupoint->GetDetectorID() == nplate) ect.eS->Set(i,xem,yem,tx,ty,1,Flag);
      //if ((emupoint->GetDetectorID() == 56) && (emupoint->GetZ() < -2.15)){ ect.eS->Set(i,xem,yem,tx,ty,1,Flag);
 //     if ((emupoint->GetDetectorID() == 57) && (emupoint->GetZ() < -2.02)){ ect.eS->Set(i,xem,yem,tx,ty,1,Flag);
      //if ((emupoint->GetDetectorID() == 20) && (emupoint->GetZ() < -2.02)) ect.eS1->Set(i,xem,yem,tx,ty,1,Flag);
@@ -66,8 +68,7 @@ TFile * inputfile = TFile::Open("/home/utente/SHIPBuild/sim_charmdet/pot/1ECC_le
      //if(do_invert) ect.eS->Transform(&aff_invert);
      ectpixel.Fill();
      }
-   }*/
- }
+   }*/ 
   ect.Close();
   //ectpixel.Close();
 }
