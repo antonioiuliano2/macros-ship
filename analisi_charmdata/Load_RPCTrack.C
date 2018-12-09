@@ -6,7 +6,7 @@
 //
 
 #include <TTree.h>
-#include "/afs/cern.ch/work/a/aiuliano/public/SHIPBuild/FairShip/charmdet/RPCTrack.h"
+#include "/home/utente/Scrivania/SHIPBuild/FairShip/charmdet/RPCTrack.h"
 //-------------------------------------------------------------
 void Read_Tracks(const char *filein){ //last update 14/11/18, A.P.
 
@@ -70,7 +70,7 @@ void Read_Tracks(const char *filein){ //last update 14/11/18, A.P.
   return;
 }
 
-void Read_Tracks(const char *filein, const char *fileout){ //last update 06/12/18, A.I.  
+void Load_Tracks(const char *filein, const char *fileout){ //last update 06/12/18, A.I.  
   if(!filein){
     cout<<"Input file not exists! Exiting Read_RPCTracks .."<<endl; return; }
 
