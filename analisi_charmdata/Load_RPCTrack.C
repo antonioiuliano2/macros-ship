@@ -70,7 +70,7 @@ void Read_Tracks(const char *filein){ //last update 14/11/18, A.P.
   return;
 }
 
-void Read_Tracks(const char *filein, const char *fileout){ //last update 06/12/18, A.I.  
+void Load_Tracks(const char *filein, const char *fileout){ //last update 06/12/18, A.I.  
   if(!filein){
     cout<<"Input file not exists! Exiting Read_RPCTracks .."<<endl; return; }
 
@@ -108,28 +108,29 @@ void Read_Tracks(const char *filein, const char *fileout){ //last update 06/12/1
 
   //output file where data will be converted
   TFile *fout = new TFile(fileout, "RECREATE");
-  TTree *FairShip_RPC_Trks = new TTree("SHIPcharm_recodata");
+  TTree *FairShip_RPC_Trks = new TTree("SHIPcharm_recodata","Reconstructed tracks in SHiP-charm detectors");
   TClonesArray *rpcarray = new TClonesArray("RPCTrack");
 
   FairShip_RPC_Trks->Branch("RpcTrack", &rpcarray);
   FairShip_RPC_Trks->Branch("runID",&id_run);
-  FairShip_RPC_Trks->Branch("spillID",&id_spill);
+  //FairShip_RPC_Trks->Branch("spillID",&id_spill);
 
   RPCTrack *recotrack;
 
+  int ntracks_perrun = 0;
   for(int itrk = 0; itrk<ntracks; itrk++){ //main loop on tracks
 
     RPC_Trks->GetEntry(itrk); //getting the entry
     if ((id_track == 1) && (itrk > 0)){ //if trackID is back to 1, get Event and reset all counters
-      RPC_RecoTracks->Fill();
+      FairShip_RPC_Trks->Fill();
       rpcarray->Clear(); 
       ntracks_perrun = 0;      
     }
 
-    new((*rpcarray)[ntracks_perrun]) RPCTrack(trk_theta, trk_phi);    
+    new((*rpcarray)[ntracks_perrun]) RPCTrack(trk_teta, trk_phi);    
 
     for(int j = 0; j<nclusters; j++){ //loop on clusters associated to a track
-          rpcarray[ntracks_perrun]->AddCluster(cl_x, cl_y, cl_z, cl_dir, cl_rpc);
+          //rpcarray[ntracks_perrun].AddCluster(cl_x, cl_y, cl_z, cl_dir, cl_rpc);
     }
 
     ntracks_perrun++;
