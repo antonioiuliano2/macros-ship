@@ -38,9 +38,9 @@ for step in mover:
 
 plt.figure()
 
-plt.plot(xsurvey_transformed,ysurvey_transformed,'r.')
-plt.plot(xsurvey_transformed,ysurvey_transformed,'r')
-plt.plot(xmover,ymover,'b')
+plt.errorbar(xsurvey_transformed,ysurvey_transformed,0.5,0.5,'g.',label='measured')
+#plt.plot(xsurvey_transformed,ysurvey_transformed,'r',label='measured')
+plt.plot(xmover,ymover,'b',label='expected')
 
 def anglexy(index, reference = survey_transformed): 
 	if (index>nmovements):
@@ -52,24 +52,25 @@ def anglexy(index, reference = survey_transformed):
 
 	return math.atan2(end[1]-start[1],end[0]-start[0])
 
-def xy(index, reference = survey_transformed):
+def xyz(index, reference = survey_transformed):
 	if (index>nmovements):
 		 print ('Error: no more than {} movements have been measured'.format(nmovements))
 		 1/0	
 	start = reference[index]
 	end = reference[index+1]
 
-	return (end[0]-start[0],end[1]-start[1])
+	return (end[0]-start[0],end[1]-start[1],end[2]-start[2])
 
 
 for i in range(nmovements):
- x,y = xy(i)
- xTM,yTM = xy(i,mover)
+ x,y,z = xyz(i)
+ xTM,yTM,zTM = xyz(i,mover)
  deltax = x - xTM
  deltay = y -yTM
 
- print('{number:.3f}th movement: ({xstep:.3f},{ystep:.3f}). Variation: ({deltaxstep:.3f}, {deltaystep:.3f})'.format(number=i+1, xstep=x, ystep=y, deltaxstep=deltax, deltaystep=deltay ))
+ print('{number:.3f}th movement: ({xstep:.3f},{ystep:.3f},{zstep:.3f}). Variation: ({deltaxstep:.3f}, {deltaystep:.3f},{zstep:.3f})'.format(number=i+1, xstep=x, ystep=y, zstep=z, deltaxstep=deltax, deltaystep=deltay ))
  print('xy angle during the {number:.4f} movement: {angle:.4f}. Angle variation:{deltatheta:.4f}'.format(number= i+1, angle=anglexy(i),deltatheta = anglexy(i) -anglexy(i,mover)))
 
  #showing the points where the TM passed
+plt.legend(loc='upper center')
 plt.show()
