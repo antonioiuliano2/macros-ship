@@ -3,44 +3,44 @@ from __future__ import division
 #build lists where booleans will be contained. An array of booleans for the emulsions and a string for location (Naples or Zurich)
 bricks = []
 #CHARM1 RUNS
-bricks.append([[False] * 29, 'Napoli'])
-bricks.append([[False] * 29, 'Napoli'])
-bricks.append([[False] * 29, 'Napoli'])
-bricks.append([[False] * 29, 'Napoli'])
+bricks.append([[False] * 29, 'Naples'])
+bricks.append([[False] * 29, 'Naples'])
+bricks.append([[False] * 29, 'Naples'])
+bricks.append([[False] * 29, 'Naples'])
 bricks.append([[False] * 29, 'Zurich'])
-bricks.append([[False] * 29, 'Napoli'])
+bricks.append([[False] * 29, 'Naples'])
 #CHARM2 RUNS
-bricks.append([[False] * 29, 'Napoli'])
+bricks.append([[False] * 29, 'Naples'])
 bricks.append([[False] * 29, 'Zurich'])
-bricks.append([[False] * 29, 'Napoli'])
-bricks.append([[False] * 29, 'Napoli'])
-bricks.append([[False] * 29, 'Napoli'])
-bricks.append([[False] * 29, 'Napoli'])
+bricks.append([[False] * 29, 'Naples'])
+bricks.append([[False] * 29, 'Naples'])
+bricks.append([[False] * 29, 'Naples'])
+bricks.append([[False] * 29, 'Naples'])
 #CHARM3 RUNS
-bricks.append([[False] * 57, 'Napoli'])
-bricks.append([[False] * 57, 'Napoli'])
-bricks.append([[False] * 57, 'Napoli'])
+bricks.append([[False] * 57, 'Naples'])
+bricks.append([[False] * 57, 'Naples'])
+bricks.append([[False] * 57, 'Naples'])
 #CHARM4 RUNS
-bricks.append([[False] * 57, 'Napoli'])
-bricks.append([[False] * 57, 'Napoli'])
-bricks.append([[False] * 57, 'Napoli'])
+bricks.append([[False] * 57, 'Naples'])
+bricks.append([[False] * 57, 'Naples'])
+bricks.append([[False] * 57, 'Naples'])
 #CHARM5 RUNS
-bricks.append([[False] * 57, 'Napoli'])
-bricks.append([[False] * 57, 'Napoli'])
-bricks.append([[False] * 57, 'Napoli'])
+bricks.append([[False] * 57, 'Naples'])
+bricks.append([[False] * 57, 'Naples'])
+bricks.append([[False] * 57, 'Naples'])
 #CHARM6 RUNS
-bricks.append([[False] * 57, 'Napoli'])
-bricks.append([[False] * 57, 'Napoli'])
-bricks.append([[False] * 57, 'Napoli'])
+bricks.append([[False] * 57, 'Naples'])
+bricks.append([[False] * 57, 'Naples'])
+bricks.append([[False] * 57, 'Naples'])
 
 #how many emulsions we need to scan?
 ntotalemulsions = 0 #total emulsion to be scanned
-ntotalemulsionsNapoli = 0
+ntotalemulsionsNaples = 0
 ntotalemulsionsZurich = 0
 for brick in bricks:
     ntotalemulsions += len(brick[0])
-    if (brick[1] == 'Napoli'):        
-     ntotalemulsionsNapoli += len(brick[0])
+    if (brick[1] == 'Naples'):        
+     ntotalemulsionsNaples += len(brick[0])
     else:
      ntotalemulsionsZurich += len(brick[0])
 print 'Total number of emulsion exposed in July 2018: ',ntotalemulsions
@@ -80,7 +80,7 @@ for index in range(15):
 # ********************************************REPORT******************************************************#    
 #counting how many emulsions are left to scan
 nscannedemulsions = 0
-nscannedemulsionsNapoli = 0
+nscannedemulsionsNaples = 0
 nscannedemulsionsZurich = 0
 
 
@@ -88,14 +88,14 @@ for brick in bricks:
     for emulsion in brick[0]:
         if (emulsion): 
             nscannedemulsions = nscannedemulsions + 1
-            if (brick[1] == 'Napoli'):
-             nscannedemulsionsNapoli = nscannedemulsionsNapoli + 1
+            if (brick[1] == 'Naples'):
+             nscannedemulsionsNaples = nscannedemulsionsNaples + 1
             if (brick[1] == 'Zurich'):
              nscannedemulsionsZurich = nscannedemulsionsZurich + 1
 
 print ('Total number of scanned emulsion so far: {}. Still to be scanned: {}'.format(nscannedemulsions, ntotalemulsions - nscannedemulsions))
-print ('We have accomplished: {:.2%} of the scanning workload'.format(nscannedemulsions/ntotalemulsions)) #.2% is the format with percentage with 2 decimals afterwards (like .2f)
+print ('We have accomplished: {:.1%} of the scanning workload'.format(nscannedemulsions/ntotalemulsions)) #.2% is the format with percentage with 2 decimals afterwards (like .2f)
 
 def localreport():
-   print ('Total number of scanned emulsion so far in Naples: {}. Still to be scanned: {}'.format(nscannedemulsionsNapoli, ntotalemulsionsNapoli - nscannedemulsionsNapoli))
-   print ('We have accomplished: {:.2%} of the Naples scanning workload'.format(nscannedemulsionsNapoli/ntotalemulsionsNapoli)) #.2% is the format with percentage with 2 decimals afterwards (like .2f) 
+   print ('Total number of scanned emulsion so far in Naples: {}. Still to be scanned: {}'.format(nscannedemulsionsNaples, ntotalemulsionsNaples - nscannedemulsionsNaples))
+   print ('We have accomplished: {:.1%} of the Naples scanning workload'.format(nscannedemulsionsNaples/ntotalemulsionsNaples)) #.2% is the format with percentage with 2 decimals afterwards (like .2f) 
