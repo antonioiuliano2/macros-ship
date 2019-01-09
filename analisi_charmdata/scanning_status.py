@@ -71,9 +71,9 @@ allscanned('ch2r4')
 allscanned('ch2r5')
 
 for index in range(22):
-    scanned('ch2r1',index+1)
-for index in range(10):
     scanned('ch2r6',index+1)
+for index in range(10):
+    scanned('ch2r1',index+1)
 for index in range(15):
     scanned('ch3r2',index+1)
 
