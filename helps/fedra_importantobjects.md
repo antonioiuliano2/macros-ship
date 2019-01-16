@@ -22,7 +22,8 @@ Important note: linked_tracks.root files do NOT contain EdbTrackP objects, but E
 ## Vertex: EdbVertex
 Location in fedra: /fedra/src/libEdr/EdbVertex.h
 Class for vertex reconstruction. 
-* Vertex Position: X(), Y(), Z() . Also present VX(), VY() and VZ(), to add some positions from a pointer, but I do not know what they do; 
+* Vertex Position: X(), Y(), Z() . Also present VX(), VY() and VZ(), which seem to return the same. The latter are the ones suggested in the Fedra Wiki to obtain vertex position;
+* To obtain information of vertex fit: chi2(), prob(), ndf(); 
 * To access associated tracks: N() gives the number of tracks. GetTrack(int i) gives the i-th track; 
 * Impact(i) returns distance of i-th track from the vertex; 
 * MaxAperture() returns the maximum angular distance between two tracks associated to this vertex (as in tan(theta)); 
