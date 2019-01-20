@@ -39,8 +39,10 @@ for step in mover:
 plt.figure()
 
 plt.errorbar(xsurvey_transformed,ysurvey_transformed,0.5,0.5,'g.',label='measured')
-#plt.plot(xsurvey_transformed,ysurvey_transformed,'r',label='measured')
+plt.plot(xsurvey_transformed,ysurvey_transformed,'r',label='measured')
 plt.plot(xmover,ymover,'b',label='expected')
+plt.xlabel('x[mm]')
+plt.ylabel('y[mm]')
 
 def anglexy(index, reference = survey_transformed): 
 	if (index>nmovements):
