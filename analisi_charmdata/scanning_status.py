@@ -1,11 +1,12 @@
 from __future__ import division
+from matplotlib import pyplot as plt
 '''Report status of scanning of SHIP-charm emulsions. How many emulsions are left to scan?'''
 #build lists where booleans will be contained. An array of booleans for the emulsions and a string for location (Naples or Zurich)
 bricks = []
 #CHARM1 RUNS
 bricks.append([[False] * 29, 'Naples'])
 bricks.append([[False] * 29, 'Naples'])
-bricks.append([[False] * 29, 'Naples'])
+bricks.append([[False] * 29, 'Zurich'])
 bricks.append([[False] * 29, 'Naples'])
 bricks.append([[False] * 29, 'Zurich'])
 bricks.append([[False] * 29, 'Naples'])
@@ -17,11 +18,11 @@ bricks.append([[False] * 29, 'Naples'])
 bricks.append([[False] * 29, 'Naples'])
 bricks.append([[False] * 29, 'Naples'])
 #CHARM3 RUNS
-bricks.append([[False] * 57, 'Naples'])
+bricks.append([[False] * 57, 'Zurich'])
 bricks.append([[False] * 57, 'Naples'])
 bricks.append([[False] * 57, 'Naples'])
 #CHARM4 RUNS
-bricks.append([[False] * 57, 'Naples'])
+bricks.append([[False] * 57, 'Zurich'])
 bricks.append([[False] * 57, 'Naples'])
 bricks.append([[False] * 57, 'Naples'])
 #CHARM5 RUNS
@@ -70,11 +71,13 @@ allscanned('ch2r3')
 allscanned('ch2r4')
 allscanned('ch2r5')
 
+for index in range(9):
+    scanned('ch1r5',index+1)
 for index in range(22):
     scanned('ch2r6',index+1)
-for index in range(10):
+for index in range(22):
     scanned('ch2r1',index+1)
-for index in range(15):
+for index in range(30):
     scanned('ch3r2',index+1)
 
 # ********************************************REPORT******************************************************#    
@@ -97,5 +100,16 @@ print ('Total number of scanned emulsion so far: {}. Still to be scanned: {}'.fo
 print ('We have accomplished: {:.1%} of the scanning workload'.format(nscannedemulsions/ntotalemulsions)) #.2% is the format with percentage with 2 decimals afterwards (like .2f)
 
 def localreport():
+   figure = plt.figure()
+   napoliratio = nscannedemulsionsNaples/ntotalemulsionsNaples
    print ('Total number of scanned emulsion so far in Naples: {}. Still to be scanned: {}'.format(nscannedemulsionsNaples, ntotalemulsionsNaples - nscannedemulsionsNaples))
-   print ('We have accomplished: {:.1%} of the Naples scanning workload'.format(nscannedemulsionsNaples/ntotalemulsionsNaples)) #.2% is the format with percentage with 2 decimals afterwards (like .2f) 
+   print ('We have accomplished: {:.1%} of the Naples scanning workload'.format(napoliratio)) #.2% is the format with percentage with 2 decimals afterwards (like .2f) 
+   #let's bake a cake
+   ratios = []
+   ratios.append(napoliratio*100)
+   ratios.append(100- napoliratio*100)
+   explode = [0.1, 0]
+   labels = ['Scanned', 'To be done']
+   plt.pie(ratios, explode=explode, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
+   plt.axis('equal') #ensures that the pie is drawn as a circle
+   plt.show()
