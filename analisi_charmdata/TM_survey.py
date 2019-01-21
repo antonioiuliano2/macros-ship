@@ -38,9 +38,9 @@ for step in mover:
 
 plt.figure()
 
-plt.errorbar(xsurvey_transformed,ysurvey_transformed,0.5,0.5,'g.',label='measured')
-plt.plot(xsurvey_transformed,ysurvey_transformed,'r',label='measured')
-plt.plot(xmover,ymover,'b',label='expected')
+plt.errorbar(xsurvey_transformed,ysurvey_transformed,0.5,0.5,'g.',label='measured positions')
+plt.plot(xsurvey_transformed,ysurvey_transformed,'r',label='reconstructed path')
+plt.plot(xmover,ymover,'b',label='expected path')
 plt.xlabel('x[mm]')
 plt.ylabel('y[mm]')
 
@@ -74,5 +74,5 @@ for i in range(nmovements):
  print('xy angle during the {number:.4f} movement: {angle:.4f}. Angle variation:{deltatheta:.4f}'.format(number= i+1, angle=anglexy(i),deltatheta = anglexy(i) -anglexy(i,mover)))
 
  #showing the points where the TM passed
-plt.legend(loc='upper center')
+plt.legend(loc='upper center',fontsize='large')
 plt.show()
