@@ -3,7 +3,7 @@
 #include "/home/utente/Scrivania/SHIPBuild/FairShip/shipdata/ShipMCTrack.h"
 #include "/home/utente/Scrivania/SHIPBuild/FairShip/charmdet/SpectrometerPoint.h"
 //#include "/home/utente/Scrivania/SHIPBuild/sw/ubuntu1604_x86-64/ROOT/v6-10-06-ship-1/include/TDatabasePDG.h"
-#include "/home/utente/Scrivania/SHIPBuild/sw/ubuntu1604_x86-64/FairRoot/Oct17-ship-1/include/FairMCEventHeader.h"
+#include "/home/utente/Scrivania/SHIPBuild/sw/ubuntu1604_x86-64/FairRoot/latest/include/FairMCEventHeader.h"
 bool isunknown(Int_t PdgCode);
 bool isquark(Int_t PdgCode);
 bool isintermediate(Int_t PdgCode);

@@ -25,6 +25,8 @@ tree->Branch("segment", &segmentarray);
 
   EdbVertex *vertex = new EdbVertex();
   cout<<"number of vertices: "<<vertexlist->eVTX->GetEntries()<<endl;
+  const Double_t fake_momentum = 1.0; //we do not know the real momentum, but we need a value to put the angle in MCTrack
+
   for(Int_t ivtx=0; ivtx<vertexlist->eVTX->GetEntries(); ivtx++){
     //clear arrays 
     trackarray->Clear("C");
@@ -48,11 +50,20 @@ tree->Branch("segment", &segmentarray);
      Double_t startx = track->TrackStart()->X();
      Double_t starty = track->TrackStart()->Y();
      Double_t startz = track->TrackStart()->Z();
+     
+     Double_t TX = track->TrackStart()->TX();
+     Double_t TY = track->TrackStart()->TY();
+
+     Double_t theta = TMath::ATan(TMath::Sqrt(TX*TX + TY*TY));
+     Double_t phi = TMath::ATan2(TY,TX);
       
+     Double_t px = fake_momentum * TMath::Sin(theta) * TMath::Cos(phi);
+     Double_t py = fake_momentum * TMath::Sin(theta) * TMath::Sin(phi);
+     Double_t pz = fake_momentum * TMath::Cos(theta);
      cout<<"Track number: "<<itrk<<" numberofsegments: "<<track->N()<<" start coordinates "<<track->TrackStart()->X()<<" "<<track->TrackStart()->Y()<<" "<<track->TrackStart()->Z()<<endl;
 
      //Build SHiPMCTrack object
-    ShipMCTrack savedtrack  = ShipMCTrack(-1, -1, 0., 0.,0., 0.,startx , starty, startz, 0, track->N(), track->W()); //Constructor in the loop, DOH! Remember the ALICE boss!
+    ShipMCTrack savedtrack  = ShipMCTrack(-1, -1, px, py,pz, 1.,startx , starty, startz, 0, track->N(), track->W()); //Constructor in the loop, DOH! Remember the ALICE boss!
     /**  Standard constructor  
     ShipMCTrack(Int_t pdgCode, Int_t motherID, Double_t px, Double_t py,
                 Double_t pz, Double_t E, Double_t x, Double_t y, Double_t z,
