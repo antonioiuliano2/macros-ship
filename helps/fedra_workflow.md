@@ -26,6 +26,8 @@ We can create an EdbScanSet with the command:
 
 It could be useful to save the default configuration in a scanset.txt file, customized with the plates to be analized.  
 
+Global coordinates are defined taking one plate as reference, then applying the affine transformations to the others, with respect to the reference one. By default it is the last plate, if needed it can be changed by adding a '-refplate' option.
+
 Warning: Using -reset to reset parameters after an ill-done alignment resets also shrinkage parameters! This has no consequences after linking, but we lose information about how was the shrinkage (we can always find it in the report though). I usually prefer to manually insert the identity transformation in the AFF folder. 
 
 ## Linking
