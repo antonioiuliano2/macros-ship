@@ -8,6 +8,7 @@ void read_spill(){
     TCanvas *c2 = new TCanvas();
     auto hpassive = df.Histo1D("npassive");
     hpassive->DrawCopy();
+
     //fraction of protons not interacting
     auto survivingpot = [] (int nemu, int npassive,  int name){
            //units in mm
@@ -31,13 +32,13 @@ void read_spill(){
         if (name/10 == 0) return preshowerthickness;       
         if (name/10 == 2) preshowerthickness = 28;
         else if (name/10 > 2) preshowerthickness = 56 *(name/10-2);
-        cout<<name<<" "<<preshowerthickness<<endl;
+
         float nlambdapassive = preshowerthickness/pblambda;
         float inpreshower = (1-TMath::Exp(-nlambdapassive));
 
         float surviving = TMath::Exp(-nlambda); //surviving protons (averaging in the N spills)
         float inECC = 1 - surviving - inpreshower;
-        return inECC; //percentage of surviving pot
+        return inECC; //percentage of pot interacting within the brick
     };
 
     auto entries = df.Filter("name/10==1").Count();
