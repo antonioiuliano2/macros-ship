@@ -1,9 +1,6 @@
 void read_spill(){
  ROOT::RDataFrame df("spill", "../input/charm_spills.root");
-
- auto dfrun = df->Filter("name == 16")
-
- auto d1 = dfrun->Display("runcode");
+ auto d1 = df->Display("runcode:name");
  d1->print();
 
 }
