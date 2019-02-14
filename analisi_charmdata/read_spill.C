@@ -1,4 +1,14 @@
 void read_spill(){
+ ROOT::RDataFrame df("spill", "../input/charm_spills.root");
+
+ auto dfrun = df->Filter("name == 16")
+
+ auto d1 = dfrun->Display("runcode");
+ d1->print();
+
+}
+
+void study_protons(){
     //building a RDataFrame from the inputfile
     ROOT::RDataFrame df("spill","charm_spills.root");
     
