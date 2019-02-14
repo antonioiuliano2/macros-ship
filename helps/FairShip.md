@@ -26,6 +26,10 @@ Option `--CharmdetSetup 1` activates charm cross section geometry, while
 Only the most useful options have been explained here. For the complete list of
 available options please refer to the related scripts.
 
+No particular cuts are usually done with the respect to the Default FairShip phyisics options.
+However, by default for hit with kinetic energy lower than  `100 MeV` the software will NOT save the MCTrack, to avoid memory consumption. If tracks with lower energy need to be studied, this threshold can be lowered in the simulation script. 
+FairShip used cuts are shown in gconfig/SetCuts.C. Energy thresholds for interactions are usually 1 MeV
+
 Charm production simulations are done from `macro/run_simScript.py`. Example
 syntax:    
 `python $FAIRSHIP/macro/run_simScript.py --charm 1 -A charmonly
