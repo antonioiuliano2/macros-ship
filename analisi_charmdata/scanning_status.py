@@ -84,10 +84,10 @@ allscanned('ch3r2')
 
 for index in range(9):
     scanned('ch1r5',index+1)
-for index in range(18):
+for index in range(46):
     scanned('ch4r2',index+1)
-for index in range(3):
-    scanned('ch5r2',index+)
+for index in range(33):
+    scanned('ch5r2',index+1)
 
 # ********************************************REPORT******************************************************#    
 #counting how many emulsions are left to scan
@@ -115,15 +115,15 @@ def localreport():
    print ('Total number of scanned emulsion so far in Naples: {}. Still to be scanned: {}'.format(nscannedemulsionsNaples, ntotalemulsionsNaples - nscannedemulsionsNaples))
    print ('We have accomplished: {:.1%} of the Naples scanning workload'.format(napoliratio)) #.2% is the format with percentage with 2 decimals afterwards (like .2f) 
    #let's bake a cake
-   damaged = 2 #number of damaged emulsions
+   #damaged = 2 #number of damaged emulsions
    ratios = [] #percentages to fill the pie plot
    ratios.append(napoliratio*100)
-   ratios.append(damaged/ntotalemulsionsNaples * 100)
-   ratios.append((1- napoliratio - damaged/ntotalemulsionsNaples)*100)
+   #ratios.append(damaged/ntotalemulsionsNaples * 100)
+   ratios.append((1- napoliratio)*100)
 
-   explode = [0.1, 0, 0] #we want to 'extract' the slice of already scanned emulsions 
-   colors = ['g','r','y'] 
-   labels = ['Scanned', 'Damaged', 'To be done']
+   explode = [0.1, 0] #we want to 'extract' the slice of already scanned emulsions 
+   colors = ['g', 'y'] 
+   labels = ['Scanned', 'To be done']
 
    plt.pie(ratios, explode=explode, colors = colors, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
    plt.axis('equal') #ensures that the pie is drawn as a circle
