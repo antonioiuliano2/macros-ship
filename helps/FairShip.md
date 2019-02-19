@@ -8,9 +8,15 @@ After installation, to redo build (local modification, global updates, ...):
 `> cd SHIPBuild`
 `> FairShip/aliBuild.sh`
 
-Set environment variables with the command:
+Set environment variables with the command
 
 `>alibuild/alienv enter --shellrc FairShip/latest`
+
+On Lxplus launch
+`'cd SHIPBuild/FairShip'`
+export SHIPBUILD=/cvmfs/ship.cern.ch/SHIPBuild
+`./localBuild.sh`
+source ../FairShipRun/config.sh
 
 # Simulation for Charm cross section and Muon flux measurements
 
