@@ -1,8 +1,6 @@
 void read_spill(){
  ROOT::RDataFrame df("spill", "../input/charm_spills.root");
- auto d1 = df->Display("runcode:name");
- d1->print();
-
+ //cannot use display, not yet implemented in FairShip root version
 }
 
 void study_protons(){
@@ -20,27 +18,29 @@ void study_protons(){
     auto survivingpot = [] (int nemu, int npassive,  int name){
            //units in mm
         const float filmthickness = 0.300;
-        const float emulambda = 30000; //stakeholder, need to find it 
-        const float pblambda = 152.5;
+        const float emulambda = 600; //stakeholder, need to find it 
+        float passivelambda = 175.9;
+        if (name == 16) passivelambda = 99.5; //CH1-R6 used W instead of PB
         float totalemuthickness = nemu * filmthickness;
-        float nlambda = totalemuthickness/emulambda + npassive/pblambda; //computing the total number of interaction lengths
+        float nlambda = totalemuthickness/emulambda + npassive/passivelambda; //computing the total number of interaction lengths
         float surviving = TMath::Exp(-nlambda); //surviving protons (averaging in the N spills)
         return surviving; //percentage of surviving pot
     };
     //fraction of protons interacting in ECC
     auto signalpot = [] (int nemu, int npassive, int name){
         const float filmthickness = 0.300;
-        const float emulambda = 30000; //stakeholder, need to find it 
-        const float pblambda = 152.5;
+        const float emulambda = 600; //from FairShip
+        float passivelambda = 175.9;
+        if (name == 16) passivelambda = 99.5; //CH1-R6 used W instead of PB
         float totalemuthickness = nemu * filmthickness;
-        float nlambda = totalemuthickness/emulambda + npassive/pblambda; //computing the total number of interaction lengths
+        float nlambda = totalemuthickness/emulambda + npassive/passivelambda; //computing the total number of interaction lengths
         float preshowerthickness = 0.;
 
         if (name/10 == 0) return preshowerthickness;       
         if (name/10 == 2) preshowerthickness = 28;
         else if (name/10 > 2) preshowerthickness = 56 *(name/10-2);
 
-        float nlambdapassive = preshowerthickness/pblambda;
+        float nlambdapassive = preshowerthickness/passivelambda;
         float inpreshower = (1-TMath::Exp(-nlambdapassive));
 
         float surviving = TMath::Exp(-nlambda); //surviving protons (averaging in the N spills)
@@ -53,13 +53,30 @@ void study_protons(){
 
     TCanvas *csurviving = new TCanvas();
     auto df1 = df.Define("survpercent",survivingpot,{"nemu","npassive","name"});
-    auto gpot = df1.Histo2D({"h2","Surviving fraction of pot;charmrun",10,0,100,100,0,1},"name","survpercent");
+    auto gpot = df1.Histo2D({"h2","Surviving fraction of pot;charmrun",100,0,100,100,0,1},"name","survpercent");
+    gpot->GetXaxis()->SetBinLabel(10,"CH1");
+    gpot->GetXaxis()->SetBinLabel(20,"CH2");
+    gpot->GetXaxis()->SetBinLabel(30,"CH3");
+    gpot->GetXaxis()->SetBinLabel(40,"CH4");
+    gpot->GetXaxis()->SetBinLabel(50,"CH5");
+    gpot->GetXaxis()->SetBinLabel(60,"CH6");
     gpot->DrawCopy("COLZ");
+
 
     TCanvas *csignal = new TCanvas();
     auto df2 = df1.Define("signalpercent",signalpot,{"nemu","npassive","name"});
-    auto hsignalpot = df2.Histo2D({"hsignalpot","Signal fraction of pot;charmrun",10,0,100,100,0,1},"name","signalpercent");
+    auto hsignalpot = df2.Histo2D({"hsignalpot","Signal fraction of pot;charmrun",100,0,100,100,0,1},"name","signalpercent");
+    hsignalpot->GetXaxis()->SetBinLabel(10,"CH1");
+    hsignalpot->GetXaxis()->SetBinLabel(20,"CH2");
+    hsignalpot->GetXaxis()->SetBinLabel(30,"CH3");
+    hsignalpot->GetXaxis()->SetBinLabel(40,"CH4");
+    hsignalpot->GetXaxis()->SetBinLabel(50,"CH5");
+    hsignalpot->GetXaxis()->SetBinLabel(60,"CH6");
     hsignalpot->DrawCopy("COLZ");
+
+    auto dfsave0 = df1.Define("survivingpot","survpercent*pot");
+    auto dfsavefinal = dfsave0.Define("signalpot","signalpercent*pot");
+    dfsavefinal.Snapshot("spill","charm_spills_saved.root");
 }
 
 void add_info(){ //additional information about number of emulsion and lead plates
