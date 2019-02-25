@@ -1,3 +1,67 @@
+//preparing a tree containing one entry for vertex, needed for TMVA analysis
+
+void prepareTMVAtree(){
+  TFile *f = TFile::Open("modified_vertices2.root");
+  TTree *vtx = dynamic_cast<TTree*>(f->Get("vtx"));
+
+  Int_t vID, manualcheck, ntracks;
+  Float_t probability, maximpactparameter, meanTX, meanTY,meannseg;
+  Float_t maxIP, meanIP;
+
+  const Int_t maxtracks = 1000; //I do not expect a larger number of tracks than this
+  Int_t nseg[maxtracks];
+  Float_t TX[maxtracks], TY[maxtracks], IP[maxtracks];
+
+  vtx->SetBranchAddress("manualcheck",&manualcheck);
+  vtx->SetBranchAddress("vID",&vID);
+  vtx->SetBranchAddress("n",&ntracks); 
+  vtx->SetBranchAddress("probability",&probability);
+  vtx->SetBranchAddress("nseg",&nseg);
+  vtx->SetBranchAddress("TX",&TX);
+  vtx->SetBranchAddress("TY",&TY);
+  vtx->SetBranchAddress("impactparameter",&IP);
+
+  //outputtree to save
+  TFile * outputfile = new TFile("tmva_input_vertices.root","RECREATE");
+  TTree *outputvtx = new TTree("vertices","Input file for TMVA analysis");
+
+  outputvtx->Branch("manualcheck",&manualcheck,"manualcheck/I");
+  outputvtx->Branch("vID",&vID,"vID/I");
+  outputvtx->Branch("ntracks",&ntracks,"ntracks/I");
+  outputvtx->Branch("probability",&probability,"probability/F");
+  outputvtx->Branch("meannseg",&meannseg,"meannseg/F");
+  outputvtx->Branch("meanTX",&meanTX,"meanTX/F");
+  outputvtx->Branch("meanTY",&meanTX,"meanTY/F");
+  outputvtx->Branch("maxIP",&maxIP,"maxIP/F");
+  outputvtx->Branch("meanIP",&meanIP,"meanIP/F");
+
+  const Int_t nvertices = vtx->GetEntries();
+
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+      vtx->GetEntry(ivtx);
+      meannseg = 0.;
+      meanTX = 0.;
+      meanTY = 0.;
+      maxIP = 0.;
+      meanIP = 0.;
+      for (int itrk = 0; itrk < ntracks; itrk++){
+          meannseg = meannseg + nseg[itrk];
+          meanTX = meanTX + TX[itrk];
+          meanTY = meanTY + TY[itrk];
+          meanIP = meanIP + IP[itrk];
+          if (maxIP < IP[itrk]) maxIP = IP[itrk];
+      }
+      meannseg = (Float_t)(meannseg/ntracks);
+      meanTX = (Float_t)(meanTX/ntracks);
+      meanTY = (Float_t)(meanTY/ntracks);
+      meanIP = (Float_t)(meanIP/ntracks);
+      outputvtx->Fill();
+  }
+  f->Close();
+  outputfile->Write();
+  outputfile->Close();
+}
+//TMVA TUTORIAL SCRIPT BY ROOT
 /// \file
 /// \ingroup tutorial_tmva
 /// \notebook -nodraw
