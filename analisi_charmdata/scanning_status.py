@@ -87,7 +87,7 @@ for index in range(9):
 for index in range(18):
     scanned('ch4r2',index+1)
 for index in range(3):
-    scanned('ch5r2',index+)
+    scanned('ch5r2',index+1)
 
 # ********************************************REPORT******************************************************#    
 #counting how many emulsions are left to scan
@@ -111,9 +111,12 @@ print ('We have accomplished: {:.1%} of the scanning workload'.format(nscannedem
 def localreport():
    figure = plt.figure()
    napoliratio = nscannedemulsionsNaples/ntotalemulsionsNaples
+   scanrate = 25 #assuming 5 emulsions scanned per day and 4 on Friday
+   remainingweeks = (ntotalemulsionsNaples - nscannedemulsionsNaples)/scanrate
    print ('Total emulsion films in Naples: {}'.format(ntotalemulsionsNaples))
    print ('Total number of scanned emulsion so far in Naples: {}. Still to be scanned: {}'.format(nscannedemulsionsNaples, ntotalemulsionsNaples - nscannedemulsionsNaples))
    print ('We have accomplished: {:.1%} of the Naples scanning workload'.format(napoliratio)) #.2% is the format with percentage with 2 decimals afterwards (like .2f) 
+   print ('Weeks required for completion: {:.2f}'.format(remainingweeks))
    #let's bake a cake
    damaged = 2 #number of damaged emulsions
    ratios = [] #percentages to fill the pie plot
