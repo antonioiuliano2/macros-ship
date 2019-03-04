@@ -1,7 +1,7 @@
 //preparing a tree containing one entry for vertex, needed for TMVA analysis
 
 void prepareTMVAtree(){
-  TFile *f = TFile::Open("modified_vertices2.root");
+  TFile *f = TFile::Open("vertices_secondquarter.root");
   TTree *vtx = dynamic_cast<TTree*>(f->Get("vtx"));
 
   Int_t vID, manualcheck, ntracks;
@@ -12,7 +12,7 @@ void prepareTMVAtree(){
   Int_t nseg[maxtracks];
   Float_t TX[maxtracks], TY[maxtracks], IP[maxtracks];
 
-  vtx->SetBranchAddress("manualcheck",&manualcheck);
+//  vtx->SetBranchAddress("manualcheck",&manualcheck);
   vtx->SetBranchAddress("vID",&vID);
   vtx->SetBranchAddress("n",&ntracks); 
   vtx->SetBranchAddress("probability",&probability);
@@ -22,16 +22,16 @@ void prepareTMVAtree(){
   vtx->SetBranchAddress("impactparameter",&IP);
 
   //outputtree to save
-  TFile * outputfile = new TFile("tmva_input_vertices.root","RECREATE");
+  TFile * outputfile = new TFile("tmva_evaluation_vertices.root","RECREATE");
   TTree *outputvtx = new TTree("vertices","Input file for TMVA analysis");
 
-  outputvtx->Branch("manualcheck",&manualcheck,"manualcheck/I");
+//  outputvtx->Branch("manualcheck",&manualcheck,"manualcheck/I");
   outputvtx->Branch("vID",&vID,"vID/I");
   outputvtx->Branch("ntracks",&ntracks,"ntracks/I");
   outputvtx->Branch("probability",&probability,"probability/F");
   outputvtx->Branch("meannseg",&meannseg,"meannseg/F");
   outputvtx->Branch("meanTX",&meanTX,"meanTX/F");
-  outputvtx->Branch("meanTY",&meanTX,"meanTY/F");
+  outputvtx->Branch("meanTY",&meanTY,"meanTY/F");
   outputvtx->Branch("maxIP",&maxIP,"maxIP/F");
   outputvtx->Branch("meanIP",&meanIP,"meanIP/F");
 
@@ -245,8 +245,8 @@ int TMVAClassification( TString myMethodList = "" )
    // Register the training and test trees
   //   TFile f("tmva_input_vertices.root");
    TTree * sampleTree = dynamic_cast<TTree*>(input->Get("vertices"));
-   TTree *signalTree = sampleTree->CopyTree("manualcheck>0");
-   TTree *backgroundTree = sampleTree->CopyTree("manualcheck<0");
+   TTree *signalTree = sampleTree->CopyTree("manualcheck>0 && manualcheck <4");
+   TTree *backgroundTree = sampleTree->CopyTree("manualcheck<0 || manualcheck == 4");
    //TTree *signalTree     = (TTree*)input->Get("TreeS");
    //TTree *background     = (TTree*)input->Get("TreeB");
 
@@ -282,18 +282,17 @@ int TMVAClassification( TString myMethodList = "" )
    //dataloader->AddVariable( "var3",                "Variable 3", "units", 'F' );
    //dataloader->AddVariable( "var4",                "Variable 4", "units", 'F' );
    dataloader->AddVariable("probability", 'F');
-   dataloader->AddVariable("ntracks", 'I');
    dataloader->AddVariable("meannseg",'F');
-   dataloader->AddVariable("maxIP",'F');
-   dataloader->AddVariable("meanIP",'F');
+   dataloader->AddVariable("(maxIP-meanIP)/maxIP",'F');
    // You can add so-called "Spectator variables", which are not used in the MVA training,
    // but will appear in the final "TestTree" produced by TMVA. This TestTree will contain the
    // input variables, the response values of all trained MVAs, and the spectator variables
 
-   dataloader->AddSpectator( "vID",  "Index of the vertex", "units", 'F' );
+   dataloader->AddSpectator("ntracks", "Vertex molteplicity","units",'I');
+   dataloader->AddSpectator( "vID",  "Index of the vertex", "units", 'I' );
    dataloader->AddSpectator( "meanTX",  "meanTX", "units", 'F' );
    dataloader->AddSpectator( "meanTY", "meanTY","units",'F');
-
+   //dataloader->AddSpectator("maxIP","maxImpactParameter","units",'F');
 
    // global event weights per tree (see below for setting event-wise weights)
    Double_t signalWeight     = 1.0;
