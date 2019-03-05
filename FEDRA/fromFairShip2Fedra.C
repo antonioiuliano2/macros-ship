@@ -11,8 +11,8 @@
 using namespace TMath;
 
 void fromFairShip2Fedra(int nplate = 1){
- TFile * inputfile = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/sim_charm/pot/Charm1_uniform_19_11_2018/pythia8_evtgen_Geant4_1000_0.001.root");
-//TFile * inputfile = TFile::Open("/home/utente/SHIPBuild/sim_charmdet/pot/1ECC_leadbeforeplastic_nofieldnogaps_G4only_uniform/pythia8_Geant4_1_0.001.root");
+ //TFile * inputfile = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/sim_charm/pot/Charm1_uniform_19_11_2018/pythia8_evtgen_Geant4_1000_0.001.root");
+TFile * inputfile = TFile::Open("/eos/user/a/aiuliano/sims_FairShip/sim_charm/pot/uniformonespill_onelayer_ch1_03_03_19/pythia8_Geant4_1000_0.5.root");
  TTree* cbmsim = (TTree*)inputfile->Get("cbmsim");
  gInterpreter->AddIncludePath("/afs/cern.ch/work/a/aiuliano/public/fedra/include");
  Double_t tx = 0, ty=0, xem= 0, yem = 0;
@@ -30,8 +30,8 @@ void fromFairShip2Fedra(int nplate = 1){
  // TFile * outputfile = new TFile("myfedra.out","RECREATE");
    EdbCouplesTree ect;
  //  EdbCouplesTree ectpixel;
-  if (nplate <10) ect.InitCouplesTree("couples",Form("../macro_fedra/b000001/p00%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
-  else ect.InitCouplesTree("couples",Form("../macro_fedra/b000001/p0%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
+  if (nplate <10) ect.InitCouplesTree("couples",Form("b000001/p00%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
+  else ect.InitCouplesTree("couples",Form("b000001/p0%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
    // ectpixel.InitCouplesTree("couples","pixel.root","RECREATE");
    Int_t Flag = 1;
  for (int i = 0; i < nevents; i++){
@@ -39,21 +39,18 @@ void fromFairShip2Fedra(int nplate = 1){
    arr1->Clear();
    cbmsim->GetEntry(i);
    for (int j = 0; j < arr1->GetEntriesFast(); j++){
-     if (j % 2 == 0) continue;
+//no you dont//     if (j % 2 == 0) continue;
      BoxPoint* emupoint = (BoxPoint*)arr1->At(j);
      xem = emupoint->GetX()* 1E+4 + 62500;
      yem = emupoint->GetY()* 1E+4 + 49500;
      tx = emupoint->GetPx()/emupoint->GetPz();
-     ty = emupoint->GetPy()/emupoint->GetPz();
-     ect.eS->Set(i,xem,yem,tx,ty,1,Flag);
-     ect.eS->SetW(70.); //need a weight to do tracking
-     if (emupoint->GetDetectorID() == nplate) ect.eS->Set(i,xem,yem,tx,ty,1,Flag);
-     //if ((emupoint->GetDetectorID() == 56) && (emupoint->GetZ() < -2.15)){ ect.eS->Set(i,xem,yem,tx,ty,1,Flag);
-//     if ((emupoint->GetDetectorID() == 57) && (emupoint->GetZ() < -2.02)){ ect.eS->Set(i,xem,yem,tx,ty,1,Flag);
-     //if ((emupoint->GetDetectorID() == 20) && (emupoint->GetZ() < -2.02)) ect.eS1->Set(i,xem,yem,tx,ty,1,Flag);
-     //if ((emupoint->GetDetectorID() == 20) && (emupoint->GetZ() > -2.02)) ect.eS2->Set(i,xem,yem,tx,ty,1,Flag);
+     ty = emupoint->GetPy()/emupoint->GetPz();    
+     if (emupoint->GetDetectorID() == nplate){
+       ect.eS->Set(i,xem,yem,tx,ty,1,Flag);
+       ect.eS->SetW(70.); //need a high weight to do tracking
      //if(do_invert) ect.eS->Transform(&aff_invert);
-     ect.Fill();
+       ect.Fill();
+       }
      }
    }
 
