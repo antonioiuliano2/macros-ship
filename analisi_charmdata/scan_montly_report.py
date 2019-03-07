@@ -1,14 +1,17 @@
 #Just discover that pandas can import excel, let's try it (26 February 2019)
+import os #to import my $HOME PATH
 import pandas as pd
 from matplotlib import pyplot as plt
 from pandas.plotting import register_matplotlib_converters
 import matplotlib.dates as mdates
 
+homepath = os.environ['HOME']
+
 register_matplotlib_converters() #for datetimes
 months = ['January','February']
 for month in months:
 
-    df = pd.read_excel("/home/antonio/Dropbox/Charmdata/monthly_scan_report.xls",sheet_name=month)
+    df = pd.read_excel(homepath+"/Dropbox/Charmdata/monthly_scan_report.xls",sheet_name=month)
 
 #getting lists
     date = df[u'Date']
@@ -17,13 +20,14 @@ for month in months:
     total = df[u'Total']
 
     fig, ax = plt.subplots()
-    plt.suptitle('Monthly scaning report ' + month)
-    ax.plot(date,mic3,'.r')
-    ax.plot(date,mic2,'+b')
-    ax.plot(date,total,'*y')
-    ax.legend(loc='upper right')
+    plt.suptitle('Monthly scan report ' + month)
+    ax.plot(date,mic3,'.r', markersize=12)
+    ax.plot(date,mic2,'+b', markersize=12)
+    ax.plot(date,total,'*y',markersize=12)
+    ax.legend(loc='upper right',fontsize='medium') #borderpad makes the legend larger
 
     ax.set_xticks(date)
+    plt.xlabel('day')
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%d-%m"))
     ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d-%m"))
     _=plt.xticks(rotation=90)

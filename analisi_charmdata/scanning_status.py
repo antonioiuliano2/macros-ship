@@ -84,11 +84,9 @@ allscanned('ch3r2')
 allscanned('ch4r2')
 allscanned('ch5r2')
 
-for index in range(9):
-    scanned('ch1r5',index+1)
-for index in range(10):
+for index in range(40):
     scanned('ch6r2',index+1)
-for index in range(20):
+for index in range(25):
     scanned('ch5r3',index+1)
 
 # ********************************************REPORT******************************************************#    
@@ -110,6 +108,21 @@ for brick in bricks:
 print ('Total number of scanned emulsion so far: {}. Still to be scanned: {}'.format(nscannedemulsions, ntotalemulsions - nscannedemulsions))
 print ('We have accomplished: {:.1%} of the scanning workload'.format(nscannedemulsions/ntotalemulsions)) #.2% is the format with percentage with 2 decimals afterwards (like .2f)
 
+def generalreport():
+   figure = plt.figure()
+   generalratio = nscannedemulsions/ntotalemulsions
+   #inserting elements of the graph
+   ratios= []
+   ratios.append(generalratio*100)
+   ratios.append((1-generalratio)*100)
+
+   explode = [0.1,0]
+   colors = ['g','y']
+   labels = ['Scanned', 'To be done']
+   #ready to plot
+   plt.pie(ratios, explode=explode, colors=colors, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
+   plt.axis('equal')
+   plt.show()
 def localreport():
    figure = plt.figure()
    napoliratio = nscannedemulsionsNaples/ntotalemulsionsNaples
