@@ -81,13 +81,15 @@ allscanned('ch2r6')
 allscanned('ch2r4')
 allscanned('ch2r5')
 allscanned('ch3r2')
+allscanned('ch4r2')
+allscanned('ch5r2')
 
 for index in range(9):
     scanned('ch1r5',index+1)
-for index in range(46):
-    scanned('ch4r2',index+1)
-for index in range(33):
-    scanned('ch5r2',index+1)
+for index in range(10):
+    scanned('ch6r2',index+1)
+for index in range(20):
+    scanned('ch5r3',index+1)
 
 # ********************************************REPORT******************************************************#    
 #counting how many emulsions are left to scan

@@ -8,7 +8,7 @@ Class where base tracks are stored. Segment ID can be accessed with ID()
 * Spherical angle coordinates: Phi() and Theta() (actually Theta() gives TanTheta(), due to historical bug) 
 * Emulsion information: Plate(), DZ(), DZem(), W() (the latter weigth w() returns the number of clusters) 
 * Fit information (from linking): Chi2(), Prob() 
-
+* MC information (if available): MCEvt(), MCTrack(). Set with   SetMC( int mEvt, int mTrack )
 ## Track: EdbTrackP
 Location in fedra: /fedra/src/libEdr/EdbPattern.h
 Class for volume track, inherits from EdbSegP. ID() returns ID of Track.
@@ -36,4 +36,6 @@ EdbVTA is the object returned by GetVTA(i). Declared also in EdbVertex.h. It des
 * Dist() returns distance from vertex to nearest track point; 
 * GetTrack() and GetVertex() return track and vertex objects from the association; 
 
-
+## EdbVertexComb
+Location in fedra: /fedra/src/libEdr/EdbVertexComb.h
+Prepare track combinations to study 'anomalous OPERA event in Bari'. Still check for info
