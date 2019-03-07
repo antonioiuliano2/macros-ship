@@ -33,8 +33,8 @@ void fromFairShip2Fedra(int nplate){
  //TTree* cbmsim = (TTree*)inputfile->Get("cbmsim");
  Float_t tx = 0, ty=0, xem= 0, yem = 0;
  const Int_t nevents = reader.GetTree()->GetEntries();
- int ihit = 0;
- 
+ int ihit = 0, ievent = 0;
+ int trackID = 0, motherID = 0;
  gInterpreter->AddIncludePath("/afs/cern.ch/work/a/aiuliano/public/fedra/include");
  EdbCouplesTree ect;
  if (nplate <10) ect.InitCouplesTree("couples",Form("b000001/p00%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
@@ -46,24 +46,30 @@ void fromFairShip2Fedra(int nplate){
    for (const BoxPoint& emupoint:emulsionhits){
      bool savehit = true; //by default I save all hits
 //no you don't want to do this//     if (j % 2 == 0) continue;
+     trackID = emupoint.GetTrackID();
+     motherID = emupoint.GetTrackID();
      xem = emupoint.GetX()* 1E+4 + 62500;
      yem = emupoint.GetY()* 1E+4 + 49500;
      tx = emupoint.GetPx()/emupoint.GetPz();
-     ty = emupoint.GetPy()/emupoint.GetPz();    
+     ty = emupoint.GetPy()/emupoint.GetPz();
+     //saving the hits for a plate in the corresponding couples (only one layer saved, the other has ID + 10000)    
      if (emupoint.GetDetectorID() == nplate){
        //Inserting real data effects in the simulation
        if(!efficiency(emuefficiency)) savehit = false; //inserting some holes due to emulsion inefficiency
        smearing(tx,ty,angres);
        //Saving the hit in FEDRA
-       if (savehit){
+       if (savehit){        
         ect.eS->Set(ihit,xem,yem,tx,ty,1,Flag);
+        ect.eS->SetMC(ievent, trackID) //objects used to store MC true information
+        ect.eS->SetAid(motherID, 0); //forcing areaID member to store mother MC track information
         ect.eS->SetW(70.); //need a high weight to do tracking
      //if(do_invert) ect.eS->Transform(&aff_invert);
         ect.Fill();
+        ihit++; //hit entry, increasing as the tree is filled
         }
        }
-     ihit++; //each entry is an hit (MC POINTID should be preserved)
      }//end of loop on emulsion points
+    ievent++;
    } //end of loop on tree
 
   ect.Close();  
