@@ -36,4 +36,6 @@ EdbVTA is the object returned by GetVTA(i). Declared also in EdbVertex.h. It des
 * Dist() returns distance from vertex to nearest track point; 
 * GetTrack() and GetVertex() return track and vertex objects from the association; 
 
-
+## EdbVertexComb
+Location in fedra: /fedra/src/libEdr/EdbVertexComb.h
+Prepare track combinations to study 'anomalous OPERA event in Bari'. Still check for info
