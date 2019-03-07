@@ -8,7 +8,7 @@ register_matplotlib_converters() #for datetimes
 months = ['January','February']
 for month in months:
 
-    df = pd.read_excel("/home/antonio/Dottorato/Charmdata/monthly_scan_report.xls",sheet_name=month)
+    df = pd.read_excel("/home/antonio/Dropbox/Charmdata/monthly_scan_report.xls",sheet_name=month)
 
 #getting lists
     date = df[u'Date']
@@ -17,7 +17,7 @@ for month in months:
     total = df[u'Total']
 
     fig, ax = plt.subplots()
-    #ax.title(month)
+    plt.suptitle('Monthly scaning report ' + month)
     ax.plot(date,mic3,'.r')
     ax.plot(date,mic2,'+b')
     ax.plot(date,total,'*y')
