@@ -8,7 +8,7 @@ Class where base tracks are stored. Segment ID can be accessed with ID()
 * Spherical angle coordinates: Phi() and Theta() (actually Theta() gives TanTheta(), due to historical bug) 
 * Emulsion information: Plate(), DZ(), DZem(), W() (the latter weigth w() returns the number of clusters) 
 * Fit information (from linking): Chi2(), Prob() 
-
+* MC information (if available): MCEvt(), MCTrack(). Set with   SetMC( int mEvt, int mTrack )
 ## Track: EdbTrackP
 Location in fedra: /fedra/src/libEdr/EdbPattern.h
 Class for volume track, inherits from EdbSegP. ID() returns ID of Track.
