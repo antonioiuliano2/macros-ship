@@ -1,4 +1,6 @@
 //tool to load hit from emulsion to FEDRA (13 aprile 2018) //updated to work with the new TTreeReader structure (6 March)
+//to use it, go in a directory and create the folder b000001/p001 to b000001/p029
+//then launch it from the directory mother of b000001
 
 #include <stdio.h>
 #include <TROOT.h>
@@ -47,7 +49,7 @@ void fromFairShip2Fedra(int nplate){
      bool savehit = true; //by default I save all hits
 //no you don't want to do this//     if (j % 2 == 0) continue;
      trackID = emupoint.GetTrackID();
-     motherID = emupoint.GetMotherId();
+     motherID = tracks[trackID].GetMotherId();
      xem = emupoint.GetX()* 1E+4 + 62500;
      yem = emupoint.GetY()* 1E+4 + 49500;
      tx = emupoint.GetPx()/emupoint.GetPz();
