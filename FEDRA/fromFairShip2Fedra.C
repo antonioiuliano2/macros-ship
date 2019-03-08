@@ -21,8 +21,8 @@ void fromFairShip2Fedra(){
 void fromFairShip2Fedra(int nplate){
  const float emuefficiency = 0.9;
  const float angres = 0.003; // 3 milliradians
- //TFile * inputfile = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/sim_charm/pot/Charm1_uniform_19_11_2018/pythia8_evtgen_Geant4_1000_0.001.root");
- TFile * inputfile = TFile::Open("/eos/user/a/aiuliano/sims_FairShip/sim_charm/pot/uniformonespill_onelayer_ch1_03_03_19/pythia8_Geant4_1000_0.5.root");
+ TFile * inputfile = TFile::Open(" /eos/experiment/ship/user/aiuliano/SHiP_sim/uniformonespill_onelayertungsten_ch1_07_03_19/pythia8_Geant4_1000_0.5.root");
+ //TFile * inputfile = TFile::Open("/eos/user/a/aiuliano/sims_FairShip/sim_charm/pot/uniformonespill_onelayer_ch1_03_03_19/pythia8_Geant4_1000_0.5.root");
  if (!inputfile) return;
 
  //getting tree and arrays
@@ -47,7 +47,7 @@ void fromFairShip2Fedra(int nplate){
      bool savehit = true; //by default I save all hits
 //no you don't want to do this//     if (j % 2 == 0) continue;
      trackID = emupoint.GetTrackID();
-     motherID = emupoint.GetTrackID();
+     motherID = emupoint.GetMotherId();
      xem = emupoint.GetX()* 1E+4 + 62500;
      yem = emupoint.GetY()* 1E+4 + 49500;
      tx = emupoint.GetPx()/emupoint.GetPz();
@@ -60,7 +60,7 @@ void fromFairShip2Fedra(int nplate){
        //Saving the hit in FEDRA
        if (savehit){        
         ect.eS->Set(ihit,xem,yem,tx,ty,1,Flag);
-        ect.eS->SetMC(ievent, trackID) //objects used to store MC true information
+        ect.eS->SetMC(ievent, trackID); //objects used to store MC true information
         ect.eS->SetAid(motherID, 0); //forcing areaID member to store mother MC track information
         ect.eS->SetW(70.); //need a high weight to do tracking
      //if(do_invert) ect.eS->Transform(&aff_invert);
