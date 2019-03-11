@@ -50,7 +50,7 @@ void charm_vertexing(char *dset=0)
 }
 
 //---------------------------------------------------------------------
-void trvol( const char *def, const char *rcut = "nseg>1" )
+void trvol( const char *def, const char *rcut )
 {
   // this function read volume tracks and do the vertex reconstruction
   // from linked_tracks.root
@@ -65,7 +65,7 @@ void trvol( const char *def, const char *rcut = "nseg>1" )
 }
 
 //---------------------------------------------------------------------
-void init( const char *def, int iopt,  const char *rcut="1" )
+void init( const char *def, int iopt,  const char *rcut)
 {
   if(!def)  dproc = new EdbDataProc();
   else      dproc = new EdbDataProc(def);
@@ -76,7 +76,7 @@ void init( const char *def, int iopt,  const char *rcut="1" )
 }
 
 //---------------------------------------------------------------------
-void set_segments_dz(float dz=300.)
+void set_segments_dz(float dz)
 {
   int np = gAli->Npatterns();
   for(int i=0; i<np; i++) {
