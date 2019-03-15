@@ -8,7 +8,7 @@ import matplotlib.dates as mdates
 homepath = os.environ['HOME']
 
 register_matplotlib_converters() #for datetimes
-months = ['January','February']
+months = ['January','February','weekly']
 for month in months:
 
     df = pd.read_excel(homepath+"/Dropbox/Charmdata/monthly_scan_report.xls",sheet_name=month)
@@ -24,12 +24,12 @@ for month in months:
     ax.plot(date,mic3,'.r', markersize=12)
     ax.plot(date,mic2,'+b', markersize=12)
     ax.plot(date,total,'*y',markersize=12)
-    ax.legend(loc='upper right',fontsize='medium') #borderpad makes the legend larger
+    ax.legend(loc='upper left',fontsize='large') #borderpad makes the legend larger
 
     ax.set_xticks(date)
     plt.xlabel('day')
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%d-%m"))
-    ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d-%m"))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%d-%y"))
+    ax.xaxis.set_minor_formatter(mdates.DateFormatter("%m-%d-%y"))
     _=plt.xticks(rotation=90)
-    plt.ylim(0,8)
+    #plt.ylim(0,8)
     fig.show()
