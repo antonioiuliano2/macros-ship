@@ -14,14 +14,14 @@ void simple_loop(){
  int ientry = 0;
  while (reader.Next()){
      ientry = reader.GetCurrentEntry();// keeps track of the number of event (from 0 to Nevents - 1)
-     cout<<tracks.GetSize()<<endl;
+     if (ientry<10)cout<<tracks.GetSize()<<endl;
      //access the array of tracks
      for (const ShipMCTrack& track: tracks){
-         cout<<"PdgCode of the track: "<<track.GetPdgCode()<<" at event number "<<ientry<<endl;
+         if (ientry < 10) cout<<"PdgCode of the track: "<<track.GetPdgCode()<<" at event number "<<ientry<<endl;
      }
      //access the hits:    
      for (const PixelModulesPoint& pixelpoint: pixelpoints){
-        cout<<"Hit position: "<<pixelpoint.GetX()<<" at event number "<<ientry<<endl;     
+         if (ientry < 10) cout<<"Hit X position: "<<pixelpoint.GetX()<<" at event number "<<ientry<<endl;     
      }
  } 
 }
