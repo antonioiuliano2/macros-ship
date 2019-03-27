@@ -13,14 +13,14 @@ void smearing (Float_t &TX, Float_t &TY, const float angres);
 bool efficiency(const float emuefficiency);
 void fromFairShip2Fedra(int nplate);
 
-void fromFairShip2Fedra(){
+/*void fromFairShip2Fedra(){
 	const int nplates = 29;
 	for (int iplate = 1; iplate <= 29; iplate++){
 		fromFairShip2Fedra(iplate);
 	}
-}
+}*/
 
-void fromFairShip2Fedra(int nplate){
+void fromFairShip2Fedra(){
  const float emuefficiency = 0.9;
  const float angres = 0.003; // 3 milliradians
  TFile * inputfile = TFile::Open(" /eos/experiment/ship/user/aiuliano/SHiP_sim/uniformonespill_onelayertungsten_ch1_07_03_19/pythia8_Geant4_1000_0.5.root");
@@ -36,11 +36,16 @@ void fromFairShip2Fedra(int nplate){
  Float_t tx = 0, ty=0, xem= 0, yem = 0;
  const Int_t nevents = reader.GetTree()->GetEntries();
  int ihit = 0, ievent = 0;
+ int nfilmhit = 0;
  int trackID = 0, motherID = 0;
  gInterpreter->AddIncludePath("/afs/cern.ch/work/a/aiuliano/public/fedra/include");
- EdbCouplesTree ect;
- if (nplate <10) ect.InitCouplesTree("couples",Form("b000001/p00%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
- else ect.InitCouplesTree("couples",Form("b000001/p0%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
+
+ const int nplates = 29;
+ EdbCouplesTree ect[nplates];
+ for (int i = 0; i < nplates; i++){
+  if (nplate <10) ect[i].InitCouplesTree("couples",Form("b000001/p00%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
+  else ect[i].InitCouplesTree("couples",Form("b000001/p0%i/1.%i.0.0.cp.root",nplate,nplate),"RECREATE");
+ }
  Int_t Flag = 1;
    
    
@@ -54,32 +59,32 @@ void fromFairShip2Fedra(int nplate){
      yem = emupoint.GetY()* 1E+4 + 49500;
      tx = emupoint.GetPx()/emupoint.GetPz();
      ty = emupoint.GetPy()/emupoint.GetPz();
+
      double charge;        
 
      if ((TDatabasePDG::Instance()->GetParticle(pdgcode))!=NULL) charge = TDatabasePDG::Instance()->GetParticle(pdgcode)->Charge();
      else charge = 0.;
-     //saving the hits for a plate in the corresponding couples (only one layer saved, the other has ID + 10000)    
-     if (emupoint.GetDetectorID() == nplate){
+     nfilmhit = emupoint.GetDetectorID()
+     //saving the hits for a plate in the corresponding couples (only one layer saved, the other has ID + 10000)         
        //Inserting real data effects in the simulation
-       if(!efficiency(emuefficiency)) savehit = false; //inserting some holes due to emulsion inefficiency
-       if(charge == 0.) savehit = false; //we do not track neutral particles
-       smearing(tx,ty,angres);
-       //Saving the hit in FEDRA
-       if (savehit){        
-        ect.eS->Set(ihit,xem,yem,tx,ty,1,Flag);
-        ect.eS->SetMC(ievent, trackID); //objects used to store MC true information
-        ect.eS->SetAid(motherID, 0); //forcing areaID member to store mother MC track information
-        ect.eS->SetW(70.); //need a high weight to do tracking
-     //if(do_invert) ect.eS->Transform(&aff_invert);
-        ect.Fill();
-        ihit++; //hit entry, increasing as the tree is filled
-        }
-       }
+     if(!efficiency(emuefficiency)) savehit = false; //inserting some holes due to emulsion inefficiency
+     if(charge == 0.) savehit = false; //we do not track neutral particles
+     smearing(tx,ty,angres);
+     //Saving the hit in FEDRA
+     if (savehit){        
+      ect[nfilmhit-1].eS->Set(ihit,xem,yem,tx,ty,1,Flag);
+      ect[nfilmhit-1].eS->SetMC(ievent, trackID); //objects used to store MC true information
+      ect[nfilmhit-1].eS->SetAid(motherID, 0); //forcing areaID member to store mother MC track information
+      ect[nfilmhit-1].eS->SetW(70.); //need a high weight to do tracking
+      ect[nfilmhit-1].Fill();
+      ihit++; //hit entry, increasing as the tree is filled        
+      }
      }//end of loop on emulsion points
     ievent++;
    } //end of loop on tree
-
-  ect.Close();  
+  for (int iplate = 0; iplate < nplate; iplate++){
+   ect[iplate].Close();  
+ }
 }
 
 void smearing (Float_t &TX, Float_t &TY, const float angres){
