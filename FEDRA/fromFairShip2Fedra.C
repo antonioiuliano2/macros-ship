@@ -8,7 +8,7 @@
 
 //#include "/home/utente/fedra/include/EdbCouplesTree.h"
 using namespace TMath;
-
+TRandom *grandom = new TRandom3(); //creating every time a TRandom3 is a bad idea
 void smearing (Float_t &TX, Float_t &TY, const float angres);
 bool efficiency(const float emuefficiency);
 void fromFairShip2Fedra(int nplate);
@@ -54,10 +54,15 @@ void fromFairShip2Fedra(int nplate){
      yem = emupoint.GetY()* 1E+4 + 49500;
      tx = emupoint.GetPx()/emupoint.GetPz();
      ty = emupoint.GetPy()/emupoint.GetPz();
+     double charge;        
+
+     if ((TDatabasePDG::Instance()->GetParticle(pdgcode))!=NULL) charge = TDatabasePDG::Instance()->GetParticle(pdgcode)->Charge();
+     else charge = 0.;
      //saving the hits for a plate in the corresponding couples (only one layer saved, the other has ID + 10000)    
      if (emupoint.GetDetectorID() == nplate){
        //Inserting real data effects in the simulation
        if(!efficiency(emuefficiency)) savehit = false; //inserting some holes due to emulsion inefficiency
+       if(charge == 0.) savehit = false; //we do not track neutral particles
        smearing(tx,ty,angres);
        //Saving the hit in FEDRA
        if (savehit){        
@@ -78,20 +83,17 @@ void fromFairShip2Fedra(int nplate){
 }
 
 void smearing (Float_t &TX, Float_t &TY, const float angres){
- TRandom *grandom = new TRandom3();
  float deltaTX = grandom->Gaus(0,angres); //angular resolution, adding a gaussian offset to TX and TY
  float deltaTY = grandom->Gaus(0,angres);
+ //cout<<TX<<endl;
  TX = TX + deltaTX;
  TY = TY + deltaTY;
- delete grandom;
 }
 
 bool efficiency(const float emuefficiency){ //for now, just a constant, to be replaced with an efficiency map (probably with the angle)
 
- TRandom3 *grandom = new TRandom3();
  float prob = grandom->Uniform(0,1);
- delete grandom;
- if (prob > emuefficiency) return true;
+ if (prob < emuefficiency) return true; //efficiency larger than probability, we take the event
  else return false;
 }
 /*
