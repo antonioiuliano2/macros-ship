@@ -156,7 +156,7 @@ void check_surf(TCanvas *c)
 }
 
 //-------------------------------------------------------
-void check_raw( int output, char *fname)
+void check_raw( int output=0, char *fname=0 )
 {
 
    if(fname) cout << "fname  : " << fname  << endl;
