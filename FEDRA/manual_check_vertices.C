@@ -4,6 +4,8 @@
  root -l 
  .L manual_check_vertices.C
  modify_distribution_tree()
+
+Test commit 18 Aprile 2019
 */
 void first_creation(){ //to be launched the first time a new vertices tree is created (reset of indices)
 
