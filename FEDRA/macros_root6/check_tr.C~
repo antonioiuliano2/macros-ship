@@ -18,7 +18,7 @@ TCut trcut = "t.eFlag>=0.&&t.eProb>0.001";
 
 TTree* tracks ;
 
-void check_eff(const char *nplmin="(1*6)"); //ROOT5: Default values can be set in defition or declaration, but not both
+void check_eff(const char *nplmin); //ROOT5: Default values can be set in defition or declaration, but not both
 void check_volume();
 void check_surf();
 void check_tr();
@@ -45,7 +45,7 @@ void check_resolution()
 }
 
 //-----------------------------------------------------------------
-void check_eff(const char *nplmin)
+void check_eff(const char *nplmin="(1*6)")
 {
   tracks->SetAlias("npl0",nplmin);
 
