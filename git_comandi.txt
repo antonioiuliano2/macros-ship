@@ -1,0 +1,27 @@
+// user e mail da inserire la prima volta sul pc
+git config --global user.email valgent1987@gmail.com
+git config --global user.name VGentile87
+
+// scaricare repository
+git clone https://github.com/antonioiuliano2/macros-ship macros-antoniovalerio
+
+// Verificare quale branch stai e cosa hai modificato
+git status
+
+// fa vedere le differenze
+git diff
+
+// differenze da software
+git difftool
+
+// aggiungere per i commit
+git add manual_check_vertices.C
+
+// rendere effettiva la modifica
+git commit
+
+// aggiornare la versione
+git pull
+
+// sottometti modifica sul web
+git push
