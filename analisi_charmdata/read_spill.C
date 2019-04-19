@@ -4,16 +4,8 @@ void read_spill(){
 }
 
 void study_protons(){
-    //building a RDataFrame from the inputfile
-    ROOT::RDataFrame df("spill","charm_spills.root");
-    
-    TCanvas *c1 = new TCanvas();
-    auto hemu = df.Histo1D("nemu");
-    hemu->DrawCopy();
-    TCanvas *c2 = new TCanvas();
-    auto hpassive = df.Histo1D("npassive");
-    hpassive->DrawCopy();
 
+    //**************USED FUNCTIONS*************************
     //fraction of protons not interacting
     auto survivingpot = [] (int nemu, int npassive,  int name){
            //units in mm
@@ -47,6 +39,17 @@ void study_protons(){
         float inECC = 1 - surviving - inpreshower;
         return inECC; //percentage of pot interacting within the brick
     };
+
+   //****************START OF SCRIPT**************************
+    //building a RDataFrame from the inputfile
+    ROOT::RDataFrame df("spill","charm_spills.root");
+    
+    TCanvas *c1 = new TCanvas();
+    auto hemu = df.Histo1D("nemu");
+    hemu->DrawCopy();
+    TCanvas *c2 = new TCanvas();
+    auto hpassive = df.Histo1D("npassive");
+    hpassive->DrawCopy();
 
     auto entries = df.Filter("name/10==1").Count();
     cout<<"CHARM1 number of runs: "<<*entries<<endl;
