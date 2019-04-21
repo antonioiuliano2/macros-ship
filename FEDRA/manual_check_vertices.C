@@ -302,10 +302,10 @@ void modify_distribution_tree(){ //script to access the tree with the variables
          else rem_seg[iseg-1]=true; 
          nseg[itrk]--;                    
      }
-     /*if(mean_seg_x==-1 && mean_seg_y==-1) {
+     if(mean_seg_x==-1 && mean_seg_y==-1) {
        vertexrec->RemoveTrackFromVertex(vertexobject, itrk);
-       cout << "eccomi " << ivtx << " " << itrk << endl;
-     }*/
+       //cout << "eccomi " << ivtx << " " << itrk << endl;
+     } //rimozione di tracce inserita da Valerio
    }
    //cout << "after "<< ivtx << " " << itrk << " " << iseg << " " <</* rmstransverse << " " << rmslongitudinal << " " <<*/ seg->ID()<< " " << same_plate[iseg] << " "<< rem_seg[iseg] << " "<<seg->X()<<" "<<seg->Y()<<" "<<seg->Z()<<" "<<seg->Plate() <<  endl;
    }
@@ -331,9 +331,11 @@ void modify_distribution_tree(){ //script to access the tree with the variables
        seg_index++;
        nseg[itrk] = seg_index+2; // real number of segments
      }
-     /*seg = (EdbSegP *)(track->GetSegment(iseg));
+    else {
+     seg = (EdbSegP *)(track->GetSegment(iseg));
      if(rem_seg[iseg]==true)track->RemoveSegment(seg);
-     */
+     
+    }
    }
                
    trk_num_holes[itrk] = track->N0();  // number of holes
@@ -361,11 +363,11 @@ void modify_distribution_tree(){ //script to access the tree with the variables
   outvertextree->Fill();
  }
  
- for (int ivtx = 0; ivtx < nvertices; ivtx++){
+ /*for (int ivtx = 0; ivtx < nvertices; ivtx++){
    vertextree->GetEntry(ivtx);
    vertexobject = (EdbVertex *)(vertexrec->eVTX->At(vID));
    cout << "vtx_after" << ivtx << " " << n << " " << vertexobject->N() << endl;
- }
+ }*/
   
  file->Close();
  //Writing tree and vertex object to file
