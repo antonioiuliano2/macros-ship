@@ -7,7 +7,7 @@
 //  Usage: $ root -l 
 //         root[1] .L check_vertex.C
 //         root[2] trvol()  // do all vertex reconstruction starting from the linked_tracks.root
-//
+// linked charm vertexing macros to the git repository
 //----------------------------------------------------------------------------
 
 EdbDataProc  *dproc=0;
