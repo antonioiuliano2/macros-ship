@@ -7,10 +7,15 @@
 
 Test commit 18 Aprile 2019
 */
+TString run = "CH1-R6";
+TString path = "/ship/CHARM2018/" + run +"/b000001/"; 
+
+TString inputfilename = path + "prova_vertexing/15_04_19/vertices_MC.root";
+
 void first_creation(){ //to be launched the first time a new vertices tree is created (reset of indices)
 
-  TFile *inputfile = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/sim_fedra/FairShip_tungsten/b000001/10_03_19/vertices_MC_original.root","UPDATE");
-  //TFile *inputfile = TFile::Open("/ship/CHARM2018/CH1-R6/b000001/prova_vertexing/17_02_19/vertices.root","UPDATE");
+ TFile *inputfile = TFile::Open(inputfilename.Data(),"UPDATE"); 
+ if (inputfile == NULL) cout<<"ERROR: inputfile not found"<<endl;
  TTree *vertextree = (TTree*) inputfile->Get("vtx");
  
  int nentries = vertextree->GetEntries();
@@ -37,9 +42,8 @@ void manual_check_vertices(){
 
  //opening the files and getting the trees
  //TFile *inputfile = TFile::Open("/ship/CHARM2018/CH1-R6/b000001/prova_vertexing/17_02_19/vertices.root","UPDATE");
-  TFile *inputfile = TFile::Open("/ship/CHARM2018/CH1-R6/b000001/prova_vertexing/01_03_19/vertices_same.root","UPDATE");
-  
-
+ TFile *inputfile = TFile::Open(inputfilename.Data(),"UPDATE"); 
+ if (inputfile == NULL) cout<<"ERROR: inputfile not found"<<endl;
 
  TTree *vertextree = (TTree*)inputfile->Get("vtx");
  TTree *qualitytree = (TTree*)inputfile->Get("quality");
@@ -131,8 +135,8 @@ void manual_check_vertices(){
 
 
 void modify_distribution_tree(){ //script to access the tree with the variables
-//TFile::Open("/ship/CHARM2018/CH1-R6/b000001/prova_vertexing/18_02_19/vertices.root");
-  TFile *file = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/sim_fedra/FairShip_tungsten/b000001/10_03_19/vertices_MC_original.root");
+ TFile *inputfile = TFile::Open(inputfilename.Data()); 
+ if (inputfile == NULL) cout<<"ERROR: inputfile not found"<<endl;
  TTree *vertextree = (TTree*) file->Get("vtx");
  //TTree *qualitytree = (TTree*) file->Get("quality");
  const Int_t nvertices = vertextree->GetEntries();
