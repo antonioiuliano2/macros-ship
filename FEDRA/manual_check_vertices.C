@@ -5,12 +5,17 @@
  .L manual_check_vertices.C
  modify_distribution_tree()
 
-Test commit 17 Aprile 2019
+Test commit 18 Aprile 2019
 */
+TString run = "CH1-R6";
+TString path = "/ship/CHARM2018/" + run +"/b000001/"; 
+
+TString inputfilename = path + "prova_vertexing/15_04_19/vertices_MC.root";
+
 void first_creation(){ //to be launched the first time a new vertices tree is created (reset of indices)
 
-  TFile *inputfile = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/sim_fedra/FairShip_tungsten/b000001/10_03_19/vertices_MC_original.root","UPDATE");
-  //TFile *inputfile = TFile::Open("/ship/CHARM2018/CH1-R6/b000001/prova_vertexing/17_02_19/vertices.root","UPDATE");
+ TFile *inputfile = TFile::Open(inputfilename.Data(),"UPDATE"); 
+ if (inputfile == NULL) cout<<"ERROR: inputfile not found"<<endl;
  TTree *vertextree = (TTree*) inputfile->Get("vtx");
  
  int nentries = vertextree->GetEntries();
@@ -37,9 +42,8 @@ void manual_check_vertices(){
 
  //opening the files and getting the trees
  //TFile *inputfile = TFile::Open("/ship/CHARM2018/CH1-R6/b000001/prova_vertexing/17_02_19/vertices.root","UPDATE");
-  TFile *inputfile = TFile::Open("/ship/CHARM2018/CH1-R6/b000001/prova_vertexing/01_03_19/vertices_same.root","UPDATE");
-  
-
+ TFile *inputfile = TFile::Open(inputfilename.Data(),"UPDATE"); 
+ if (inputfile == NULL) cout<<"ERROR: inputfile not found"<<endl;
 
  TTree *vertextree = (TTree*)inputfile->Get("vtx");
  TTree *qualitytree = (TTree*)inputfile->Get("quality");
@@ -131,8 +135,8 @@ void manual_check_vertices(){
 
 
 void modify_distribution_tree(){ //script to access the tree with the variables
-//TFile::Open("/ship/CHARM2018/CH1-R6/b000001/prova_vertexing/18_02_19/vertices.root");
-  TFile *file = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/sim_fedra/FairShip_tungsten/b000001/10_03_19/vertices_MC_original.root");
+ TFile *inputfile = TFile::Open(inputfilename.Data()); 
+ if (inputfile == NULL) cout<<"ERROR: inputfile not found"<<endl;
  TTree *vertextree = (TTree*) file->Get("vtx");
  //TTree *qualitytree = (TTree*) file->Get("quality");
  const Int_t nvertices = vertextree->GetEntries();
@@ -302,10 +306,10 @@ void modify_distribution_tree(){ //script to access the tree with the variables
          else rem_seg[iseg-1]=true; 
          nseg[itrk]--;                    
      }
-     /*if(mean_seg_x==-1 && mean_seg_y==-1) {
+     if(mean_seg_x==-1 && mean_seg_y==-1) {
        vertexrec->RemoveTrackFromVertex(vertexobject, itrk);
-       cout << "eccomi " << ivtx << " " << itrk << endl;
-     }*/
+       //cout << "eccomi " << ivtx << " " << itrk << endl;
+     } //rimozione di tracce inserita da Valerio
    }
    //cout << "after "<< ivtx << " " << itrk << " " << iseg << " " <</* rmstransverse << " " << rmslongitudinal << " " <<*/ seg->ID()<< " " << same_plate[iseg] << " "<< rem_seg[iseg] << " "<<seg->X()<<" "<<seg->Y()<<" "<<seg->Z()<<" "<<seg->Plate() <<  endl;
    }
@@ -331,9 +335,11 @@ void modify_distribution_tree(){ //script to access the tree with the variables
        seg_index++;
        nseg[itrk] = seg_index+2; // real number of segments
      }
-     /*seg = (EdbSegP *)(track->GetSegment(iseg));
+    else {
+     seg = (EdbSegP *)(track->GetSegment(iseg));
      if(rem_seg[iseg]==true)track->RemoveSegment(seg);
-     */
+     
+    }
    }
                
    trk_num_holes[itrk] = track->N0();  // number of holes
@@ -361,11 +367,11 @@ void modify_distribution_tree(){ //script to access the tree with the variables
   outvertextree->Fill();
  }
  
- for (int ivtx = 0; ivtx < nvertices; ivtx++){
+ /*for (int ivtx = 0; ivtx < nvertices; ivtx++){
    vertextree->GetEntry(ivtx);
    vertexobject = (EdbVertex *)(vertexrec->eVTX->At(vID));
    cout << "vtx_after" << ivtx << " " << n << " " << vertexobject->N() << endl;
- }
+ }*/
   
  file->Close();
  //Writing tree and vertex object to file
