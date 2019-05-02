@@ -76,18 +76,22 @@ allscanned('ch1r6')
 allscanned('ch2r1')
 allscanned('ch2r2')
 allscanned('ch2r3')
-allscanned('ch2r6')
-
 allscanned('ch2r4')
 allscanned('ch2r5')
+allscanned('ch2r6')
+
 allscanned('ch3r2')
+allscanned('ch3r3')
 allscanned('ch4r2')
 allscanned('ch5r2')
+allscanned('ch5r3')
+allscanned('ch6r2')
+allscanned('ch6r3')
 
-for index in range(40):
-    scanned('ch6r2',index+1)
-for index in range(25):
-    scanned('ch5r3',index+1)
+for index in range(10):
+    scanned('ch1r1',index+1)
+for index in range(5):
+    scanned('ch1r2',index+1)
 
 # ********************************************REPORT******************************************************#    
 #counting how many emulsions are left to scan
@@ -126,7 +130,7 @@ def generalreport():
 def localreport():
    figure = plt.figure()
    napoliratio = nscannedemulsionsNaples/ntotalemulsionsNaples
-   scanrate = 25 #assuming 5 emulsions scanned per day and 4 on Friday
+   scanrate = 24 #assuming 5 emulsions scanned per day and 4 on Friday
    remainingweeks = (ntotalemulsionsNaples - nscannedemulsionsNaples)/scanrate
    print ('Total emulsion films in Naples: {}'.format(ntotalemulsionsNaples))
    print ('Total number of scanned emulsion so far in Naples: {}. Still to be scanned: {}'.format(nscannedemulsionsNaples, ntotalemulsionsNaples - nscannedemulsionsNaples))

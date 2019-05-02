@@ -5,6 +5,13 @@ import ROOT  as r
 localRPCfile = r.TFile.Open("root:://eospublic.cern.ch//eos/experiment/ship/data/rpc_charm/RPC_RecoTracks_run2793_s1f22ade3.root")
 sTree = localRPCfile.Get("RPC_RecoTracks")
 
+outputfile = r.TFile("localrpctrack_test.root","RECREATE")
+myTree = r.TTree("RPCTracks","Tree of locally reconstructed RPC tracks")
+
+trackarray = r.TClonesArray("RPCTrack")
+localRPCTrack = r.RPCTrack()
+myTree.Branch("RPCTracks", trackarray,32000,-1)
+
 nevents = sTree.GetEntries()
 
 for i in range(nevents):
@@ -38,4 +45,8 @@ for i in range(nevents):
   #getting information for print
   vector = localRPCTrack.GetClusterPos(icluster)
   print "Cluster in rpc ", localRPCTrack.GetClusterStation(icluster), "in plane ", localRPCTrack.GetClusterDir(icluster), "with coordinates (x,y,z) = ( ", vector[0], ", ", vector[1], ", ",vector[2]," )"
+ trackarray[0] = localRPCTrack
+ myTree.Fill()
   #cout<<"Cluster in rpc "<<cl_rpc->at(j)<<" in plane "<<cl_dir->at(j)<<" with coordinates (x,y,z) = ( "<< cl_x->at(j)<<", "<<cl_y->at(j)<<", "<<cl_z->at(j)<<" )"<<endl;
+outputfile.Write()
+outputfile.Close()
