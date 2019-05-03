@@ -1,22 +1,24 @@
 //comparing the dz after alignment for a brick with tungsten and one with lead, both use Slavich emulsions
 void align_check(TString runname, int lastplate=29);
 void comparedz(){
+ 
+ TString dir = TString("/ship/CHARM2018/");
 
- TString brickA = TString("/ship/CHARM2018/CH1-R6/");
- TString brickB = TString("/ship/CHARM2018/CH1-R4/");
+ TString brickA = TString("CH1-R6");
+ TString brickB = TString("CH1-R4");
 
- TString setposition = TString("b000001/b000001.0.0.0.set.root");
+ TString setposition = TString("/b000001/b000001.0.0.0.set.root");
 
- TH1F *hdzA = new TH1F("hdzA","Dz obtained after alignment for brick CH1R6",20,1200,1400);
- TH1F *hdzB = new TH1F("hdzB","Dz obtained after alignment for brick CH1R4",20,1200,1400);
+ TH1F *hdzA = new TH1F("hdzA",(TString("Dz obtained after alignment for brick ")+brickA).Data(),20,1200,1400);
+ TH1F *hdzB = new TH1F("hdzB",(TString("Dz obtained after alignment for brick ")+brickB).Data(),20,1200,1400);
 
  TGraph *hgraphA = new TGraph();
  TGraph *hgraphB = new TGraph();
 
- TFile *fileA = TFile::Open((brickA+setposition).Data());
+ TFile *fileA = TFile::Open((dir+brickA+setposition).Data());
  EdbScanSet *setA = (EdbScanSet*) fileA->Get("set");
 
- TFile *fileB = TFile::Open((brickB+setposition).Data());
+ TFile *fileB = TFile::Open((dir+brickB+setposition).Data());
  EdbScanSet *setB = (EdbScanSet*) fileB->Get("set");
 
  const int firstplate = 1;
@@ -57,8 +59,8 @@ void comparedz(){
  hgraphB->GetYaxis()->SetTitle("dZ[#mum]");
 
  //drawing two canvas with all the alignment checks
- align_check("CH1-R4");
- align_check("CH1-R6");
+ align_check(brickA);
+ align_check(brickB);
 }
 
 void align_check(TString runname, int lastplate){
