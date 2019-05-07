@@ -36,6 +36,8 @@ Linking is done with the command:
 
 `emlink -set=1.0.0.0 -new`
 
+A fundamental parameter of the linking is the shrinkage initial value. Check Shr0 (default 0.9)
+
 After the linking, check the report b000001.0.0.0.link.pdf and verify that the shrinkage plots show some peaks.  
 
 ## Alignment
