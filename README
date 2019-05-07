@@ -1,3 +1,16 @@
 I am tired of not remembering why I changed a macro and when. Let's see if this fancy DVS can help me!
 
-Prova di un push da nusrv9
+Nusrv9 cannot connect to GitHub repository server. Adding a second repository on GitLab. 
+Therefore, when I need to connect my modifications to the nusrv9 scripts, I need to do
+
+git pull
+
+git fetch gitlab
+
+git merge gitlab/master #to merge with modifications from github
+
+git push gitlab #saving on gitlab
+
+git push origin #saving on gitlab
+
+Then git pull as usual
