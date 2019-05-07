@@ -1,40 +1,33 @@
 //comparing the dz after alignment for a brick with tungsten and one with lead, both use Slavich emulsions
 void align_check(TString runname, int lastplate=29);
-void comparedz(){
- 
+void checkdz(TString runname){
+ //TFile *file = new TFile((runname+TString(" quicksave.root")).Data(),"RECREATE");
  TString dir = TString("/ship/CHARM2018/");
 
- TString brickA = TString("CH1-R6");
- TString brickB = TString("CH1-R4");
+ TString brickA = runname;
 
  TString setposition = TString("/b000001/b000001.0.0.0.set.root");
 
  TH1F *hdzA = new TH1F("hdzA",(TString("Dz obtained after alignment for brick ")+brickA).Data(),20,1200,1400);
- TH1F *hdzB = new TH1F("hdzB",(TString("Dz obtained after alignment for brick ")+brickB).Data(),20,1200,1400);
 
  TGraph *hgraphA = new TGraph();
- TGraph *hgraphB = new TGraph();
+ hgraphA->SetName("hgraph");
+
 
  TFile *fileA = TFile::Open((dir+brickA+setposition).Data());
  EdbScanSet *setA = (EdbScanSet*) fileA->Get("set");
 
- TFile *fileB = TFile::Open((dir+brickB+setposition).Data());
- EdbScanSet *setB = (EdbScanSet*) fileB->Get("set");
-
  const int firstplate = 1;
  const int lastplate = 29;
- float dzA, dzB;
+ float dzA;
  //loop on plates
  for (int i = firstplate; i< lastplate; i++){
   dzA = setA->GetDZP2P(i,i+1);
-  dzB = setB->GetDZP2P(i,i+1);
-  cout<<"from plate "<<i<<" we have dz for tungsten "<<dzA<< " and for lead "<<dzB<<endl;
+  cout<<"from plate "<<i<<" we have dz "<<dzA<<endl;
   //filling histograms and graphs
   hdzA->Fill(dzA);
-  hdzB->Fill(dzB);
   
   hgraphA->SetPoint(i,(i+i+1)/2.,dzA);
-  hgraphB->SetPoint(i,(i+i+1)/2.,dzB);
  }
  //comparing the histograms
  TCanvas *cdz = new TCanvas("cdz");
@@ -43,24 +36,15 @@ void comparedz(){
  hdzA->Draw();
  hdzA->GetXaxis()->SetTitle("dZ[#mum]");
  cdz->cd(2);
- hdzB->Draw();
- hdzB->GetXaxis()->SetTitle("dZ[#mum]");
-
- //comparing the graphs
- TCanvas *cdzgraph = new TCanvas("cdzgraph");
- cdzgraph->Divide(1,2);
- cdzgraph->cd(1);
- hgraphA->SetTitle("Dz obtained after alignment for brick CH1R6");
+ hgraphA->SetTitle("Dz obtained after alignment for brick")+brickA;
  hgraphA->Draw("AP*");
+ hgraphA->GetXaxis()->SetTitle("nplate");
  hgraphA->GetYaxis()->SetTitle("dZ[#mum]");
- cdzgraph->cd(2);
- hgraphB->SetTitle("Dz obtained after alignment for brick CH1R4");
- hgraphB->Draw("AP*");
- hgraphB->GetYaxis()->SetTitle("dZ[#mum]");
 
  //drawing two canvas with all the alignment checks
- align_check(brickA);
- align_check(brickB);
+ align_check(brickA,29);
+ //file->cd("");
+ //hgraphA->Write();
 }
 
 void align_check(TString runname, int lastplate){
