@@ -1,6 +1,6 @@
 //comparing the dz after alignment for a brick with tungsten and one with lead, both use Slavich emulsions
 void align_check(TString runname, int lastplate=29);
-void checkdz(TString runname){
+void checkdz(TString runname, int nplates=29){
  //TFile *file = new TFile((runname+TString(" quicksave.root")).Data(),"RECREATE");
  TString dir = TString("/ship/CHARM2018/");
 
@@ -18,7 +18,7 @@ void checkdz(TString runname){
  EdbScanSet *setA = (EdbScanSet*) fileA->Get("set");
 
  const int firstplate = 1;
- const int lastplate = 29;
+ const int lastplate = nplates;
  float dzA;
  //loop on plates
  for (int i = firstplate; i< lastplate; i++){
@@ -42,7 +42,7 @@ void checkdz(TString runname){
  hgraphA->GetYaxis()->SetTitle("dZ[#mum]");
 
  //drawing two canvas with all the alignment checks
- align_check(brickA,29);
+ align_check(brickA,nplates);
  //file->cd("");
  //hgraphA->Write();
 }
