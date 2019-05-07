@@ -1,7 +1,7 @@
 //where high number of electrons are generated?
 /*Usage: root -l
          .L muonrpc_loop.C
-         muonrpc_loop("/inputpath/ship.conical.MuonBack-TGeant4.root",
+         muonrpc_loop("/inputpath/ship.conical.MuonBack-TGeant4.root","outpath/origin_hitsrpc.root")
 */
 
 #include <assert.h>     /* assert */
