@@ -9,20 +9,25 @@
 //#include "/home/utente/fedra/include/EdbCouplesTree.h"
 using namespace TMath;
 TRandom *grandom = new TRandom3(); //creating every time a TRandom3 is a bad idea
-TFile *file = TFile::Open("efficiency_alltracks.root");
-TH1D *heff = (TH1D*) file->Get("heff"); //efficiency at different angles
+TFile *file = NULL;
+TH1D *heff = NULL ; //efficiency at different angles
 
 void smearing (Float_t &TX, Float_t &TY, const float angres);
 bool efficiency(const float emuefficiency);
 bool efficiency(const float tantheta, TH1D * emuefficiency);
 
-void fromFairShip2Fedra(){
- const float emuefficiency = 0.9;
+void fromFairShip2Fedra(TString filename){
+ const int nplates = 57;
+ const bool useefficiencymap = false; //use the map instead of the constant value down
+ if (useefficiencymap){ 
+  file = TFile::Open("efficiency_alltracks.root");
+  heff = (TH1D*) file->Get("heff");
+ }
+ const float emuefficiency = 0.8;
  const float angres = 0.003; // 3 milliradians
  const float ngrains = 70; //the same number for all the couples, so they have the same weigth.
- const int nplates = 29;
  //**********************OPENING INPUT FILE***************************
- TFile * inputfile = TFile::Open(" /eos/experiment/ship/user/aiuliano/SHiP_sim/CH1R6/uniformonespill_onelayertungsten_ch1_07_03_19/pythia8_Geant4_1000_0.5.root");
+ TFile * inputfile = TFile::Open(filename.Data());
  //TFile * inputfile = TFile::Open("/eos/user/a/aiuliano/sims_FairShip/sim_charm/pot/uniformonespill_onelayer_ch1_03_03_19/pythia8_Geant4_1000_0.5.root");
  if (!inputfile) return;
 
@@ -47,15 +52,17 @@ void fromFairShip2Fedra(){
   else ect[i-1]->InitCouplesTree("couples",Form("b000001/p0%i/1.%i.0.0.cp.root",i,i),"RECREATE");
  }
  Int_t Flag = 1;
-   
+ cout<<"Start processing nevents: "<<nevents<<endl;  
  //************************STARTING LOOP ON SIMULATION******************  
  while (reader.Next()){
    for (const BoxPoint& emupoint:emulsionhits){
+     if (i%1000==0) cout<<"processing event "<<i<<" out of "<<nevents<<endl;
      bool savehit = true; //by default I save all hits
 //no you don't want to do this//     if (j % 2 == 0) continue;
      pdgcode = emupoint.PdgCode();
      trackID = emupoint.GetTrackID();
-     motherID = tracks[trackID].GetMotherId();
+
+     if (trackID >= 0) motherID = tracks[trackID].GetMotherId();
      xem = emupoint.GetX()* 1E+4 + 62500;
      yem = emupoint.GetY()* 1E+4 + 49500;
      tx = emupoint.GetPx()/emupoint.GetPz();
@@ -71,12 +78,14 @@ void fromFairShip2Fedra(){
      if (nfilmhit > 1000) savehit = false;
      if (tantheta > 1) savehit = false; //we scan from theta 0 to a maximum of 1 rad
      if(charge == 0.) savehit = false; //we do not track neutral particles
-     //saving the hits for a plate in the corresponding couples (only one layer saved, the other has ID + 10000)         
-       //Inserting real data effects in the simulation (now COMMENTED OUT)
-     //cout<<"Prova: "<<savehit<<endl;
-     if(!efficiency(tantheta, heff)) savehit = false; //inserting some holes due to emulsion inefficiency       
-    // cout<<tantheta<<" "<<nfilmhit<<" "<<charge<<" "<<savehit<<endl;
-    // smearing(tx,ty,angres);
+     //saving the hits for a plate in the corresponding couples (only one layer saved, the other has ID + 10000)             
+ 
+     if (useefficiencymap){ //efficiency map with angle
+     if(!efficiency(tantheta, heff)) savehit = false; //inserting some holes due to emulsion inefficiency           
+     }
+     //constant value of efficiency
+     else if(!efficiency(emuefficiency)) savehit = false;
+     smearing(tx,ty,angres);
      //**************SAVING HIT IN FEDRA BASE-TRACKS****************
      if (savehit){        
       ect[nfilmhit-1]->eS->Set(ihit,xem,yem,tx,ty,1,Flag);
@@ -90,6 +99,7 @@ void fromFairShip2Fedra(){
     ievent++;
    } //end of loop on tree
   for (int iplate = 0; iplate < nplates; iplate++){
+   ect[iplate]->Write();  
    ect[iplate]->Close();  
  }
 }
@@ -116,6 +126,18 @@ bool efficiency(const float tantheta, TH1D * emuefficiency){ //for now, just a c
  const float efficiency = emuefficiency->GetBinContent(ibin);
  if (prob < efficiency) return true; //efficiency larger than probability, we take the event
  else return false;
+}
+//start script
+void fromFairShip2Fedra(){
+
+ //usual paths where i keep my simulations
+ TString afspath = TString("/afs/cern.ch/work/a/aiuliano/public/sim_charm");
+ TString eospersonalpath = TString("/eos/user/a/aiuliano/sims_FairShip/sim_charm");
+ TString eosshippath = TString("/eos/experiment/ship/user/aiuliano");
+ 
+ TString simpath = TString("/ch6/ship.conical.Pythia8CharmOnly-TGeant4.root");
+ 
+ fromFairShip2Fedra(eospersonalpath + simpath);
 }
 /*
 script ispirato a void ReadGEMdata da parte di Annarita
