@@ -70,11 +70,12 @@ void Read_Tracks(const char *filein){ //last update 14/11/18, A.P.
   return;
 }
 
-void Load_Tracks_Hits(const char *filein, const char *fileout){
+
+void Save_Tracks_Hits(const char *filein, const char *fileout){
     if(!filein){
     cout<<"Input file not exists! Exiting Read_RPCTracks .."<<endl; return; }
 
-  TFile *fin = TFile::Open(filein);
+  TFile *fin = TFile::Open(filein,"READ");
   TTree *RPC_Trks = (TTree*)fin->Get("RPC_RecoTracks");
 
   int id_run = -1, trigger = -1, nclusters = -1, id_track = -1;
@@ -109,11 +110,11 @@ void Load_Tracks_Hits(const char *filein, const char *fileout){
   cout<<"RPC Tracks Tree with "<<ntracks<<" entries "<<endl;
 
   //output file where data will be converted
-  TFile *fout = new TFile(fileout, "RECREATE");
+  TFile *fout = new TFile(fileout, "NEW");
   TTree *FairShip_RPC_Trks = new TTree("cbmsim","Hits associated to reconstructed tracks");
   TClonesArray rpcarray("MuonTaggerHit",100);
   
-  FairShip_RPC_Trks->Branch("MuonTaggerHit", &rpcarray);
+  FairShip_RPC_Trks->Branch("LocallyTracked_MuonTaggerHits", &rpcarray); //changing the name to something more reasonable
   //FairShip_RPC_Trks->Branch("runID",&id_run);
   //FairShip_RPC_Trks->Branch("spillID",&id_spill);
 
@@ -123,82 +124,27 @@ void Load_Tracks_Hits(const char *filein, const char *fileout){
     rpcarray.Clear();
     RPC_Trks->GetEntry(itrk); //getting the entry
     for (int icluster = 0; icluster < nclusters; icluster++){
-      int detid = cl_dir->at(icluster)*1000 + cl_rpc->at(icluster) * 10000 + cl_channel->at(icluster); //coding used by FairShip to identify the RPC channel
+      int detid = cl_dir->at(icluster)*1000 + cl_rpc->at(icluster) * 10000 + cl_channel->at(icluster); //coding used by FairShip to identify the RPC channel (s*10000 + v*1000+c)
       new (rpcarray[iarray]) MuonTaggerHit(detid,0.);
       iarray++;
       //rpcarray->Add(recocluster);      
      }
      FairShip_RPC_Trks->Fill();
     }
+    TTree *Copy_RPC_Trks = RPC_Trks->CloneTree();
+    Copy_RPC_Trks->Write();
     FairShip_RPC_Trks->Write();
+    cout<<"Finished Writing the file with RPC hits"<<endl;
     fout->Close();
 }
-/*
-void Load_Tracks(const char *filein, const char *fileout){ //last update 06/12/18, A.I.  
-  if(!filein){
-    cout<<"Input file not exists! Exiting Read_RPCTracks .."<<endl; return; }
 
-  TFile *fin = TFile::Open(filein);
-  TTree *RPC_Trks = (TTree*)fin->Get("RPC_RecoTracks");
 
-  int id_run = -1, trigger = -1, nclusters = -1, id_track = -1;
-  float trk_teta = -99., trk_phi = -99., trk_slopexz = -99., trk_slopeyz = -99.;
-  char id_spill[10];
-  std::vector<int> *cl_rpc = NULL;
-  std::vector<float> *cl_x = NULL;
-  std::vector<float> *cl_y = NULL;
-  std::vector<float> *cl_z = NULL;
-  std::vector<int> *cl_dir = NULL;//0 for H, 1 for V
-  
-  //branches to read the tree
-  RPC_Trks->SetBranchAddress("id_run",&id_run);
-  RPC_Trks->SetBranchAddress("trigger",&trigger);
-  RPC_Trks->SetBranchAddress("nclusters",&nclusters);
-  RPC_Trks->SetBranchAddress("id_track",&id_track);
-  RPC_Trks->SetBranchAddress("id_spill",&id_spill);
-  RPC_Trks->SetBranchAddress("trk_teta",&trk_teta);
-  RPC_Trks->SetBranchAddress("trk_phi",&trk_phi);
-  RPC_Trks->SetBranchAddress("trk_slopexz",&trk_slopexz);
-  RPC_Trks->SetBranchAddress("trk_slopeyz",&trk_slopeyz);
+void Save_Tracks_Hits(){
+ //writing clearly the paths shouls avoid errors
+ TString afsinputpath = TString("/afs/cern.ch/work/a/aiuliano/public/Charmdata/rpc_charm/");
+ TString eosoutputpath = TString("/eos/experiment/ship/data/rpc_charm/with_hits/");
 
-  RPC_Trks->SetBranchAddress("cl_x",&cl_x);
-  RPC_Trks->SetBranchAddress("cl_y",&cl_y);
-  RPC_Trks->SetBranchAddress("cl_z",&cl_z);
-  RPC_Trks->SetBranchAddress("cl_dir",&cl_dir);
-  RPC_Trks->SetBranchAddress("cl_rpc",&cl_rpc);
+ TString subpath = TString("CHARM0/RPC_RecoTracks_run2863_spill1f27ef8d.root");
+ Save_Tracks_Hits((afsinputpath+subpath).Data(),(eosoutputpath+subpath).Data());
 
-  int ntracks = RPC_Trks->GetEntries();
-  cout<<"RPC Tracks Tree with "<<ntracks<<" entries "<<endl;
-
-  //output file where data will be converted
-  TFile *fout = new TFile(fileout, "RECREATE");
-  TTree *FairShip_RPC_Trks = new TTree("SHIPcharm_recodata","Reconstructed tracks in SHiP-charm detectors");
-  TClonesArray *rpcarray = new TClonesArray("RPCTrack");
-
-  FairShip_RPC_Trks->Branch("RpcTrack", &rpcarray);
-  FairShip_RPC_Trks->Branch("runID",&id_run);
-  //FairShip_RPC_Trks->Branch("spillID",&id_spill);
-
-  RPCTrack *recotrack;
-
-  int ntracks_perrun = 0;
-  for(int itrk = 0; itrk<ntracks; itrk++){ //main loop on tracks
-
-    RPC_Trks->GetEntry(itrk); //getting the entry
-    if ((id_track == 1) && (itrk > 0)){ //if trackID is back to 1, get Event and reset all counters
-      FairShip_RPC_Trks->Fill();
-      rpcarray->Clear(); 
-      ntracks_perrun = 0;      
-    }
-
-    new((*rpcarray)[ntracks_perrun]) RPCTrack(trk_teta, trk_phi);    
-
-    for(int j = 0; j<nclusters; j++){ //loop on clusters associated to a track
-          //rpcarray[ntracks_perrun].AddCluster(cl_x, cl_y, cl_z, cl_dir, cl_rpc);
-    }
-
-    ntracks_perrun++;
-    delete recotrack;
-  }
-  return;
-}*/
+}
