@@ -9,7 +9,7 @@ homepath = os.environ['HOME']
 
 register_matplotlib_converters() #for datetimes
 
-df = pd.read_excel(homepath+"/Dropbox/Archivio_cronologico/Maggio_2019/16May_SHiP_all.xlsx")
+df = pd.read_excel(homepath+"/Dropbox/Archivio_cronologico/Maggio_2019/16May_SHiP_all_fromDecember.xlsx")
 
 #getting lists
 df.index = pd.to_datetime(df['Date'])
