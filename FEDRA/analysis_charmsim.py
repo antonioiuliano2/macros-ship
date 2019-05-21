@@ -1,5 +1,6 @@
 import ROOT 
 import fedrarootlogon
+import GiuliOpera
 #from fedrautils import buildtracks
 import recognizecharmdaughters
 from collections import Counter #to find most common iterations in a list
@@ -7,8 +8,8 @@ from collections import defaultdict # to create a dictionary without knowing the
 
 dproc = ROOT.EdbDataProc()
 gAli = dproc.PVR()
-hipcharm = ROOT.TH1D("hipcharm","Impact parameter charm daughters",10000,0,10000);
-hip = ROOT.TH1D("hip","Impact parameter",10000,0,10000);
+hipcharm = ROOT.TH1D("hipcharm","Impact parameter charm daughters",1000,0,1000);
+hip = ROOT.TH1D("hip","Impact parameter",1000,0,1000);
 def buildtracks(filename):
 
  dproc.ReadTracksTree(gAli,filename,"nseg>1")
@@ -36,6 +37,16 @@ def Most_Common(lst):
     data = Counter(lst)
     return data.most_common(1)[0][0]
 
+def isinvertex(fedratrack,fedravertex):
+  check = False
+  trackid = fedratrack.GetSegmentFirst().Track()
+  for i in range (fedravertex.N()):
+   vertextrack = fedravertex.GetTrack(i)
+   vertextrackid = vertextrack.GetSegmentFirst().Track()
+   if trackid == vertextrackid:
+     check = True
+  return check
+
 vertexfile = ROOT.TFile.Open("/afs/cern.ch/work/a/aiuliano/public/sim_fedra/CH6_charm/b000001/17_05_19/vertices_MC_small_modified.root")
 vertexrec = vertexfile.Get("EdbVertexRec")
 
@@ -55,31 +66,39 @@ tracks39 = tracksperevent[39]
 for t in tracks39:
  print t.eX," ",t.eY," ",t.eZ," ",t.MCEvt()
 '''
+
+charminprimary = 0
 for event in vertextree:
 
  ntracks = event.n
  vID = event.vID
 
  mostprobableMCEventID = Most_Common(event.MCEventID)
+ mostprobablemotherid = Most_Common(event.MCMotherID)
 
  fedravertex = vertexlist.At(vID)
  
  
  charmdaughters = recognizecharmdaughters.getdaughtertracks(simtree,mostprobableMCEventID)
- if event.n > 8:
+ if mostprobablemotherid == -1:
   #loop on all tracks from the same MCEvent of the vertex
   for track in tracksperevent[mostprobableMCEventID]:
 
-   impactparameter =  fedravertex.CheckImp(track)
+   fedraimpactparameter =  fedravertex.CheckImp(track) #DOES NOT WORK, due to libvt+::VERTEX objects not been saved
+   
+   elenaimpactparameter = GiuliOpera.IPtoVertex(fedravertex,track)
+#   print "Comparing results: ", fedraimpactparameter, elenaimpactparameter
    if track.MCTrack() in charmdaughters:
-    hipcharm.Fill(impactparameter)
+
+    hipcharm.Fill(elenaimpactparameter)
+    if (isinvertex(track,fedravertex)):
+     charminprimary += 1
    else: 
-    hip.Fill(impactparameter)
+    hip.Fill(elenaimpactparameter)
 
 c0 = ROOT.TCanvas()
 hipcharm.Draw()
 c1 = ROOT.TCanvas()
 hip.Draw()
 
-  
-
+print "Su un numero di figlie di charm tracciate ",hipcharm.Integral(), " sono state associate al vertice primario ", charminprimary
