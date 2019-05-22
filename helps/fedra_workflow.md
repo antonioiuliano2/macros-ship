@@ -3,7 +3,9 @@
 I will list here all the procedure starting from LASSO processing:
 
 Connect to scanner@nusrv9.na.infn.it
-Path for analysis: /ship/CHARM2018
+Path for analysis: 
+/ship/CHARM2018 for SHIP-CHARM 
+~/foot/2019_GSI/ for FOOT
 
 ## New folder
 Create a folder like this /ship/CHARM2018/CH1R1/b000001
