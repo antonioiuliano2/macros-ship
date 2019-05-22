@@ -23,7 +23,7 @@ void fromFairShip2Fedra(TString filename){
   file = TFile::Open("efficiency_alltracks.root");
   heff = (TH1D*) file->Get("heff");
  }
- const float emuefficiency = 0.8;
+ const float emuefficiency = 0.8; // i am efficient to everything
  const float angres = 0.003; // 3 milliradians
  const float ngrains = 70; //the same number for all the couples, so they have the same weigth.
  //**********************OPENING INPUT FILE***************************
@@ -54,9 +54,11 @@ void fromFairShip2Fedra(TString filename){
  Int_t Flag = 1;
  cout<<"Start processing nevents: "<<nevents<<endl;  
  //************************STARTING LOOP ON SIMULATION******************  
- while (reader.Next()){
+// while (reader.Next()){
+ for (int i = 0; i < nevents; i++){
+  reader.Next();
    for (const BoxPoint& emupoint:emulsionhits){
-     if (i%1000==0) cout<<"processing event "<<i<<" out of "<<nevents<<endl;
+     if (ievent%1000==0) cout<<"processing event "<<ievent<<" out of "<<nevents<<endl;
      bool savehit = true; //by default I save all hits
 //no you don't want to do this//     if (j % 2 == 0) continue;
      pdgcode = emupoint.PdgCode();

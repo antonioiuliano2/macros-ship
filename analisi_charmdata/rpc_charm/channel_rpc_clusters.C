@@ -1,10 +1,16 @@
 //adding a channel branch to the clusters
 void addchannelinfo(){
- TFile *RPCmap = TFile::Open("RPCchannelmapfunctions.root","read");
+ TString eosinputpath = TString("/eos/experiment/ship/data/rpc_charm/");
+ TString afsoutputpath = TString("/afs/cern.ch/work/a/aiuliano/public/Charmdata/rpc_charm/");
+
+ TString subpath = TString("CHARM1/RPC_RecoTracks_run2793_s1f22afc8.root");
+
+
+ TFile *RPCmap = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/Charmdata/rpc_charm/RPCchannelmapfunctions.root","read");
  TF1 *mapV = (TF1*) RPCmap->Get("fV"); //sono uguali, per ora prendo il primo
  TF1 *mapH = (TF1*) RPCmap->Get("fH");
 
- ROOT::RDataFrame df("RPC_RecoTracks","/home/antonio/Lavoro/Analisi/CharmData/rpc_charm/RPC_RecoTracks_run2793_s1f22ade3.root");
+ ROOT::RDataFrame df("RPC_RecoTracks",(eosinputpath+subpath).Data());
 
  auto findchannel = [mapV, mapH](ROOT::VecOps::RVec<int> &dir, ROOT::VecOps::RVec<float> &clx, ROOT::VecOps::RVec<float> &cly){
   vector<int> ichannel;
@@ -15,21 +21,22 @@ void addchannelinfo(){
    if (dir[i] == 0){ 
        ibin = round(mapH->GetX(cly[i]))-1; //find the number of the channel for that value
        ichannel.push_back(ibin);
-       cout<<"PROVA H: "<<cly[i]<<" "<<ibin<<endl;
    }
    else{ 
        ibin = round(mapV->GetX(clx[i]))-1;
        ichannel.push_back(ibin);   
-       cout<<"PROVA V: "<<clx[i]<<" "<<ibin<<endl;
    }
   }
-  cout<<"PROVA: "<<dir[0]<<" "<<ichannel[0]<<" "<<ichannel[1]<<endl;
   return ichannel;
  };
 
  auto df1 = df.Define("cl_channel",findchannel,{"cl_dir","cl_x","cl_y"});
 
- df1.Snapshot("RPC_RecoTracks","/home/antonio/Lavoro/Analisi/CharmData/rpc_charm/withchannels/RPC_RecoTracks_run2793_s1f22ade3.root");
+ // as a safety, I do not want to overwrite existing files. Better safe than sorry!
+ ROOT::RDF::RSnapshotOptions opts;
+ opts.fMode = "NEW";
+ df1.Snapshot("RPC_RecoTracks",(afsoutputpath+subpath).Data());
+ cout<<"Finished writing the tree with additional branch for channel"<<endl;
 }
 
 
@@ -37,10 +44,10 @@ void addchannelinfo(){
 
 void createhistograms(){
 
- TFile * RPCmap = new TFile("RPCchannelmapfunctions.root","RECREATE");
+ TFile * RPCmap = new TFile("/afs/cern.ch/work/a/aiuliano/public/Charmdata/rpc_charm/RPCchannelmapfunctions.root","RECREATE");
 
  fstream inputfile;
- inputfile.open("/home/antonio/Lavoro/Analisi/CharmData/rpc_charm/RPC_strip_coord_CernTB.dat");
+ inputfile.open("RPC_strip_coord_CernTB.dat");
 
  //variables to read from the file
  char dir;
@@ -90,14 +97,16 @@ void createhistograms(){
 
   c[istation]->cd(1);
   hchannelmapV[istation]->Draw();
-  hchannelmapV[istation]->GetXaxis()->SetTitle("x[cm]");
+  hchannelmapV[istation]->GetXaxis()->SetTitle("nchannel");
+  hchannelmapV[istation]->GetYaxis()->SetTitle("x[cm]");
 
   c[istation]->cd(2);
   hchannelmapH[istation]->Draw();
-  hchannelmapH[istation]->GetXaxis()->SetTitle("y[cm]");
+  hchannelmapH[istation]->GetXaxis()->SetTitle("nchannel");
+  hchannelmapH[istation]->GetYaxis()->SetTitle("y[cm]");
   
-//  hchannelmapH[istation]->Write();
-//  hchannelmapV[istation]->Write();
+  hchannelmapH[istation]->Write();
+  hchannelmapV[istation]->Write();
 
  } 
 
@@ -107,6 +116,6 @@ void createhistograms(){
  fV->Write();
  fH->Write();
 
- inputfile.close();
- RPCmap->Close();
+// inputfile.close();
+// RPCmap->Close();
 }
