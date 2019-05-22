@@ -32,18 +32,18 @@ Warning: Using -reset to reset parameters after an ill-done alignment resets als
 
 Automatic bash script to create folder and the symbolic link to data folder:
 
-'source createlink.sh'
+`source createlink.sh`
 
 ## Linking
 Linking is made to obtain basetracks from microtracks. Basetracks are chosen according to a chi-square minimization, using coordinates, angles and cluster number as input (reference FEDRA 2006).  
 Linking is done with the command:
 
-'emlink -set=1.0.0.0 -new'
+`emlink -set=1.0.0.0 -new`
 
 A fundamental parameter of the linking is the shrinkage initial value. Check Shr0 (default 0.9)
 Recently a bash script to automatize the linking was written. It is useful when more than one linking iteration is needed
 
-'source linkingloop.sh 10 9'
+`source linkingloop.sh 10 9`
 
 After the linking, check the report b000001.0.0.0.link.pdf and verify that the shrinkage plots show some peaks.  
 
@@ -51,23 +51,36 @@ After the linking, check the report b000001.0.0.0.link.pdf and verify that the s
 
 It is one of the most delicate and important operations, because it allows to connect the different plates. Alignment is done with the command:  
 
-'emalign -set=1.0.0.0 -new'
+`emalign -set=1.0.0.0 -new`
 
 In order to avoid too long waits, it is convenient to optimize the alignment parameters on a small area, then we can move to the whole scanned area (usually 3 iterations). Aligning parameters are to be inserted in 'align.rootrc'.    
 
 As with the linking, check the report b000001.0.0.0.align.pdf to verify the presence of peaks in xy residuals and angle. If alignment is bad, reset the affine transformations by adding a row in AFF/*aff.par with the identity transformation (1.,0.,0.,1.,0.,0.) to reset the alignment iterations.
 A bash script for repetite iterations can be usually found as
 
-'source alignloop.sh 10 9'
+`source alignloop.sh 10 9`
 
 ## Global reports
-To check the plots of the reports from the different steps, there is a drawreports.C script, it will draw the plots of the thickness, linking, alignment reports. It can also save the plotted reports if needed
+To check the plots of the reports from the different steps, there is a drawreports.C script, it will draw the plots of the thickness, linking, alignment reports. It can also save the plotted reports if needed.
+Now added a global check alignment script, to check quickly the alignment in all the plates from the same brick
 
 ## Tracking
 
 It will perform global tracking between the different plates. Tracking is done with the command:
 
-'emtra -set=1.0.0.0 -new'
+`emtra -set=1.0.0.0 -new`
 
 and it will use check_tr.C to check the efficiency and results. Parameters are in the 'track.rootrc' file
+
+## Vertexing
+
+Example of basical vertex script is found in check_vertex.C. It will search for a file named `linked_tracks.root` and it will reconstruct the vertices from there
+For the charm analysis, I have sligthly modified it into a charm_vertexing.C to:
+
+* Select the vertices with almost 4 tracks and aperture angle
+* Save the correpsponding EdbVertexRec in a root file (WARNING: only Edb vertices and tracks will be saved, not libvt++ objects. Do not use FEDRA methods for analysis from that file!)
+
+After producing the file, I usually prepare a tree file with some additional distributions for Valerio. See script `manual_check_vertices.C` for details.
+
+
 
