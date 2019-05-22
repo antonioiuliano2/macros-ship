@@ -27,6 +27,7 @@ fedra.track.do_realign:                  1
 fedra.track.misalign_offset:             500
 fedra.track.do_local_corr:               1
 fedra.track.do_comb:                     0
+#fedra.track.outputfilename              trackfilname.root #added by me, for parallel tracking, not officially endorsed by FEDRA
 emtra.outdir:                            ..
 emtra.env:                               track.rootrc
 emtra.EdbDebugLevel:                     1
