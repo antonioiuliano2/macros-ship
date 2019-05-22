@@ -2,7 +2,7 @@
 
 I will list here all the procedure starting from LASSO processing:
 
-Connec to scanner@nusrv9.na.infn.it (password is 'neutrino.01')
+Connect to scanner@nusrv9.na.infn.it
 Path for analysis: /ship/CHARM2018
 
 ## New folder
