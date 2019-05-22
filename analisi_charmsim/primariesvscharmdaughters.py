@@ -17,7 +17,7 @@ intermediatelist = [223, 3332, 3224, 331, 221, 20213, 3212, 213, 113, 2224, 323]
 signallist = [431, 411, 4122, 421, 4132, 4232, 4332, 441] #charmed hadrons
 
 #label for the outputfile
-print "IEVENT, ITRACK, PDGCODE,MOMENTUM, MOTHERPDG, MOTHERID"
+print "IEVENT, ITRACK, PDGCODE,MOMENTUM, MOTHERPDG, MOTHERID, STARTX, STARTY, STARTZ"
 
 #for recognizing particles name
 pdg = r.TDatabasePDG.Instance()
@@ -43,12 +43,15 @@ for i in range(100):
   if pdg.GetParticle(pdgcode):
    name = pdg.GetParticle(pdgcode).GetName()
 
-  startz = track.GetStartZ()
+  cmtomicron = 1E+4
+  startx = track.GetStartX()* cmtomicron + 62500;
+  starty = track.GetStartY()* cmtomicron + 49500;
+  startz = (track.GetStartZ() - 125.56649)*cmtomicron;
 
   if (motherID == -1): #daughter of primary proton
-   print i, j, pdgcode, momentum, 2212, -1 
+   print i, j, pdgcode, momentum, 2212, -1, startx, starty, startz
 
-  elif (motherID > 0):
+  elif (motherID >= 0):
 
    mothertrack = mctracks[motherID]
    motherpdg = mothertrack.GetPdgCode()
@@ -60,8 +63,8 @@ for i in range(100):
      motherpdg = mothertrack.GetPdgCode()
 
   #checking if daughter of charm
-   if ((motherpdg in signallist) and (pdgcode not in intermediatelist)):
-    print i, j, pdgcode, momentum, motherpdg, motherID
+   if ((r.TMath.Abs(motherpdg) in signallist) and (r.TMath.Abs(pdgcode) not in intermediatelist)):
+    print i, j, pdgcode, momentum, motherpdg, motherID, startx, starty, startz
 
     decaylen = pow(pow(track.GetStartX() - mothertrack.GetStartX(),2)+pow(track.GetStartY() - mothertrack.GetStartY(),2)+pow(track.GetStartZ() - mothertrack.GetStartZ(),2),0.5)
     histos["hlen"].Fill(decaylen)
