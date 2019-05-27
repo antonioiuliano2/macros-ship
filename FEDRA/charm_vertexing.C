@@ -57,7 +57,6 @@ void trvol( const char *def, const char *rcut )
 
   init(def, 100 ,rcut);                      // read tracks (option 100)
   gAli->FillCell(30,30,0.009,0.009);
-  //do_propagation();
   do_vertex();
   //vd(4,0.01);   // draw reconstructed vertex 
   //td(); //to draw tracks
@@ -84,44 +83,6 @@ void set_segments_dz(float dz)
     int ns = p->N();
     for(int j=0; j<ns; j++) p->GetSegment(j)->SetDZ(dz);
   }
-}
-
-//---------------------------------------------------------------------
-void do_propagation()
-{
-  // example of additional propagation and other tracking operations if necessary
-  EdbTrackFitter tf;
-
-  EdbTrackP *tr=0;
-  int ntr = gAli->eTracks->GetEntries();
-  printf("ntr = %d\n",ntr);
-
-  for(int i=0; i<ntr; i++) {
-    tr = (EdbTrackP*)(gAli->eTracks->At(i));
-    tr->SetID(i);
-    tr->SetSegmentsTrack();
-  }
-
-  int nadd = 0;
-  int nseg=0;
-  
-  for(int i=0; i<ntr; i++) {
-    tr = (EdbTrackP*)(gAli->eTracks->At(i));
-    
-    //float p=momentum; //not working on ROOT6
-    //float p=tf.P_MS(*tr);
-    //if(tr->ID()==176) p=0.33;
-    //if(tr->ID()==230) p=22.;    
-
-    //tr = tr->SetErrorP(0.2*0.2*p*p); //not working on ROOT6
-    nseg = tr->N();
-    //tr->SetP(p); //for the previous one
-    if(tr->Flag()<0) continue;
-    nadd += gAli->PropagateTrack( *tr, true, 0.01, 3, 0 );
-    if(tr->Flag()<0) printf("%d flag=%d\n",i,tr->Flag());
-    //if(tr->N() != nseg) printf("%d nseg=%d (%d) \t p = %f\n",i,tr->N(),nseg,tr->P());
-  }
-  printf("nadd = %d\n",nadd);
 }
 
 //---------------------------------------------------------------------

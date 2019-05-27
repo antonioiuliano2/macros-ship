@@ -28,7 +28,7 @@ void hit_loop(){
 
  TH1D *hmomentum = new TH1D("hmomentum", "momentum of tracks associated to vertex",1000,0,100);
  TH1D *hangle = new TH1D("hangle","theta angle of tracks associated to vertex", 4,-2,2);
-// cout<<"Number of events"<<reader.GetEntries()<<endl;
+ cout<<"Molteplicity    TrackIDmother   Ievent(startsfrom0)"<<endl;
  int ientry = 0;
  std::map<int,set<int>> vertexmap;
  while (reader.Next()){
@@ -41,6 +41,10 @@ void hit_loop(){
      //access the hits:    
      for (const BoxPoint& hit:emulsionhits){
         
+        double px = hit.GetPx();
+        double py = hit.GetPy();
+        double pz = hit.GetPz();
+        double momentum = pow(px*px + py*py +pz*pz,0.5);
         double pdgcode = hit.PdgCode();
 	int trackID = hit.GetTrackID();
         double startz = tracks[trackID].GetStartZ();
@@ -57,7 +61,7 @@ void hit_loop(){
         if (procID ==23){ //Selecting hadronic inelastic interactions
         // if (p > 0.1){ //i see only tracks above 100 MeV
          hmother->Fill(motherID);         
-         if (TMath::Abs(charge)>0 && tracks[trackID].GetP()>0.1) vertexmap[motherID].insert(trackID);
+         if (TMath::Abs(charge)>0 && momentum>0.1) vertexmap[motherID].insert(trackID);
         // }
         }
      } //end of the loop on hits
@@ -67,18 +71,21 @@ void hit_loop(){
    //loop over the map elements
    for (std::map<int,set<int>>::iterator it=vertexmap.begin(); it!=vertexmap.end(); ++it){
     set<int> trackidset = it->second;
+    int motherpdg = tracks[it->first].GetPdgCode(); 
+    double motherenergy = tracks[it->first].GetEnergy();
     if (trackidset.size()<2) continue; //at least two tracks to form a vertex
     //filling information about vertices
     hvertexsize->Fill(trackidset.size());
     hvertexstartz->Fill(tracks[(*trackidset.begin())].GetStartZ());    
   
-    if (it->first == 0){ //primary proton interactions
-     cout<<"primary: "<<trackidset.size()<<" "<<ientry<<endl;
+    if ((motherpdg == 2212) && (motherenergy > 398.)){
+    //if (it->first == 0){ //primary proton interactions
+    // if (tracks[(*trackidset.begin())].GetStartX() < -0.25)cout<<trackidset.size()<<" "<<it->first<<" "<<ientry<<endl;
      hprimarysize->Fill(trackidset.size()); //first gives the index, second the value
      hprimarystartz->Fill(tracks[(*trackidset.begin())].GetStartZ());
     }
     else{ 
-     cout<<"secondary: "<<trackidset.size()<<" "<<ientry<<endl;
+    if (tracks[(*trackidset.begin())].GetStartX() < -0.25)cout<<trackidset.size()<<" "<<it->first<<" "<<ientry<<endl;
      hsecondarysize->Fill(trackidset.size()); //secondary hadron interactions
      hsecondarystartz->Fill(tracks[(*trackidset.begin())].GetStartZ());
     } 
@@ -87,19 +94,31 @@ void hit_loop(){
  }//end of the loop on events 
  //***********DRAWING HISTOGRAMS****************
  hmother->Draw();
-
+ cout<<"Numero primari: "<<hprimarysize->GetEntries()<<endl;
  //let's do something different, this time
  TCanvas *csize = new TCanvas();
+ hprimarysize->SetFillColor(kRed);
+ hvertexsize->SetFillColor(kGreen);
  hsize->Add(hprimarysize);
- hsize->Add(hsecondarysize);
+ //hsize->Add(hsecondarysize);
  hsize->Add(hvertexsize);
  hsize->Draw();
+ auto legend = new TLegend(0.6,0.7,0.98,0.9);
+ legend->AddEntry(hprimarysize, "primary vertices");
+ legend->AddEntry(hvertexsize, "all vertices, hadronic inelastic");
+ legend->Draw("SAME");
  csize->Print("molteplicity.png");
 
  TCanvas *cstartz = new TCanvas();
+ hprimarystartz->SetFillColor(kRed);
+ hvertexstartz->SetFillColor(kGreen);
  hstartz->Add(hprimarystartz);
- hstartz->Add(hsecondarystartz);
+ //hstartz->Add(hsecondarystartz);
  hstartz->Add(hvertexstartz);
  hstartz->Draw();
+ auto legendstartz = new TLegend(0.6,0.7,0.98,0.9);
+ legendstartz->AddEntry(hprimarystartz, "primary vertices");
+ legendstartz->AddEntry(hvertexstartz, "all vertices, hadronic inelastic");
+ legendstartz->Draw("SAME");
  cstartz->Print("startz.png");
 }
