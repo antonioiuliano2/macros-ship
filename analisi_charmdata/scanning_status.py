@@ -70,6 +70,8 @@ def scanned(name, emulsion):
         return None
     (run[name][0])[emulsion-1] = True
 
+allscanned('ch1r1')
+allscanned('ch1r2')
 allscanned('ch1r4')
 allscanned('ch1r6')
 
@@ -82,16 +84,20 @@ allscanned('ch2r6')
 
 allscanned('ch3r2')
 allscanned('ch3r3')
+
 allscanned('ch4r2')
+
 allscanned('ch5r2')
 allscanned('ch5r3')
+
+allscanned('ch6r1')
 allscanned('ch6r2')
 allscanned('ch6r3')
 
 for index in range(10):
-    scanned('ch1r1',index+1)
-for index in range(5):
-    scanned('ch1r2',index+1)
+    scanned('ch4r3',index+1)
+for index in range(30):
+    scanned('ch5r1',index+1)
 
 # ********************************************REPORT******************************************************#    
 #counting how many emulsions are left to scan
