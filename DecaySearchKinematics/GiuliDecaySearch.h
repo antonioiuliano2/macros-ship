@@ -25,6 +25,7 @@ class GiuliDecaySearch:public TObject {
     ~GiuliDecaySearch(){  if (fbeamrotation) delete fbeamrotation;}
     //static functions are not connected to a particular object, can be launched simply by using GiuliDecaySearch::Myfunc(argument)
 	static float AverageKinkAngle(float parenttx, float parentty, const float* daughterstx, const float* daughtersty, int ndaughters);
+	static float KinkAngle(float parenttx, float parentty, float daughtertx, float daughterty);
 
 	static float GetpT(float parenttx, float parentty, float daughterttx, float daughtertty, float daughtermomentum);
 

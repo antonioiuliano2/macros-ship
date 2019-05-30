@@ -17,8 +17,14 @@ float GiuliDecaySearch::AverageKinkAngle(float parenttx, float parentty,const fl
  	return kink/ndaughters;
 }
 
+float GiuliDecaySearch::KinkAngle(float parenttx, float parentty, float daughtertx, float daughterty){
+    //only one daughter, average kinkangle equal to kink angle
+    return AverageKinkAngle(parenttx,parentty,&daughtertx,&daughterty,1);
+
+}
+
 float GiuliDecaySearch::IPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, float tracktx, float trackty){
- //Impact parameter of track with respect to primary vertex
+ //'''Impact parameter of track with respect to primary vertex'''
  
  float dz = vertexpos(2) - trackstartpos(2);
  float ipx = tracktx * dz + trackstartpos(0);
