@@ -47,7 +47,9 @@ float GiuliDecaySearch::InvariantMass(TVector3 momentum1, TVector3 momentum2, fl
  TLorentzVector p1 = TLorentzVector(momentum1, mass1);
  TLorentzVector	p2 = TLorentzVector(momentum2, mass2);
 
- float invmass = p1.Dot(p2); //it just does the standard E1E2 - p1*p2
+ TLorentzVector ptot = p1 + p2;
+
+ float invmass = ptot.Mag();
 
  return invmass;
 }
