@@ -7,23 +7,23 @@
 Class created by Antonio to do kinematic operations for decay search. 
 Structure is a simple ROOT class, which can be compiled with ACLIC:
 
-.L GiuliDecaySearch.C+
+.L ShipCharmDecaySearch.C+
 
 then loaded with
 
-gSystem->Load("GiuliDecaySearch_C.so")
+gSystem->Load("ShipCharmDecaySearch_C.so")
 
 and used
 
 
 */
-class GiuliDecaySearch:public TObject {
+class ShipCharmDecaySearch:public TObject {
 
 	public:
 
-	GiuliDecaySearch( float beamTX = 0., float beamTY = 0.) { fbeamTX = beamTX; fbeamTY = beamTY; fbeamrotation = NULL;} 
-    ~GiuliDecaySearch(){  if (fbeamrotation) delete fbeamrotation;}
-    //static functions are not connected to a particular object, can be launched simply by using GiuliDecaySearch::Myfunc(argument)
+	ShipCharmDecaySearch( float beamTX = 0., float beamTY = 0.) { fbeamTX = beamTX; fbeamTY = beamTY; fbeamrotation = NULL;} 
+    ~ShipCharmDecaySearch(){  if (fbeamrotation) delete fbeamrotation;}
+    //static functions are not connected to a particular object, can be launched simply by using ShipCharmDecaySearch::Myfunc(argument)
 	static float AverageKinkAngle(float parenttx, float parentty, const float* daughterstx, const float* daughtersty, int ndaughters);
 	static float KinkAngle(float parenttx, float parentty, float daughtertx, float daughterty);
 
@@ -38,7 +38,7 @@ class GiuliDecaySearch:public TObject {
     //functions to take into account beam angle need the angles, so they are not static
     TRotation* rotation_to_beam(); 
 
-	ClassDef(GiuliDecaySearch,1) // List of functions for Decay Search
+	ClassDef(ShipCharmDecaySearch,1) // List of functions for Decay Search. Original idea by Giuliana, modified by Antonio
 	private:
     float fbeamTX;
     float fbeamTY;
