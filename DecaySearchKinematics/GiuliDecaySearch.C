@@ -42,6 +42,18 @@ float GiuliDecaySearch::GetpT(float parenttx, float parentty, float daughtertx, 
 
 }
 
+float GiuliDecaySearch::InvariantMass(std::vector<TVector3> momenta, std::vector<float> masses){
+    int nparticles = momenta.size();
+    TLorentzVector ptot = TLorentzVector(0.,0.,0.,0.);
+
+    for (int i = 0; i<nparticles;i++){
+        TLorentzVector p_i = TLorentzVector(momenta[i],masses[i]);
+        ptot += p_i;
+    }
+    float invmass = ptot.Mag();
+    return invmass;
+}
+
 float GiuliDecaySearch::InvariantMass(TVector3 momentum1, TVector3 momentum2, float mass1, float mass2){
  //now simplified by using TLorentzVectors
  TLorentzVector p1 = TLorentzVector(momentum1, mass1);

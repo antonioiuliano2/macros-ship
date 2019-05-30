@@ -1,6 +1,7 @@
 #include "TObject.h"
 #include "TVector3.h"
 #include "TRotation.h"
+#include <vector>
 
 /*
 Class created by Antonio to do kinematic operations for decay search. 
@@ -29,6 +30,8 @@ class GiuliDecaySearch:public TObject {
 
 	static float IPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, float tracktx, float trackty);
      
+    static float InvariantMass(std::vector<TVector3> momenta, std::vector<float> masses);
+
     static float InvariantMass(TVector3 momentum1, TVector3 momentum2, float mass1, float mass2);
 
     //functions to take into account beam angle need the angles, so they are not static
