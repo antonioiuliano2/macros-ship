@@ -192,26 +192,26 @@ def getdaughtertracks(inputtree,eventnumber):
 	hztovertex.Fill((charmdaughter.GetStartZ() - vertex(2))*cmtomicron)
 	hdecaylen.Fill(decaylen(charmhadrons[i],charmdaughter)*cmtomicron)	
         charmhadronpdg = charmhadrons[i].GetPdgCode()
+        mass = pdgdatabase.GetParticle(charmhadronpdg).Mass()
+        gamma = charmhadrons[i].GetEnergy()/mass
+        
+         
+        longdecay = True
+        primaryvertexplate = findplateID(vertex(2))
+        secondaryvertexplate = findplateID(charmdaughter.GetStartZ())
+        if(primaryvertexplate==secondaryvertexplate): longdecay = False
+        dx = (charmdaughter.GetStartX() - vertex(0))*cmtomicron
+        dy = (charmdaughter.GetStartY() - vertex(1))*cmtomicron
+        dz = (charmdaughter.GetStartZ() - vertex(2))*cmtomicron
+        momentum = charmhadrons[i].GetP()
+        pdgcode = charmhadronpdg
+         
+        charmlongntuple.Fill()
 
 	if r.TMath.Abs(charmhadronpdg) in commoncharm:
          hzcharm[r.TMath.Abs(charmhadronpdg)].Fill((charmdaughter.GetStartZ() - vertex(2))*cmtomicron)
          hpcharm[r.TMath.Abs(charmhadronpdg)].Fill(charmhadrons[i].GetP())
-
-         mass = pdgdatabase.GetParticle(charmhadronpdg).Mass()
-         gamma = charmhadrons[i].GetEnergy()/mass
          hgammacharm[r.TMath.Abs(charmhadronpdg)].Fill(gamma)
-         
-         longdecay = True
-         primaryvertexplate = findplateID(vertex(2))
-         secondaryvertexplate = findplateID(charmdaughter.GetStartZ())
-         if(primaryvertexplate==secondaryvertexplate): longdecay = False
-         dx = charmdaughter.GetStartX() - vertex(0)
-         dy = charmdaughter.GetStartY() - vertex(1)
-         dz = charmdaughter.GetStartZ() - vertex(2)
-         momentum = charmhadrons[i].GetP()
-         pdgcode = charmhadronpdg
-         
-         charmlongntuple.Fill()
        
          
 
