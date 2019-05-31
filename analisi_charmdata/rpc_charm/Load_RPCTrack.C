@@ -106,34 +106,64 @@ void Save_Tracks_Hits(const char *filein, const char *fileout){
   RPC_Trks->SetBranchAddress("cl_dir",&cl_dir);
   RPC_Trks->SetBranchAddress("cl_rpc",&cl_rpc);
 
-  int ntracks = RPC_Trks->GetEntries();
+  const int ntracks = RPC_Trks->GetEntries();
   cout<<"RPC Tracks Tree with "<<ntracks<<" entries "<<endl;
 
   //output file where data will be converted
-  TFile *fout = new TFile(fileout, "NEW");
-  TTree *FairShip_RPC_Trks = new TTree("cbmsim","Hits associated to reconstructed tracks");
+  TFile *fout = new TFile(fileout, "UPDATE");
+  TTree *triggertree = (TTree*) fout->Get("cbmsim");
+  const int ntriggers = triggertree->GetEntries();
+
   TClonesArray rpcarray("MuonTaggerHit",100);
   
-  FairShip_RPC_Trks->Branch("LocallyTracked_MuonTaggerHits", &rpcarray); //changing the name to something more reasonable
+  TBranch* FairShip_RPC_Trks = triggertree->Branch("LocallyTracked_MuonTaggerHits", &rpcarray); //changing the name to something more reasonable
   //FairShip_RPC_Trks->Branch("runID",&id_run);
   //FairShip_RPC_Trks->Branch("spillID",&id_spill);
 
   MuonTaggerHit *recocluster;
-  for(int itrk = 0; itrk<ntracks; itrk++){ //main loop on tracks
+ /* for(int itrk = 0; itrk<ntracks; itrk++){ //main loop on tracks
     int iarray = 0;
     rpcarray.Clear();
     RPC_Trks->GetEntry(itrk); //getting the entry
     for (int icluster = 0; icluster < nclusters; icluster++){
       int detid = cl_dir->at(icluster)*1000 + cl_rpc->at(icluster) * 10000 + cl_channel->at(icluster); //coding used by FairShip to identify the RPC channel (s*10000 + v*1000+c)
-      new (rpcarray[iarray]) MuonTaggerHit(detid,0.);
+      new (rpcarray[iarray]) MuonTaggerHit(detid,id_track); //I need to know which track it belongs to
       iarray++;
       //rpcarray->Add(recocluster);      
      }
      FairShip_RPC_Trks->Fill();
-    }
+    }*/ //old loop, one entry for reconstructed track
+    
+   //preparing the indexing
+   RPC_Trks->BuildIndex("trigger","id_track");
+   const int maxtrks = RPC_Trks->GetMaximum("id_track");
+   //loop on triggers (index starts from 1)
+   for (int itrigger = 1; itrigger <= ntriggers; itrigger++){
+	   //start of a new event, clearing container
+	   int iarray = 0;
+       rpcarray.Clear();
+	   //how many tracks found for that trigger?
+	   int nrecotracks = RPC_Trks->GetEntries(Form("trigger==%i",itrigger));
+	   if (itrigger < 10) cout<<"Test "<<nrecotracks<<endl;
+	   //loop on reconstructed tracks for that trigger (also id_track starts from 1)
+	   for (int itrk = 1; itrk<=nrecotracks;itrk++){	   
+		//getting the entry with reconstructed track information
+	    int entrynumber = RPC_Trks->GetEntryNumberWithIndex(itrigger,itrk);
+        RPC_Trks->GetEntry(entrynumber); 
+        //getting the hits associated to that track
+        for (int icluster = 0; icluster < nclusters; icluster++){
+         int detid = cl_dir->at(icluster)*1000 + cl_rpc->at(icluster) * 10000 + cl_channel->at(icluster); //coding used by FairShip to identify the RPC channel (s*10000 + v*1000+c)
+         new (rpcarray[iarray]) MuonTaggerHit(detid,id_track); //I need to know which track it belongs to
+         iarray++;
+      //rpcarray->Add(recocluster);      
+         }//end of cluster loop
+        }//end of track loop
+        if (itrigger < 10) cout<<"Test "<<rpcarray.GetEntries()<<endl;
+        FairShip_RPC_Trks->Fill();
+   }//end of trigger loop
     TTree *Copy_RPC_Trks = RPC_Trks->CloneTree();
     Copy_RPC_Trks->Write();
-    FairShip_RPC_Trks->Write();
+    triggertree->Write("", TObject::kOverwrite);
     cout<<"Finished Writing the file with RPC hits"<<endl;
     fout->Close();
 }
