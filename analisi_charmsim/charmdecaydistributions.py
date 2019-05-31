@@ -43,6 +43,8 @@ hzcharm = {421: hzd0, 411: hzdcharge, 431: hzdscharge, 4122:hzlambdac}
 hpcharm = {421: hpd0, 411: hpdcharge, 431: hpdscharge, 4122:hplambdac}
 hgammacharm = {421: hgammad0, 411: hgammadcharge, 431: hgammadscharge, 4122:hgammalambdac}
 
+charmlongntuple = r.TNtuple("charmdecays","Charm Decays","momentum:gamma:pdg:dx:dy:dz:longdecay")
+
 def findplateID(zposition):
 	iplate = hplatez.FindBin(zposition)
 	return iplate
@@ -203,10 +205,14 @@ def getdaughtertracks(inputtree,eventnumber):
          primaryvertexplate = findplateID(vertex(2))
          secondaryvertexplate = findplateID(charmdaughter.GetStartZ())
          if(primaryvertexplate==secondaryvertexplate): longdecay = False
-         if longdecay:
-			hzcharmlong[r.TMath.Abs(charmhadronpdg)].Fill((charmdaughter.GetStartZ() - vertex(2))*cmtomicron) 
-			hpcharmlong[r.TMath.Abs(charmhadronpdg)].Fill(charmhadrons[i].GetP())
-         print "TEST LONG SHORT, Primary position (plate, z) ", primaryvertexplate, vertex(2), " secondary position (plate, z) ", secondaryvertexplate, charmdaughter.GetStartZ(), "is long? ", longdecay
+         dx = charmdaughter.GetStartX() - vertex(0)
+         dy = charmdaughter.GetStartY() - vertex(1)
+         dz = charmdaughter.GetStartZ() - vertex(2)
+         momentum = charmhadrons[i].GetP()
+         pdgcode = charmhadronpdg
+         
+         charmlongntuple.Fill()
+       
          
 
    #print "TEST ",len(charmdaughterslist)
@@ -305,6 +311,8 @@ hgammacharm[4122].Draw()
 hgammacharm[4122].GetXaxis().SetTitle("gamma")
 hgammacharm[4122].Write()
 cgammacharm.Write()
+
+charmlongntuple.Write()
 
 
 c2 = r.TCanvas()
