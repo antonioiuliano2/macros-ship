@@ -206,7 +206,7 @@ def getdaughtertracks(inputtree,eventnumber):
         momentum = charmhadrons[i].GetP()
         pdgcode = charmhadronpdg
          
-        charmlongntuple.Fill()
+        charmlongntuple.Fill(momentum:gamma:pdg:dx:dy:dz:longdecay)
 
 	if r.TMath.Abs(charmhadronpdg) in commoncharm:
          hzcharm[r.TMath.Abs(charmhadronpdg)].Fill((charmdaughter.GetStartZ() - vertex(2))*cmtomicron)
