@@ -183,13 +183,12 @@ def getdaughtertracks(inputtree,eventnumber):
  #loop on the two groups of charmdaughters
  for i, charmdaughterslist in enumerate(charmdaughters):
   if len(charmdaughterslist) > 0: #we need at least one charged daughter to fill the histograms
-   hdecaylen.Fill(decaylen(charmhadrons[i], charmdaughterslist[0]))
    #for charmdaughter in charmdaughterslist:
-   averagekinkangle = Kinkangle(charmhadrons[i],charmdaughterslist[0])
+   averagekinkangle = Kinkangle(charmhadrons[i],charmdaughterslist)
    hkink.Fill(averagekinkangle)
-   hxytovertex.Fill((charmdaughterlist[0].GetStartX() - vertex(0))*cmtomicron,(charmdaughterlist[0].GetStartY() - vertex(1))*cmtomicron)
-   hztovertex.Fill((charmdaughterlist[0].GetStartZ() - vertex(2))*cmtomicron)
-   hdecaylen.Fill(decaylen(charmhadrons[i],charmdaughterlist[0])*cmtomicron)	
+   hxytovertex.Fill((charmdaughterslist[0].GetStartX() - vertex(0))*cmtomicron,(charmdaughterslist[0].GetStartY() - vertex(1))*cmtomicron)
+   hztovertex.Fill((charmdaughterslist[0].GetStartZ() - vertex(2))*cmtomicron)
+   hdecaylen.Fill(decaylen(charmhadrons[i],charmdaughterslist[0])*cmtomicron)	
    charmhadronpdg = charmhadrons[i].GetPdgCode()
    mass = pdgdatabase.GetParticle(charmhadronpdg).Mass()
    gamma = charmhadrons[i].GetEnergy()/mass
@@ -197,18 +196,18 @@ def getdaughtertracks(inputtree,eventnumber):
          
    longdecay = True
    primaryvertexplate = findplateID(vertex(2))
-   secondaryvertexplate = findplateID(charmdaughterlist[0].GetStartZ())
+   secondaryvertexplate = findplateID(charmdaughterslist[0].GetStartZ())
    if(primaryvertexplate==secondaryvertexplate): longdecay = False
-   dx = (charmdaughterlist[0].GetStartX() - vertex(0))*cmtomicron
-   dy = (charmdaughterlist[0].GetStartY() - vertex(1))*cmtomicron
-   dz = (charmdaughterlist[0].GetStartZ() - vertex(2))*cmtomicron
+   dx = (charmdaughterslist[0].GetStartX() - vertex(0))*cmtomicron
+   dy = (charmdaughterslist[0].GetStartY() - vertex(1))*cmtomicron
+   dz = (charmdaughterslist[0].GetStartZ() - vertex(2))*cmtomicron
    momentum = charmhadrons[i].GetP()
    pdgcode = charmhadronpdg
          
    charmlongntuple.Fill(momentum,gamma,pdgcode,dx,dy,dz,longdecay)
 
    if r.TMath.Abs(charmhadronpdg) in commoncharm:
-         hzcharm[r.TMath.Abs(charmhadronpdg)].Fill((charmdaughterlist[0].GetStartZ() - vertex(2))*cmtomicron)
+         hzcharm[r.TMath.Abs(charmhadronpdg)].Fill((charmdaughterslist[0].GetStartZ() - vertex(2))*cmtomicron)
          hpcharm[r.TMath.Abs(charmhadronpdg)].Fill(charmhadrons[i].GetP())
          hgammacharm[r.TMath.Abs(charmhadronpdg)].Fill(gamma)
    #for charmdaughter in charmdaughterslist:    
