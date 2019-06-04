@@ -1,8 +1,8 @@
-#include "GiuliDecaySearch.h"
+#include "ShipCharmDecaySearch.h"
 #include "TLorentzVector.h"
 //***************Track kinematics which require only angles and positions information********
 
-float GiuliDecaySearch::AverageKinkAngle(float parenttx, float parentty,const float* daughterstx, const float* daughtersty, int ndaughters){
+float ShipCharmDecaySearch::AverageKinkAngle(float parenttx, float parentty,const float* daughterstx, const float* daughtersty, int ndaughters){
 	float kink=0.;
 
 	//loop on daughters
@@ -17,13 +17,13 @@ float GiuliDecaySearch::AverageKinkAngle(float parenttx, float parentty,const fl
  	return kink/ndaughters;
 }
 
-float GiuliDecaySearch::KinkAngle(float parenttx, float parentty, float daughtertx, float daughterty){
+float ShipCharmDecaySearch::KinkAngle(float parenttx, float parentty, float daughtertx, float daughterty){
     //only one daughter, average kinkangle equal to kink angle
     return AverageKinkAngle(parenttx,parentty,&daughtertx,&daughterty,1);
 
 }
 
-float GiuliDecaySearch::IPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, float tracktx, float trackty){
+float ShipCharmDecaySearch::IPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, float tracktx, float trackty){
  //'''Impact parameter of track with respect to primary vertex'''
  
  float dz = vertexpos(2) - trackstartpos(2);
@@ -37,7 +37,7 @@ float GiuliDecaySearch::IPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, f
 
 //************particle kinematics which require momentum information**********************
 
-float GiuliDecaySearch::GetpT(float parenttx, float parentty, float daughtertx, float daughterty, float daughtermomentum){
+float ShipCharmDecaySearch::GetpT(float parenttx, float parentty, float daughtertx, float daughterty, float daughtermomentum){
 //transverse momentum of daughter with respect to mother direction
  
  float costh = (1+parenttx*daughtertx + parentty*daughterty)/TMath::Sqrt((1+parenttx*parenttx+parentty*parentty)*(1+daughtertx*daughtertx+daughterty*daughterty));
@@ -48,7 +48,7 @@ float GiuliDecaySearch::GetpT(float parenttx, float parentty, float daughtertx, 
 
 }
 
-float GiuliDecaySearch::InvariantMass(std::vector<TVector3> momenta, std::vector<float> masses){
+float ShipCharmDecaySearch::InvariantMass(std::vector<TVector3> momenta, std::vector<float> masses){
     int nparticles = momenta.size();
     TLorentzVector ptot = TLorentzVector(0.,0.,0.,0.);
 
@@ -60,7 +60,7 @@ float GiuliDecaySearch::InvariantMass(std::vector<TVector3> momenta, std::vector
     return invmass;
 }
 
-float GiuliDecaySearch::InvariantMass(TVector3 momentum1, TVector3 momentum2, float mass1, float mass2){
+float ShipCharmDecaySearch::InvariantMass(TVector3 momentum1, TVector3 momentum2, float mass1, float mass2){
  //now simplified by using TLorentzVectors
  TLorentzVector p1 = TLorentzVector(momentum1, mass1);
  TLorentzVector	p2 = TLorentzVector(momentum2, mass2);
@@ -72,7 +72,7 @@ float GiuliDecaySearch::InvariantMass(TVector3 momentum1, TVector3 momentum2, fl
  return invmass;
 }
 
-TRotation* GiuliDecaySearch::rotation_to_beam() {
+TRotation* ShipCharmDecaySearch::rotation_to_beam() {
     //if already done, do not repeat it
     if (fbeamrotation) return fbeamrotation;
     //if attribute do not exists, create it and apply the rotations
@@ -84,6 +84,6 @@ TRotation* GiuliDecaySearch::rotation_to_beam() {
     return fbeamrotation;
     
 }
-//TRotation* GiuliDecaySearch::fbeamrotation = nullptr; //it has to exist
+//TRotation* ShipCharmDecaySearch::fbeamrotation = nullptr; //it has to exist
 
-ClassImp(GiuliDecaySearch)
+ClassImp(ShipCharmDecaySearch)
