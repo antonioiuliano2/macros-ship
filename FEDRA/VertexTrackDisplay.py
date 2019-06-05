@@ -2,25 +2,30 @@
 import ROOT
 import fedrarootlogon
 import sys
-from argparse import ArgumentParser
+#usage: python -i VerteTrackDisplay.py inputfile nevent
 
-fedratracklists = [10,20,30]
+#from argparse import ArgumentParser #not present in good old nusrv9, but the commands should work in a reasonable python setup, only need to remove the parser and options comments,then comment the sys.argv lines
+
+fedratrackslist = [10,20,30]
 trackcolors = [ROOT.kRed, ROOT.kMagenta, ROOT.kBlue] #so we can set different colors for different tracks
 dproc = ROOT.EdbDataProc()
 gAli = dproc.PVR()
 
-parser = ArgumentParser()
-parser.add_argument("-f", "--fedra", dest="fedrafilename", help="file with fedra tracks and vertices",
-                    required=True)
-parser.add_argument("-n", "--nevent", dest="eventnumber", help="number of event to display", required=True)
+#parser = ArgumentParser()
+#parser.add_argument("-f", "--fedra", dest="fedrafilename", help="file with fedra tracks and vertices",
+     #               required=True)
+#parser.add_argument("-n", "--nevent", dest="eventnumber", help="number of event to display", required=True)
 
-options = parser.parse_args()
-vertexnumber = options.eventnumber
-fedrafilename = options.fedrafilename
+#options = parser.parse_args()
+#vertexnumber = options.eventnumber
+#fedrafilename = options.fedrafilename
 
-def buildtracks(filename,eventnumber):
+fedrafilename = sys.argv[1]
+vertexnumber = int(sys.argv[2])
+
+def buildtracks(filename):
  
- dproc.ReadTracksTree(gAli,filename,"nseg>1&&s.eMCEvt=={}".format(eventnumber))
+ dproc.ReadTracksTree(gAli,filename,"nseg>1")
  gAli.FillCell(30,30,0.009,0.009)
  tracks = gAli.eTracks
 
@@ -35,29 +40,29 @@ def buildtracks(filename,eventnumber):
 
 #start of the main loop script
 
-tracks = buildtracks(fedrafilename, eventnumber)
+tracks = buildtracks(fedrafilename)
 
-vertexfile = ROOT.File.Open(fedrafilename)
+vertexfile = ROOT.TFile.Open(fedrafilename)
 vertexrec = vertexfile.Get("EdbVertexRec")
 vertexlist = vertexrec.eVTX
 
-drawnvertices = ROOT.TObjectArray(100)
-drawntracksfromvertex = ROOT.TObjectArray(10000)
+drawnvertices = ROOT.TObjArray(100)
+drawntracksfromvertex = ROOT.TObjArray(10000)
 
-vertex = vertexlist[vertexnumber]
+vertex = vertexlist.At(vertexnumber)
 ntracksfromvertex = vertex.N()
 #adding tracks and vertices to list to be drawn (only one vertex in this case)
 
 drawnvertices.Add(vertex)
 for i in range(ntracksfromvertex):
  vertextrack = vertex.GetTrack(i)
- drawntracksfromvertex.Add(track)
+ drawntracksfromvertex.Add(vertextrack)
 
-def drawtracks(tracks, charmdaughters):
+def drawtracks(vertextracks,tracks):
  #ds.SetVerRec(gEVR);
  ds.SetDrawTracks(4)
- ds.SetArrTr( tracks )
- ds.SetArrV(varray)
+ ds.SetArrTr( vertextracks )
+ ds.SetArrV(drawnvertices)
  #print "{} tracks to display\n".format(tracks.GetEntries() )
  ds.Draw();
  #loop on tracks, find charm daughters and replot them with a different color
@@ -71,4 +76,4 @@ dsname="Charm simulation FEDRA display"
 ds = ROOT.EdbDisplay.EdbDisplayExist(dsname);
 if not ds:  
   ds=ROOT.EdbDisplay(dsname,-50000.,50000.,-50000.,50000.,-4000.,80000.)
-drawtracks(tracks,charmdaughters)
+drawtracks(drawntracksfromvertex,tracks)
