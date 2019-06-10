@@ -1,41 +1,54 @@
-/*EdbAffine2D invertaff(int nplate, int refplate=29);
+//script to get local plate positions from global ones
+
+//global variables
+TFile *setfile = 0;
+EdbScanSet *set = 0;
+EdbAffine2D afftoplate;
+
+//********used functions************************+
+void GetScanSetfromFile(){
+
+ setfile = TFile::Open("/ship/CHARM2018/CH1-R6/b000001/b000001.0.0.0.set.root");
+ set = (EdbScanSet*) setfile->Get("set");
+}
 
 EdbAffine2D invertaff(int nplate, int refplate){ 
 
- TFile *setfile = TFile::Open("b000001.0.0.0.set.root");
- EdbScanSet *set = (EdbScanSet*) setfile->Get("set");
-
  EdbAffine2D afftoplate = EdbAffine2D();
  
  set->GetAffP2P(nplate,refplate,afftoplate);
- cout<<"Test trasformazione da 0 a 20"<<endl;
+  cout<<"Print affine transformation from "<<nplate<<" to "<<refplate<<endl;
 
  afftoplate.Print();
 
- EdbAffine2D invertedaff = afftoplate.Invert();
+ afftoplate.Invert();
 
- return invertedaff;
+ return afftoplate;
 
-}*/
+}
 
-void getlocalpos(float x, float y, int nplate= 10, int refplate=29){
-//from GLOBAL to LOCAL plate coordinates
+void getaffine(int nplate =10, int refplate = 29){
+ if (!setfile) GetScanSetfromFile();
+ afftoplate= invertaff(nplate,refplate);
+}
 
- TFile *setfile = TFile::Open("b000001.0.0.0.set.root");
- EdbScanSet *set = (EdbScanSet*) setfile->Get("set");
+void globaltolocal(float x, float y){
 
- EdbAffine2D afftoplate = EdbAffine2D();
- 
- set->GetAffP2P(nplate,refplate,afftoplate);
- cout<<"Test trasformazione da 0 a 20"<<endl;
-
- afftoplate.Print();
-
- afftoplate.Invert(); //it does not produce anything new
- 
  float newx = afftoplate.Xtrans(x,y);
  float newy = afftoplate.Ytrans(x,y);
 
  cout<<"localpositions: ("<<newx<<" , "<<newy<<")"<<endl;
+}
+
+//*********automatic script which does all the steps*********
+
+void getlocalpos(float x, float y, int nplate= 10, int refplate=29){
+//from GLOBAL to LOCAL plate coordinates
+
+ GetScanSetfromFile();
+ afftoplate= getaffine(nplate,refplate);
+ globaltolocal(x,y);
+
+ setfile->Close();
 
 }
