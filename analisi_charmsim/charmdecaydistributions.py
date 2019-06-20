@@ -2,6 +2,7 @@
 
 import ROOT as r
 from rootUtils import bookHist
+from array import array # for tree branches
 import sys
 
 
@@ -42,8 +43,26 @@ hgammalambdac = r.TH1D("hgammalambda+","Gamma of Dlambdac++",20,0,200);
 hzcharm = {421: hzd0, 411: hzdcharge, 431: hzdscharge, 4122:hzlambdac}
 hpcharm = {421: hpd0, 411: hpdcharge, 431: hpdscharge, 4122:hplambdac}
 hgammacharm = {421: hgammad0, 411: hgammadcharge, 431: hgammadscharge, 4122:hgammalambdac}
+#defining the variables for the branches
+sizearrays = 2
+charmmomentum = array( 'f', sizearrays*[ 0. ] )
+gamma = array( 'f', sizearrays*[ 0. ] )
+charmpdgcode = array( 'i', sizearrays*[ 0 ] )
+dx = array( 'f', sizearrays*[ 0. ] )
+dy = array( 'f', sizearrays*[ 0. ] )
+dz = array( 'f', sizearrays*[ 0. ] )
+longdecay = array ( 'i', sizearrays*[0])
+nprong = array('i', sizearrays*[0])
 
-charmlongntuple = r.TNtuple("charmdecays","Charm Decays","momentum:gamma:pdg:dx:dy:dz:longdecay")
+charmlongntuple = r.TTree("charmdecays","Charm Decays") #tree structure, arrays containing the information for the two charm decays
+charmlongntuple.Branch("momentum",charmmomentum,'momentum[2]/F')
+charmlongntuple.Branch("gamma",gamma,'gamma[2]/F')
+charmlongntuple.Branch("pdgcode",charmpdgcode,'pdgcode[2]/I')
+charmlongntuple.Branch("dx",dx,'dx[2]/F')
+charmlongntuple.Branch("dy",dy,'dy[2]/F')
+charmlongntuple.Branch("dz",dz,'dz[2]/F')
+charmlongntuple.Branch("longdecay",longdecay,'longdecay[2]/I')
+charmlongntuple.Branch("nprong",nprong,'nprong[2]/I')
 
 def findplateID(zposition):
 	iplate = hplatez.FindBin(zposition)
@@ -150,7 +169,7 @@ def getdaughtertracks(inputtree,eventnumber):
    startz = track.GetStartZ()
    startpos = r.TVector3(startx,starty,startz)
 
-   if (motherID == -1):
+   if (j == 0):
     vertex = startpos #saving position of primary vertex
 
    if (motherID >= 0):
@@ -166,9 +185,18 @@ def getdaughtertracks(inputtree,eventnumber):
 
   #checking if daughter of charm
     if ((motherpdg in charmpdgs) and (r.TMath.Abs(pdgcode) not in intermediatelist)):
+     charmindex = charmpdgs.index(motherpdg) #what charm was found?
+     dx[charmindex] = (track.GetStartX() - vertex(0))*cmtomicron
+     dy[charmindex] = (track.GetStartY() - vertex(1))*cmtomicron
+     dz[charmindex] = (track.GetStartZ() - vertex(2))*cmtomicron
+     
+     longdecay[0] = 1 #True
+     longdecay[1] = 1 #True
+     primaryvertexplate = findplateID(vertex(2))
+     secondaryvertexplate = findplateID(track.GetStartZ())
+     if(primaryvertexplate==secondaryvertexplate): longdecay[charmindex] = 0 #False
+
      if momentum > 0.1 and r.TMath.Abs(charge) > 0: #energy cut, also we select charged particles
-  
-      charmindex = charmpdgs.index(motherpdg) #what charm was found?
       charmdaughters[charmindex].append(track)
 
       #print "Track Momentum", track.GetPx(), track.GetPy(), track.GetPz()
@@ -182,49 +210,69 @@ def getdaughtertracks(inputtree,eventnumber):
 
  #loop on the two groups of charmdaughters
  for i, charmdaughterslist in enumerate(charmdaughters):
+  #even with 0 prong we want to save information about charm momentum and pdgcode
+  charmmomentum[i] = charmhadrons[i].GetP()
+  charmpdgcode[i] = charmhadrons[i].GetPdgCode()
+  nprong[i] = len(charmdaughterslist)
+
   if len(charmdaughterslist) > 0: #we need at least one charged daughter to fill the histograms
-   hdecaylen.Fill(decaylen(charmhadrons[i], charmdaughterslist[0]))
    #for charmdaughter in charmdaughterslist:
-   averagekinkangle = Kinkangle(charmhadrons[i],charmdaughterslist[0])
+   firstcharmdaughter = charmdaughterslist[0]#one of the daughters to check the start position
+
+
+   averagekinkangle = Kinkangle(charmhadrons[i],charmdaughterslist)
    hkink.Fill(averagekinkangle)
-   hxytovertex.Fill((charmdaughterlist[0].GetStartX() - vertex(0))*cmtomicron,(charmdaughterlist[0].GetStartY() - vertex(1))*cmtomicron)
-   hztovertex.Fill((charmdaughterlist[0].GetStartZ() - vertex(2))*cmtomicron)
-   hdecaylen.Fill(decaylen(charmhadrons[i],charmdaughterlist[0])*cmtomicron)	
-   charmhadronpdg = charmhadrons[i].GetPdgCode()
-   mass = pdgdatabase.GetParticle(charmhadronpdg).Mass()
-   gamma = charmhadrons[i].GetEnergy()/mass
+   hxytovertex.Fill((firstcharmdaughter.GetStartX() - vertex(0))*cmtomicron,(firstcharmdaughter.GetStartY() - vertex(1))*cmtomicron)
+   hztovertex.Fill((firstcharmdaughter.GetStartZ() - vertex(2))*cmtomicron)
+   hdecaylen.Fill(decaylen(charmhadrons[i],firstcharmdaughter)*cmtomicron)	
+   mass = pdgdatabase.GetParticle(charmpdgcode[i]).Mass()
+   gamma[i] = charmhadrons[i].GetEnergy()/mass
         
          
-   longdecay = True
+   longdecay[i] = 1 #True
    primaryvertexplate = findplateID(vertex(2))
-   secondaryvertexplate = findplateID(charmdaughterlist[0].GetStartZ())
-   if(primaryvertexplate==secondaryvertexplate): longdecay = False
-   dx = (charmdaughterlist[0].GetStartX() - vertex(0))*cmtomicron
-   dy = (charmdaughterlist[0].GetStartY() - vertex(1))*cmtomicron
-   dz = (charmdaughterlist[0].GetStartZ() - vertex(2))*cmtomicron
-   momentum = charmhadrons[i].GetP()
-   pdgcode = charmhadronpdg
-         
-   charmlongntuple.Fill(momentum,gamma,pdgcode,dx,dy,dz,longdecay)
+   secondaryvertexplate = findplateID(firstcharmdaughter.GetStartZ())
+   if(primaryvertexplate==secondaryvertexplate): longdecay[i] = 0 #False
+   dx[i] = (firstcharmdaughter.GetStartX() - vertex(0))*cmtomicron
+   dy[i] = (firstcharmdaughter.GetStartY() - vertex(1))*cmtomicron
+   dz[i] = (firstcharmdaughter.GetStartZ() - vertex(2))*cmtomicron         
 
-   if r.TMath.Abs(charmhadronpdg) in commoncharm:
-         hzcharm[r.TMath.Abs(charmhadronpdg)].Fill((charmdaughterlist[0].GetStartZ() - vertex(2))*cmtomicron)
-         hpcharm[r.TMath.Abs(charmhadronpdg)].Fill(charmhadrons[i].GetP())
-         hgammacharm[r.TMath.Abs(charmhadronpdg)].Fill(gamma)
+   if r.TMath.Abs(charmpdgcode[i]) in commoncharm:
+         hzcharm[r.TMath.Abs(charmpdgcode[i])].Fill((firstcharmdaughter.GetStartZ() - vertex(2))*cmtomicron)
+         hpcharm[r.TMath.Abs(charmpdgcode[i])].Fill(charmhadrons[i].GetP())
+         hgammacharm[r.TMath.Abs(charmpdgcode[i])].Fill(gamma[i])
    #for charmdaughter in charmdaughterslist:    
          
 
    #print "TEST ",len(charmdaughterslist)
    hkinkprong[len(charmdaughterslist)-1].Fill(averagekinkangle)
+ charmlongntuple.Fill()
  return tracksID
 
 fileinput = r.TFile.Open("ship.conical.Pythia8CharmOnly-TGeant4.root")
 inputtree = fileinput.Get("cbmsim")
 
-nevents = 1
+nevents = inputtree.GetEntries()
 #Loop on the events
-for ievent in range(1000):
- print "Start of event: ", ievent
+for ievent in range(nevents):
+ if (ievent % 100 == 0): print "Start of event: ", ievent
+ #array resetting
+ nprong[0] = 0
+ nprong[1] = 0
+ charmmomentum[0] = 0.
+ charmmomentum[1] = 0.
+ charmpdgcode[0] = 0
+ charmpdgcode[1] = 0
+ longdecay[0] = 0
+ longdecay[1] = 0
+
+ dx[0] = 0.
+ dx[1] = 0.
+ dy[0] = 0.
+ dy[1] = 0.
+ dz[0] = 0.
+ dz[1] = 0.
+ #next event
  getdaughtertracks(inputtree,ievent)
 
 #drawing histograms and saving them to file
