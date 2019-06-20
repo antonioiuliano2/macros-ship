@@ -9,11 +9,12 @@ homepath = os.environ['HOME']
 
 register_matplotlib_converters() #for datetimes
 
-df = pd.read_excel(homepath+"/Dropbox/Archivio_cronologico/Maggio_2019/16May_SHiP_all_fromDecember.xlsx")
+df = pd.read_excel(homepath+"/Dropbox/Archivio_cronologico/Maggio_2019/27May_SHiP_all_fromDecember.xlsx")
 
 #getting lists
 df.index = pd.to_datetime(df['Date'])
-dfweekly = df.resample('W').sum()
+dfnomic5 = df.query('Microscope != "mic5"')
+dfweekly = dfnomic5.resample('W').sum()
 #date = dfweekly['Date']
 totalplates = dfweekly['Nplates']
 #print (dfweekly)
