@@ -12,6 +12,8 @@ Set environment variables with the command
 
 `>alibuild/alienv enter --shellrc FairShip/latest`
 
+The computing group name on lxplus is ship-cg. It can be set from the CERN resource page.
+
 On Lxplus launch
 `'cd SHIPBuild/FairShip'`
 export SHIPBUILD=/cvmfs/ship.cern.ch/SHIPBuild

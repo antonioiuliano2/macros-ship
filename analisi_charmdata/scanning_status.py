@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 '''Report status of scanning of SHIP-charm emulsions. How many emulsions are left to scan?'''
 #build lists where booleans will be contained. An array of booleans for the emulsions and a string for location (Naples or Zurich)
 bricks = []
-hardtoscan = 0 #emulsion hard to scan due to problems
+bademulsions = 0 #emulsion hard to scan due to problems
 #CHARM1 RUNS
 bricks.append([[False] * 29, 'Naples'])
 bricks.append([[False] * 29, 'Naples'])
@@ -21,14 +21,14 @@ bricks.append([[False] * 29, 'Naples'])
 #CHARM3 RUNS
 bricks.append([[False] * 57, 'Zurich'])
 bricks.append([[False] * 57, 'Naples'])
-hardtoscan = hardtoscan + 2 # layer damaged by wrong oil
+bademulsions = bademulsions + 2 # layer damaged by wrong oil
 bricks.append([[False] * 57, 'Naples'])
-hardtoscan = hardtoscan + 57 #Slavich development
+bademulsions = bademulsions + 57 #Slavich development
 #CHARM4 RUNS
 bricks.append([[False] * 57, 'Zurich'])
 bricks.append([[False] * 57, 'Naples'])
 bricks.append([[False] * 57, 'Naples'])
-hardtoscan = hardtoscan + 57 #Slavich development
+bademulsions = bademulsions + 57 #Slavich development
 #CHARM5 RUNS
 bricks.append([[False] * 57, 'Naples'])
 bricks.append([[False] * 57, 'Naples'])
@@ -83,9 +83,13 @@ allscanned('ch2r5')
 allscanned('ch2r6')
 
 allscanned('ch3r2')
+bademulsions = bademulsions + 2 #CH3-R2 P42 and P41 ruined by fixer
 allscanned('ch3r3')
+bademulsions = bademulsions + 57 #CH3-R3 developed Slavich
 
 allscanned('ch4r2')
+allscanned('ch4r3') #just because i need to subtract the bad ones, I know we have not scanned them yet
+bademulsions = bademulsions + 57 #CH4-R3 developed Slavich
 
 allscanned('ch5r2')
 allscanned('ch5r3')
@@ -94,8 +98,6 @@ allscanned('ch6r1')
 allscanned('ch6r2')
 allscanned('ch6r3')
 
-for index in range(10):
-    scanned('ch4r3',index+1)
 for index in range(30):
     scanned('ch5r1',index+1)
 
@@ -135,7 +137,7 @@ def generalreport():
    plt.show()
 def localreport():
    figure = plt.figure()
-   napoliratio = nscannedemulsionsNaples/ntotalemulsionsNaples
+   napoliratio = float(nscannedemulsionsNaples)/ntotalemulsionsNaples
    scanrate = 24 #assuming 5 emulsions scanned per day and 4 on Friday
    remainingweeks = (ntotalemulsionsNaples - nscannedemulsionsNaples)/scanrate
    print ('Total emulsion films in Naples: {}'.format(ntotalemulsionsNaples))
@@ -155,4 +157,21 @@ def localreport():
 
    plt.pie(ratios, explode=explode, colors = colors, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
    plt.axis('equal') #ensures that the pie is drawn as a circle
+   #adding a red layer for bad emulsions
+   figure2 = plt.figure()
+   completeratios = [] 
+   badratio = float(bademulsions)/ntotalemulsionsNaples*100
+   goodratio = float(nscannedemulsionsNaples - bademulsions)/ntotalemulsionsNaples*100
+   remainingratio = float(100 - badratio - goodratio)
+   completeratios.append(goodratio)
+   completeratios.append(badratio)
+   completeratios.append(remainingratio)
+   print "Test", goodratio, badratio, remainingratio
+   explode = [0.1, 0, 0] #we want to 'extract' the slice of already scanned emulsions 
+   colors = ['g', 'y', 'r']
+   labels = ['Scanned normally', 'Less sensitive films', 'To be done'] 
+   plt.pie(completeratios, explode=explode, colors = colors, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
+   plt.axis('equal') #ensures that the pie is drawn as a circle
    plt.show()
+
+   
