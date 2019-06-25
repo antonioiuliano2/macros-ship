@@ -1,7 +1,8 @@
 #!/bin/bash
+# conversion from ROOT data to simple position ntuples
 DATADIR=/eos/experiment/ship/data/charmxsec/DATA_8000_charmTest/
 #starting loop on folders
-for RUNFOLDER in $(ls $DATADIR/rawdata);
+for RUNFOLDER in $(ls $DATADIR/rootdata);
 do
  RUNNUMBER=${RUNFOLDER:(-4)} #string:-4 retrieves the last four characters of a string
  echo "processing run " $RUNNUMBER
