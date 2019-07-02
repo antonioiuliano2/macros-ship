@@ -148,3 +148,15 @@ Usage:
 
 ## FairShip GenieGen simulation
 
+FairShip run_simScript.py simulation with `-Genie` option launchs the `GenieGen` class in shipgen. 
+It will use the information about neutrino interaction from the Genie simulation to do the following steps:
+
+1. From p-pt association (2D spectra) and random generation of phi angles, obtain kinematic information of event.
+2. Place the interactions in the target (z randomly generated, x and y propagated from target according to angles)
+3. Compute a weight of the event, according to the density of material.
+4. Pass the weighted event to Geant4 for usual propagation and save of MC information
+
+The weight is very important, and in the past I have often wrongly neglected it. In fact, it is related to the number of interactions, according to the cross section formula:
+
+
+Indeed, we expect more interactions in more dense material (i.e. many in the lead, few in emulsion and very few in air gaps), but if you do not use the weight you will see the positions uniformly distributed there! Therefore, when plotting the hits always use weighted histograms.
