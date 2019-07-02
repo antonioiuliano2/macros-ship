@@ -23,7 +23,7 @@ void rpc_loop(TString *inputfile){
 
  TH2D * hppt =new TH2D("hppt","momentum vs transverse momentum",200,0,200,100,0,10);
 
- int nevents = reader.GetEntries(true);
+ int nevents = reader.GetEntries(false);
  cout<<"Number of events: "<<nevents<<endl;
  int ientry = 0;
  double totalweight = 0.;
