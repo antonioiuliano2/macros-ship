@@ -11,6 +11,7 @@ void rpc_loop(TString *inputfile){
  TTreeReader reader("cbmsim",file);
 
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
+ TTreeReaderArray<TargetPoint> targetpoints(reader,"TargetPoint");
  TTreeReaderArray<ShipRpcPoint> rpcpoints(reader,"ShipRpcPoint");
 
  TDatabasePDG *mypdg = TDatabasePDG::Instance(); //to know information about particles
@@ -30,6 +31,11 @@ void rpc_loop(TString *inputfile){
  TH2D * hxz =new  TH2D("hxz","xz distribution of rpcpoints",400,-2800,-2400,440,-220,220);
 
  TH2D * hppt =new TH2D("hppt","momentum vs transverse momentum",200,0,200,100,0,10);
+
+ //target histograms
+ TH2D * htargetyz =new TH2D("htargetyz","targetyz distribution of rpcpoints",400,-3400,-3000,440,-220,220);
+ TH2D * htargetxz =new  TH2D("htargetxz","targetxz distribution of rpcpoints",400,-3400,-3000,440,-220,220);
+ 
 
  int nevents = reader.GetEntries(false);
  cout<<"Number of events: "<<nevents<<endl;
@@ -52,7 +58,35 @@ void rpc_loop(TString *inputfile){
 
      hweight->Fill(weight);
      hweightmap->Fill(vz,vy,weight);
-     //access the hits       
+
+     //access the target hits
+     for (const TargetPoint& targetpoint: targetpoints){
+         
+         x = targetpoint.GetX();
+         y = targetpoint.GetY();
+         z = targetpoint.GetZ();
+
+         px = targetpoint.GetPx();
+         py = targetpoint.GetPy();
+         pz = targetpoint.GetPz();
+         p = pow(pow(px,2)+pow(py,2)+pow(pz,2),0.5);
+         pt = pow(pow(px,2)+pow(py,2),0.5); //beam is along z
+
+         detectorID = targetpoint.GetDetectorID();
+         trackID = targetpoint.GetTrackID();         
+         pdgcode = targetpoint.PdgCode();
+         
+         charge = 0;
+         if(mypdg->GetParticle(pdgcode) != NULL) charge = mypdg->GetParticle(pdgcode)->Charge(); //unknown particles lead to NULL pointer
+         if (TMath::Abs(charge) > 0){ //we limit ourselves to charged particles
+          //filling weighted histograms
+ 
+          htargetyz->Fill(z,y,weight);
+          htargetxz->Fill(z,x,weight);
+          }
+         } //end loop on target points
+
+     //access the rpc hits       
      for (const ShipRpcPoint& rpcpoint: rpcpoints){       
 
          x = rpcpoint.GetX();
@@ -95,6 +129,17 @@ void rpc_loop(TString *inputfile){
  hweightmap->Draw("COLZ");
 
  cout<<"We have simulated "<<nevents<<" events, after weighting "<< totalweight<<endl;
+
+ TCanvas *ctargetz = new TCanvas();
+ ctargetz->Divide(1,2);
+ ctargetz->cd(2);
+ htargetyz->GetXaxis()->SetTitle("z[cm]");
+ htargetyz->GetYaxis()->SetTitle("y[cm]");
+ htargetyz->Draw("COLZ");
+ ctargetz->cd(1);
+ htargetxz->GetXaxis()->SetTitle("z[cm]");
+ htargetxz->GetYaxis()->SetTitle("x[cm]");
+ htargetxz->Draw("COLZ"); 
 
  TCanvas *cz = new TCanvas();
  cz->Divide(1,2);
