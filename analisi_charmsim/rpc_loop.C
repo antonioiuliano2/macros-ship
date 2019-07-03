@@ -15,11 +15,19 @@ void rpc_loop(TString *inputfile){
 
  TDatabasePDG *mypdg = TDatabasePDG::Instance(); //to know information about particles
 
+ //**************variables*************************
+ double vx,vy,vz; //neutrino interaction vertex position
+
+ double x,y,z; //hit positions
+ double px, py, pz, p, pt;//momenta
+ int charge;
+ int pdgcode, detectorID, trackID;
  //*****************DECLARING HISTOGRAMS TO BE FILLED********************
  TH1D *hweight = new TH1D("hweight","Weight of events",250,0,2500);
+ TProfile2D *hweightmap = new TProfile2D("hweightmap", "Weight map in the yz plane",400,-3400,-3000,440,-220,220);
 
- TH2D * hyz =new TH2D("hyz","yz distribution of rpcpoints",300,-2700,-2400,440,-220,220);
- TH2D * hxz =new  TH2D("hxz","xz distribution of rpcpoints",300,-2700,-2400,440,-220,220);
+ TH2D * hyz =new TH2D("hyz","yz distribution of rpcpoints",400,-2800,-2400,440,-220,220);
+ TH2D * hxz =new  TH2D("hxz","xz distribution of rpcpoints",400,-2800,-2400,440,-220,220);
 
  TH2D * hppt =new TH2D("hppt","momentum vs transverse momentum",200,0,200,100,0,10);
 
@@ -27,6 +35,7 @@ void rpc_loop(TString *inputfile){
  cout<<"Number of events: "<<nevents<<endl;
  int ientry = 0;
  double totalweight = 0.;
+ double weight;
  //*****************START MAIN EVENT LOOP********************************************
  while (reader.Next()){
      ientry = reader.GetCurrentEntry();// keeps track of the number of event (from 0 to Nevents - 1)    
@@ -34,28 +43,33 @@ void rpc_loop(TString *inputfile){
      if (ientry%100==0) cout<<"arrived at event "<<ientry<<endl;
 
      ShipMCTrack firsttrack = tracks[0]; //weight is the same for all the tracks of the same event
-     double weight = firsttrack.GetWeight(); //weight defined as sum (x_i pho_i)
+     vx = firsttrack.GetStartX();
+     vy = firsttrack.GetStartY();
+     vz = firsttrack.GetStartZ();
+
+     weight = firsttrack.GetWeight(); //weight defined as sum (x_i pho_i)
      totalweight += weight; //it can be useful to know total weight for normalization (i.e. how many events have surpassed my cuts)
 
      hweight->Fill(weight);
+     hweightmap->Fill(vz,vy,weight);
      //access the hits       
      for (const ShipRpcPoint& rpcpoint: rpcpoints){       
 
-         double x = rpcpoint.GetX();
-         double y = rpcpoint.GetY();
-         double z = rpcpoint.GetZ();
+         x = rpcpoint.GetX();
+         y = rpcpoint.GetY();
+         z = rpcpoint.GetZ();
 
-         double px = rpcpoint.GetPx();
-         double py = rpcpoint.GetPy();
-         double pz = rpcpoint.GetPz();
-         double p = pow(pow(px,2)+pow(py,2)+pow(pz,2),0.5);
-         double pt = pow(pow(px,2)+pow(py,2),0.5); //beam is along z
+         px = rpcpoint.GetPx();
+         py = rpcpoint.GetPy();
+         pz = rpcpoint.GetPz();
+         p = pow(pow(px,2)+pow(py,2)+pow(pz,2),0.5);
+         pt = pow(pow(px,2)+pow(py,2),0.5); //beam is along z
 
-         int detectorID = rpcpoint.GetDetectorID();
-         int trackID = rpcpoint.GetTrackID();         
-         int pdgcode = rpcpoint.PdgCode();
+         detectorID = rpcpoint.GetDetectorID();
+         trackID = rpcpoint.GetTrackID();         
+         pdgcode = rpcpoint.PdgCode();
          
-         int charge = 0;
+         charge = 0;
          if(mypdg->GetParticle(pdgcode) != NULL) charge = mypdg->GetParticle(pdgcode)->Charge(); //unknown particles lead to NULL pointer
          if (TMath::Abs(charge) > 0){ //we limit ourselves to charged particles
           //filling weighted histograms
@@ -68,9 +82,17 @@ void rpc_loop(TString *inputfile){
          } //end loop on rpc points
          
      }//end of loop on events
+ //setting statistics box options and position (by default it covers the color bar)
+ gStyle->SetStatX(0.3);
+ gStyle->SetStatY(0.9);  
  gStyle->SetOptStat(11111);
+
  TCanvas *cweight = new TCanvas();
+ cweight->Divide(1,2);
+ cweight->cd(1);
  hweight->Draw();
+ cweight->cd(2);
+ hweightmap->Draw("COLZ");
 
  cout<<"We have simulated "<<nevents<<" events, after weighting "<< totalweight<<endl;
 
