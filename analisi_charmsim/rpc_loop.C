@@ -115,6 +115,6 @@ void rpc_loop(TString *inputfile){
  }
 
 void rpc_loop(){
- TString *inputfilename = new TString("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutau/neutrinos2019/8/nu_e/ship.conical.Genie-TGeant4.root");
+ TString *inputfilename = new TString("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutau/neutrinos2019/8/nu_mu/ship.conical.Genie-TGeant4.root");
  rpc_loop(inputfilename);
 }
