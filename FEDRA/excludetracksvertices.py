@@ -2,8 +2,8 @@ import ROOT as r
 import fedrarootlogon
 import fedrautils
 
-trackfilepath = "/afs/cern.ch/work/a/aiuliano/public/sim_fedra/CH6_charm/b000001/b000001.0.1.0.trk.root" #file with all the tracks
-vertexfilepath = "/afs/cern.ch/work/a/aiuliano/public/sim_fedra/CH6_charm/b000001/17_05_19/vertices_MC_small_modified.root" #file used for the vertices
+trackfilepath = "linked_tracks.root" #file with all the tracks
+vertexfilepath = "vertices_firstquarter.root" #file used for the vertices
 
 
 dproc = r.EdbDataProc()
@@ -18,9 +18,8 @@ vertexlist = vertexrec.eVTX
 
 vertex = vertexlist[0]
 
-ntracks = vertex.N()
-
 for vertex in vertexlist: #loop on vertices
+ ntracks = vertex.N()
  for itrk in range(ntracks): #loop on tracks from each vertex
   vertextrack = vertex.GetTrack(itrk)
   trackID = vertextrack.GetSegmentFirst().Track()
@@ -45,13 +44,11 @@ dproc.MakeTracksTree(newtracklist, xv,yv,"verticesandtracks.root")
 newfile = r.TFile.Open("verticesandtracks.root","UPDATE")
 
 newvertexrec = r.EdbVertexRec(vertexrec)
+newvertexrec.eVTX = vertexrec.eVTX
 
 newvertexrec.Write()
 
-#simfile = r.TFile.Open("/afs/cern.ch/work/a/aiuliano/public/sim_fedra/CH6_charm/ship.conical.Pythia8CharmOnly-TGeant4.root","read")
-#simtree = simfile.Get("cbmsim")
-
 newvertextree = vertextree.CloneTree()
 newvertextree.Write()
-newsimtree.Write()
+print "Finished Copying the objects"
 newfile.Close()
