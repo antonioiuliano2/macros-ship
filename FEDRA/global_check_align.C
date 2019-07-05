@@ -102,7 +102,7 @@ void align_check(TString runname, int lastplate, int firstplate){
 
 void global_check_align(){
 
- const int nalignedbricks = 15;
+ const int nalignedbricks = 17;
 
  TString alignedbricks[nalignedbricks];
 
@@ -119,15 +119,17 @@ void global_check_align(){
 
  alignedbricks[9] = TString("CH3-R2");
  alignedbricks[10] = TString("CH4-R2");
- alignedbricks[11] = TString("CH5-R2");
- alignedbricks[12] = TString("CH5-R3");
- alignedbricks[13] = TString("CH6-R2");
- alignedbricks[14] = TString("CH6-R3");
+ alignedbricks[11] = TString("CH5-R1");
+ alignedbricks[12] = TString("CH5-R2");
+ alignedbricks[13] = TString("CH5-R3");
+ alignedbricks[14] = TString("CH6-R1");
+ alignedbricks[15] = TString("CH6-R2");
+ alignedbricks[16] = TString("CH6-R3");
 
  for (int i=0; i < nalignedbricks; i++){
 
-  if (i < 9) check_align(alignedbricks[i],29);
-  else check_align(alignedbricks[i],57);
+  if (i < 9) align_check(alignedbricks[i],29);
+  else align_check(alignedbricks[i],57);
  }
 
 }

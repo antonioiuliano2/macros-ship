@@ -1,27 +1,31 @@
+
+
+
 #using fedra methods to build the EdbTrackP list from the file
 import ROOT
 import fedrarootlogon
 import sys
 #usage: python -i VerteTrackDisplay.py inputfile nevent
 
-#from argparse import ArgumentParser #not present in good old nusrv9, but the commands should work in a reasonable python setup, only need to remove the parser and options comments,then comment the sys.argv lines
+from argparse import ArgumentParser #not present in good old nusrv9, but the commands should work in a reasonable python setup, only need to remove the parser and options comments,then comment the sys.argv lines
 
-fedratrackslist = [10,20,30]
-trackcolors = [ROOT.kRed, ROOT.kMagenta, ROOT.kBlue] #so we can set different colors for different tracks
+fedratrackslist = [29724,46863]
+#trackcolors = [ROOT.kRed, ROOT.kMagenta, ROOT.kBlue] #so we can set different colors for different tracks
+trackcolors = [ROOT.kMagenta,ROOT.kMagenta,ROOT.kMagenta,ROOT.kMagenta,ROOT.kMagenta] #so we can set different colors for different tracks
 dproc = ROOT.EdbDataProc()
 gAli = dproc.PVR()
 
-#parser = ArgumentParser()
-#parser.add_argument("-f", "--fedra", dest="fedrafilename", help="file with fedra tracks and vertices",
-     #               required=True)
-#parser.add_argument("-n", "--nevent", dest="eventnumber", help="number of event to display", required=True)
+parser = ArgumentParser()
+parser.add_argument("-f", "--fedra", dest="fedrafilename", help="file with fedra tracks and vertices",
+                    required=True)
+parser.add_argument("-n", "--nevent", dest="eventnumber", help="number of event to display", required=True)
 
-#options = parser.parse_args()
-#vertexnumber = options.eventnumber
-#fedrafilename = options.fedrafilename
+options = parser.parse_args()
+vertexnumber = options.eventnumber
+fedrafilename = options.fedrafilename
 
-fedrafilename = sys.argv[1]
-vertexnumber = int(sys.argv[2])
+#fedrafilename = sys.argv[1]
+#vertexnumber = int(sys.argv[2])
 
 def buildtracks(filename):
  
