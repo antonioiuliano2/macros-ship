@@ -50,6 +50,8 @@ def drawtracks(tracks, charmdaughters):
  for track in tracks:
   if track.MCTrack() in charmdaughters:
    ds.TrackDraw(track, ROOT.kMagenta)
+  if track.MCTrack() == 1:
+   ds.TrackDraw(track, ROOT.kBlue)
 
 simfile = ROOT.TFile.Open(shipfilename)
 cbmsim = simfile.Get("cbmsim")

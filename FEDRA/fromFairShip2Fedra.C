@@ -6,24 +6,33 @@
 #include <TROOT.h>
 #include "TRandom.h"
 
+void fromFairShip2Fedra(TString filename);
+void smearing (Float_t &TX, Float_t &TY, const float angres);
+bool efficiency(const float emuefficiency);
+bool efficiency(const float tantheta, TH1D * emuefficiency);
+
+//start script
+void fromFairShip2Fedra(){
+ 
+ fromFairShip2Fedra("ship.conical.Pythia8CharmOnly-TGeant4.root");
+}
+
 //#include "/home/utente/fedra/include/EdbCouplesTree.h"
 using namespace TMath;
 TRandom *grandom = new TRandom3(); //creating every time a TRandom3 is a bad idea
 TFile *file = NULL;
 TH1D *heff = NULL ; //efficiency at different angles
 
-void smearing (Float_t &TX, Float_t &TY, const float angres);
-bool efficiency(const float emuefficiency);
-bool efficiency(const float tantheta, TH1D * emuefficiency);
-
 void fromFairShip2Fedra(TString filename){
- const int nplates = 57;
+ const int nplates = 29;
  const bool useefficiencymap = false; //use the map instead of the constant value down
+ const bool dosmearing = false; //gaussian smearing or not
+
  if (useefficiencymap){ 
   file = TFile::Open("efficiency_alltracks.root");
   heff = (TH1D*) file->Get("heff");
  }
- const float emuefficiency = 0.8; // i am efficient to everything
+ const float emuefficiency = 1.0; // i am efficient to everything
  const float angres = 0.003; // 3 milliradians
  const float ngrains = 70; //the same number for all the couples, so they have the same weigth.
  //**********************OPENING INPUT FILE***************************
@@ -56,9 +65,9 @@ void fromFairShip2Fedra(TString filename){
  //************************STARTING LOOP ON SIMULATION******************  
 // while (reader.Next()){
  for (int i = 0; i < nevents; i++){
+  if (ievent%1000==0) cout<<"processing event "<<ievent<<" out of "<<nevents<<endl;
   reader.Next();
-   for (const BoxPoint& emupoint:emulsionhits){
-     if (ievent%1000==0) cout<<"processing event "<<ievent<<" out of "<<nevents<<endl;
+   for (const BoxPoint& emupoint:emulsionhits){   
      bool savehit = true; //by default I save all hits
 //no you don't want to do this//     if (j % 2 == 0) continue;
      pdgcode = emupoint.PdgCode();
@@ -87,7 +96,7 @@ void fromFairShip2Fedra(TString filename){
      }
      //constant value of efficiency
      else if(!efficiency(emuefficiency)) savehit = false;
-     smearing(tx,ty,angres);
+     if (dosmearing) smearing(tx,ty,angres);
      //**************SAVING HIT IN FEDRA BASE-TRACKS****************
      if (savehit){        
       ect[nfilmhit-1]->eS->Set(ihit,xem,yem,tx,ty,1,Flag);
@@ -128,18 +137,6 @@ bool efficiency(const float tantheta, TH1D * emuefficiency){ //for now, just a c
  const float efficiency = emuefficiency->GetBinContent(ibin);
  if (prob < efficiency) return true; //efficiency larger than probability, we take the event
  else return false;
-}
-//start script
-void fromFairShip2Fedra(){
-
- //usual paths where i keep my simulations
- TString afspath = TString("/afs/cern.ch/work/a/aiuliano/public/sim_charm");
- TString eospersonalpath = TString("/eos/user/a/aiuliano/sims_FairShip/sim_charm");
- TString eosshippath = TString("/eos/experiment/ship/user/aiuliano");
- 
- TString simpath = TString("/ch6/ship.conical.Pythia8CharmOnly-TGeant4.root");
- 
- fromFairShip2Fedra(eospersonalpath + simpath);
 }
 /*
 script ispirato a void ReadGEMdata da parte di Annarita
