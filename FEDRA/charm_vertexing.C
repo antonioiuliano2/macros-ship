@@ -38,6 +38,12 @@ namespace VERTEX_PAR
   int   QualityMode= 0;      // vertex quality estimation method (0:=Prob/(sigVX^2+sigVY^2); 1:= inverse average track-vertex distance)
 }
 
+namespace VERTEX_CUTS //which vertices are saved
+{
+  int nmintracks = 4;
+  float angleaperture = 0.01;
+}
+
 //---------------------------------------------------------------------
 void charm_vertexing(char *dset=0)
 {
@@ -58,7 +64,7 @@ void trvol( const char *def, const char *rcut )
   init(def, 100 ,rcut);                      // read tracks (option 100)
   gAli->FillCell(30,30,0.009,0.009);
   do_vertex();
-  //vd(4,0.01);   // draw reconstructed vertex 
+  //vd(VERTEX_CUTS::nmintracks,VERTEX_CUTS::angleaperture);   // draw reconstructed vertex 
   //td(); //to draw tracks
   //dproc->MakeTracksTree(gAli,"linked_tracks_p.root");
 }
@@ -146,7 +152,10 @@ void do_vertex()
   vtx->Branch("maxgap",&maxgap,"maxgap[n]/I"); 
   vtx->Branch("incoming",&incoming,"incoming[n]/I");
   vtx->Branch("impactparameter",&impactparameter,"impactparameter[n]/F");
-  
+  //inserting MCtrue information
+  outvertextree->Branch("MCEventID", &MCEventID, "MCEventID[n]/I");
+  outvertextree->Branch("MCTrackID",&MCTrackID,"MCTrackID[n]/I");
+  outvertextree->Branch("MCMotherID",&MCMotherID,"MCMotherID[n]/I");
   EdbVertex *vertex = new EdbVertex();
   EdbTrackP *track = new EdbTrackP();
 
@@ -164,12 +173,12 @@ void do_vertex()
     maxaperture = vertex->MaxAperture();
     probability = vertex->V()->prob();  
     if(vertex->Flag()<0) continue; //saving only 'true' vertices in the tree file and in the object
-    if(n < 4) continue; 
-    if (maxaperture <0.01) continue;
+    if(n < VERTEX_CUTS::nmintracks) continue; 
+    if (maxaperture < VERTEX_CUTS::angleaperture) continue;
     varr->Add(vertex); //true vertex, we can save it
     //adding vertex to list to be saved
     //loop on tracks //now it can be done offline (again)
-    /*for (int itrk = 0; itrk < n; itrk++){
+    for (int itrk = 0; itrk < n; itrk++){
      track = vertex->GetTrack(itrk);
      nseg[itrk] = track->N();
      Int_t zpos = vertex->GetVTa(itrk)->Zpos();
@@ -179,7 +188,11 @@ void do_vertex()
      nholes[itrk] = track->N0();
      maxgap[itrk] = track->CheckMaxGap();
      impactparameter[itrk] = vertex->GetVTa(itrk)->Imp();
-    }*/
+     //Storing MCTrue information (of course for real data these values have no sense)
+     MCEventID[itrk] = track->MCEvt();
+     MCTrackID[itrk] = track->MCTrack();
+     MCMotherID[itrk] = track->Aid(0); //used to store MotherID information
+    }
     vtx->Fill();
     vID++; //now the number of elements in the tree and vertices is the same. vID starts from 0
   }
