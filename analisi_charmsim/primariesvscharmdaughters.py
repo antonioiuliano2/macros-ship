@@ -1,7 +1,6 @@
 #script to recognize daughters of charm and other particles from the primary proton interaction (created on 13 May 2019). It produced the dump file used by Valerio
 
 import ROOT as r
-from rootUtils import bookHist
 import sys
 
 #opening the file and getting the tree
@@ -22,8 +21,7 @@ print "IEVENT, ITRACK, PDGCODE,MOMENTUM, MOTHERPDG, MOTHERID, TRUEMOTHERID, STAR
 #for recognizing particles name
 pdg = r.TDatabasePDG.Instance()
 
-histos = {}
-bookHist(histos, "hlen", "Decay length", 30, 0, 3)
+hlen = r.TH1D("hlen", "Decay length", 30, 0, 3)
 
 nevents = 2500
 
@@ -74,6 +72,6 @@ for i in range(nevents):
     #print i, j, pdgcode, momentum, motherpdg, motherID, track.GetMotherId(), startx, starty, startz
 
     decaylen = pow(pow(track.GetStartX() - mothertrack.GetStartX(),2)+pow(track.GetStartY() - mothertrack.GetStartY(),2)+pow(track.GetStartZ() - mothertrack.GetStartZ(),2),0.5)
-    histos["hlen"].Fill(decaylen)
+    hlen.Fill(decaylen)
 
-histos["hlen"].Draw()
+hlen.Draw()
