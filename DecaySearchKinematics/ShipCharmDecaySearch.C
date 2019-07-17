@@ -23,6 +23,26 @@ float ShipCharmDecaySearch::KinkAngle(float parenttx, float parentty, float daug
 
 }
 
+float ShipCharmDecaySearch::FedraTrackKink(EdbTrackP* mytrack){
+ 
+ int nseg = mytrack->N();
+ float kinkangles[nseg-1];
+ //loop on subsequent segment pairs of the tracks
+ for (int i = 0; i < nseg-1; i++){
+  EdbSegP *firstseg = (EdbSegP*) mytrack->GetSegment(i);
+  EdbSegP *secondseg = (EdbSegP*) mytrack->GetSegment(i+1);
+
+  kinkangles[i]=(KinkAngle(firstseg->TX(), firstseg->TY(), secondseg->TX(), secondseg->TY()));
+ }
+ //getting maximum and rms
+ float deltathetamax = TMath::MaxElement(nseg-1, kinkangles);
+ float deltathetarms = TMath::RMS(nseg-1, kinkangles);
+ float rmax = deltathetamax/deltathetarms;
+
+ return rmax;
+
+}
+
 float ShipCharmDecaySearch::IPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, float tracktx, float trackty){
  //'''Impact parameter of track with respect to primary vertex'''
  
