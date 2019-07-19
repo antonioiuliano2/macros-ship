@@ -9,27 +9,35 @@ import sys
 
 from argparse import ArgumentParser #not present in good old nusrv9, but the commands should work in a reasonable python setup, only need to remove the parser and options comments,then comment the sys.argv lines
 
-fedratrackslist = [29724,46863]
+fedratrackslist = []
+#vertexnumberlist = [10, 20]
 #trackcolors = [ROOT.kRed, ROOT.kMagenta, ROOT.kBlue] #so we can set different colors for different tracks
-trackcolors = [ROOT.kMagenta,ROOT.kMagenta,ROOT.kMagenta,ROOT.kMagenta,ROOT.kMagenta] #so we can set different colors for different tracks
+trackcolors = [ROOT.kMagenta,ROOT.kBlue,ROOT.kYellow,ROOT.kMagenta,ROOT.kMagenta] #so we can set different colors for different tracks
 dproc = ROOT.EdbDataProc()
 gAli = dproc.PVR()
 
 parser = ArgumentParser()
-parser.add_argument("-f", "--fedra", dest="fedrafilename", help="file with fedra tracks and vertices",
+parser.add_argument("-f", "--fedra", dest="fedrafilename", help="file with fedra vertices",
                     required=True)
-parser.add_argument("-n", "--nevent", dest="eventnumber", help="number of event to display", required=True)
+parser.add_argument("-t", "--tracks", dest="tracksfilename", help="file with fedra tracks",
+                    required=True)
+parser.add_argument("-nv", "--nvertices", nargs='+', dest="vertexnumberlist", help="number of vertices to display", required=True)
+parser.add_argument("-nt", "--ntracks", nargs='*', dest="tracklist", help="number of isolated tracks to display")
 
 options = parser.parse_args()
-vertexnumber = options.eventnumber
+vertexnumberlist = options.vertexnumberlist
+if (options.tracklist): 
+ fedratrackslist = options.tracklist
+ fedratrackslist = map(int, fedratrackslist)
 fedrafilename = options.fedrafilename
+tracksfilename = options.tracksfilename
 
 #fedrafilename = sys.argv[1]
 #vertexnumber = int(sys.argv[2])
 
 def buildtracks(filename):
  
- dproc.ReadTracksTree(gAli,filename,"nseg>1")
+ dproc.ReadTracksTree(gAli,tracksfilename,"nseg>1")
  gAli.FillCell(30,30,0.009,0.009)
  tracks = gAli.eTracks
 
@@ -53,27 +61,36 @@ vertexlist = vertexrec.eVTX
 drawnvertices = ROOT.TObjArray(100)
 drawntracksfromvertex = ROOT.TObjArray(10000)
 
-vertex = vertexlist.At(vertexnumber)
-ntracksfromvertex = vertex.N()
+#adding vertices
+for vertexnumber in vertexnumberlist:
+ vertex = vertexlist.At(int(vertexnumber))
+ ntracksfromvertex = vertex.N()
 #adding tracks and vertices to list to be drawn (only one vertex in this case)
+ drawnvertices.Add(vertex)
 
-drawnvertices.Add(vertex)
-for i in range(ntracksfromvertex):
- vertextrack = vertex.GetTrack(i)
- drawntracksfromvertex.Add(vertextrack)
+ for i in range(ntracksfromvertex):
+  vertextrack = vertex.GetTrack(i)
+  drawntracksfromvertex.Add(vertextrack)
 
 def drawtracks(vertextracks,tracks):
  #ds.SetVerRec(gEVR);
  ds.SetDrawTracks(4)
  ds.SetArrTr( vertextracks )
  ds.SetArrV(drawnvertices)
+ ds.Draw()
  #print "{} tracks to display\n".format(tracks.GetEntries() )
- ds.Draw();
  #loop on tracks, find charm daughters and replot them with a different color
+ #print "PROVA:", len(tracks)
  for track in tracks:
-  if track.GetSegmentFirst().Track() in fedratrackslist: #note, we need to pass to the segments because track() may be confused with the index of the track in the vertex
-   nfoundtrack = fedratrackslist.index(track.GetSegmentFirst().Track())
-   ds.TrackDraw(track, trackcolors[nfoundtrack])
+  if track.GetSegmentFirst().Track() in fedratrackslist: #note, we need to pass to the segments because track() may be confused with the index of the track in the vertex 
+   print "Trovata"
+   ds.TrackDraw(track)
+ #loop on vertices to draw associated tracks
+ for ivtx, vertex in enumerate(drawnvertices):
+  for itrk in range(vertex.N()):
+   track = vertex.GetTrack(itrk)
+#  for track in vertextracks: #tracks associated to that vertex
+   ds.TrackDraw(track, trackcolors[ivtx])
 
 ROOT.gStyle.SetPalette(1);
 dsname="Charm simulation FEDRA display"
