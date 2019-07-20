@@ -1,6 +1,3 @@
-
-
-
 #using fedra methods to build the EdbTrackP list from the file
 import ROOT
 import fedrarootlogon
@@ -11,8 +8,8 @@ from argparse import ArgumentParser #not present in good old nusrv9, but the com
 
 fedratrackslist = []
 #vertexnumberlist = [10, 20]
-#trackcolors = [ROOT.kRed, ROOT.kMagenta, ROOT.kBlue] #so we can set different colors for different tracks
-trackcolors = [ROOT.kMagenta,ROOT.kBlue,ROOT.kYellow,ROOT.kMagenta,ROOT.kMagenta] #so we can set different colors for different tracks
+isolatedtrackcolors = [ROOT.kRed, ROOT.kMagenta, ROOT.kYellow, ROOT.kBlue] #so we can set different colors for different tracks
+vertextrackcolors = [ROOT.kMagenta,ROOT.kBlue,ROOT.kYellow,ROOT.kOrange,ROOT.kRed] #so we can set different colors for different tracks
 dproc = ROOT.EdbDataProc()
 gAli = dproc.PVR()
 
@@ -82,15 +79,14 @@ def drawtracks(vertextracks,tracks):
  #loop on tracks, find charm daughters and replot them with a different color
  #print "PROVA:", len(tracks)
  for track in tracks:
-  if track.GetSegmentFirst().Track() in fedratrackslist: #note, we need to pass to the segments because track() may be confused with the index of the track in the vertex 
-   print "Trovata"
-   ds.TrackDraw(track)
+  if track.GetSegmentFirst().Track() in fedratrackslist: #note, we need to pass to the segments because track() may be confused with the index of the track in the vertex    
+   nfoundtrack = fedratrackslist.index(track.GetSegmentFirst().Track())
+   ds.TrackDraw(track, isolatedtrackcolors[nfoundtrack])
  #loop on vertices to draw associated tracks
  for ivtx, vertex in enumerate(drawnvertices):
-  for itrk in range(vertex.N()):
+  for itrk in range(vertex.N()):#tracks associated to that vertex
    track = vertex.GetTrack(itrk)
-#  for track in vertextracks: #tracks associated to that vertex
-   ds.TrackDraw(track, trackcolors[ivtx])
+   ds.TrackDraw(track, vertextrackcolors[ivtx])
 
 ROOT.gStyle.SetPalette(1);
 dsname="Charm simulation FEDRA display"
