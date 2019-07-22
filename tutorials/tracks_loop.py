@@ -5,13 +5,24 @@
 import ROOT as r
 import argparse
 #using an option to get the file name
-def init(): #available options
 
-  ap = argparse.ArgumentParser(
+def DecodeNucleusPdg(pdgcode):
+ ''' retrieve nuclear information from pdgcode'''
+ encoding = pdgcode - 1000000000
+ Z = encoding/10000
+ encoding = encoding - 10000*Z
+ A = encoding/10
+ return Z,A
+
+
+def init(): 
+ '''available options'''
+
+ ap = argparse.ArgumentParser(
       description='Simple checks of detectors after a FairShip simulation')
-  ap.add_argument('-f', '--inputfile', type=str, help="file with cbmsim simulation tree", dest='inputfile', default='ship.conical.Genie-TGeant4.root')
-  args = ap.parse_args()
-  return args
+ ap.add_argument('-f', '--inputfile', type=str, help="file with cbmsim simulation tree", dest='inputfile', default='ship.conical.Genie-TGeant4.root')
+ args = ap.parse_args()
+ return args
 
 args = init() #getting options
 
@@ -51,9 +62,12 @@ for ievent in range(nevents):
   momentum = track.GetP()
   transversemomentum = track.GetPt()
 
- # charge = 0
- # if (mypdg.GetParticle(pdgcode)): charge = mypdg.GetParticle(pdgcode).Charge()
- # else: print 'Warning, particle with pdg {} not recognized, assigned charge 0'.format(pdgcode)
+  charge = 0
+  if (mypdg.GetParticle(pdgcode)): charge = mypdg.GetParticle(pdgcode).Charge()
+  elif pdgcode > 1E+9: #heavy nucleus
+   (Z, A) = DecodeNucleusPdg(pdgcode)
+   charge = Z
+  else: print 'Warning, particle with pdg {} not recognized, assigned charge 0'.format(pdgcode)
   #filling histograms
   if (abs(pdgcode)==13):
    hmuonppt.Fill(momentum,transversemomentum)
