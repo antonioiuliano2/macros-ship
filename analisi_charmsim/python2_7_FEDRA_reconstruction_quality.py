@@ -2,26 +2,7 @@
 
 import ROOT as r
 import fedrarootlogon
-#from collections import Counter #to find most common iterations in a list
-
-def countX(lst, x): 
-    count = 0
-    for ele in lst: 
-        if (ele == x): 
-            count = count + 1
-    return count 
-
-def most_frequent(List): 
-    counter = 0
-    num = List[0] 
-      
-    for i in List: 
-        curr_frequency = countX(List, i) 
-        if(curr_frequency> counter): 
-            counter = curr_frequency 
-            num = i 
-  
-    return num,counter 
+from collections import Counter #to find most common iterations in a list
 
 def buildtracks(filename, dproc,gAli):
  
@@ -39,7 +20,7 @@ def buildtracks(filename, dproc,gAli):
  return tracks
 
 def trackquality(trackfilepath):
-  dproc = r.EdbDataProc()
+  dproc = ROOT.EdbDataProc()
   gAli = dproc.PVR()
   tracks = buildtracks(trackfilepath, dproc, gAli)
   #list of tracks
@@ -60,13 +41,14 @@ def vertexquality(vertexfilepath):
     trackIDlist = event.MCTrackID
     mothertrackIDlist = event.MCMotherID
 
-    mostcommonevent = most_frequent(eventlist)[0]
-    eventfrequency = most_frequent(eventlist)[1]
+    eventcounter = Counter(eventlist)
+    mostcommonevent = eventcounter.most_common(1)[0][0]
+    eventfrequency = eventcounter.most_common(1)[0][1]
     eventfrequency =  float(eventfrequency)/len(eventlist)
 
-#    mothercounter = (mothertrackIDlist)
-    mostcommonmother = most_frequent(mothertrackIDlist)[0]
-    motherfrequency = most_frequent(mothertrackIDlist)[1]
+    mothercounter = Counter(mothertrackIDlist)
+    mostcommonmother = mothercounter.most_common(1)[0][0]
+    motherfrequency = mothercounter.most_common(1)[0][1]
     motherfrequency =  float(motherfrequency)/len(mothertrackIDlist)
     
     hevent.Fill(eventfrequency)
@@ -75,7 +57,7 @@ def vertexquality(vertexfilepath):
 hevent = r.TH1F("hevent","Most common Event frequency in vertices",110,0,1.1)
 hmothertrack = r.TH1F("hmothertrack","Most common mother track ID frequency in vertices",110,0,1.1)
 
-vertexquality("verticesandtracks_2500events.root")
+vertexquality("/home/antonio/Lavoro/Analisi/test_fedra_sim/vertices_MC_modified.root")
 cvertexquality = r.TCanvas()
 cvertexquality.Divide(1,2)
 cvertexquality.cd(1)
