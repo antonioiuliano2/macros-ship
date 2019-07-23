@@ -7,10 +7,9 @@
 
 Test commit 18 Aprile 2019
 */
-TString run = "CH1-R6";
-TString path = "/ship/CHARM2018/" + run +"/b000001/"; 
+TString path = "/afs/cern.ch/work/a/aiuliano/public/sim_fedra/CH1_testcharmpoints/b000001/"; 
 
-TString inputfilename = path + "prova_vertexing/15_04_19/vertices_MC.root";
+TString inputfilename = path + "vertexing/vertices_MC.root";
 
 void first_creation(){ //to be launched the first time a new vertices tree is created (reset of indices)
 
@@ -137,7 +136,7 @@ void manual_check_vertices(){
 void modify_distribution_tree(){ //script to access the tree with the variables
  TFile *inputfile = TFile::Open(inputfilename.Data()); 
  if (inputfile == NULL) cout<<"ERROR: inputfile not found"<<endl;
- TTree *vertextree = (TTree*) file->Get("vtx");
+ TTree *vertextree = (TTree*) inputfile->Get("vtx");
  //TTree *qualitytree = (TTree*) file->Get("quality");
  const Int_t nvertices = vertextree->GetEntries();
  //defining variables for storing tree branches
@@ -162,6 +161,8 @@ void modify_distribution_tree(){ //script to access the tree with the variables
  Int_t MCMotherID[maxdim];
  double rmsthetatransverse[maxdim];
  double rmsthetalongitudinal[maxdim];
+ //track variables
+ Int_t TrackID[maxdim];
  Float_t TX[maxdim];
  Float_t TY[maxdim];
  Float_t trackfill[maxdim];
@@ -185,6 +186,7 @@ void modify_distribution_tree(){ //script to access the tree with the variables
  outvertextree->Branch("probability",&probability,"probability/F");
  outvertextree->Branch("n",&n,"n/I");
  //track variables (they are array with the number of tracks as size)
+ outvertextree->Branch("TrackID",&TrackID,"TrackID[n]/I");
  outvertextree->Branch("TX",&TX,"TX[n]/F");
  outvertextree->Branch("TY",&TY,"TY[n]/F");
  outvertextree->Branch("nseg",&nseg,"nseg[n]/I");
@@ -204,7 +206,7 @@ void modify_distribution_tree(){ //script to access the tree with the variables
  
  
  //we need some Edb objects to add new information
- EdbVertexRec *vertexrec = (EdbVertexRec*)file->Get("EdbVertexRec");
+ EdbVertexRec *vertexrec = (EdbVertexRec*)inputfile->Get("EdbVertexRec");
  EdbVertex *vertexobject = 0;
  EdbTrackP *track = 0;
  //Vertex    *vt = 0;  da chiedere ad Antonio
@@ -241,6 +243,7 @@ void modify_distribution_tree(){ //script to access the tree with the variables
    rmsthetatransverse[itrk] = rmstransverse;
    rmsthetalongitudinal[itrk] = rmslongitudinal;
    */
+   TrackID[itrk] = track->GetSegmentFirst()->Track();
    //Storing MC true information
    MCEventID[itrk] = track->MCEvt();
    MCTrackID[itrk] = track->MCTrack();
@@ -373,7 +376,7 @@ void modify_distribution_tree(){ //script to access the tree with the variables
    cout << "vtx_after" << ivtx << " " << n << " " << vertexobject->N() << endl;
  }*/
   
- file->Close();
+ inputfile->Close();
  //Writing tree and vertex object to file
  outvertextree->Write();
  vertexrec->Write();
