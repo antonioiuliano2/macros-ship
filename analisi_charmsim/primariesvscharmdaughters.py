@@ -50,7 +50,7 @@ for i in range(nevents):
   startz = (track.GetStartZ() - 125.56649)*cmtomicron;
 
   if (motherID == -1): #daughter of primary proton
-   #print i, j, pdgcode, momentum, 2212, -1, track.GetMotherId(),startx, starty, startz
+   print i, j, pdgcode, momentum, 2212, -1, track.GetMotherId(),startx, starty, startz
    x = 0
   elif (motherID > 0):
 
@@ -61,7 +61,7 @@ for i in range(nevents):
    firstdz = dz
    #intermediate state, continue looking for mother
    while (r.TMath.Abs(motherpdg) in intermediatelist):
-     if (r.TMath.Abs(dz) < intermediatecut): print "INTERMEDIO ", motherpdg
+     #if (r.TMath.Abs(dz) < intermediatecut): print "INTERMEDIO ", motherpdg
      motherID = mothertrack.GetMotherId()
      mothertrack = mctracks[motherID]
      motherpdg = mothertrack.GetPdgCode()
@@ -69,7 +69,7 @@ for i in range(nevents):
 
   #checking if daughter of charm
    if ((r.TMath.Abs(motherpdg) in signallist) and (r.TMath.Abs(pdgcode) not in intermediatelist)):   
-    #print i, j, pdgcode, momentum, motherpdg, motherID, track.GetMotherId(), startx, starty, startz
+    print i, j, pdgcode, momentum, motherpdg, motherID, track.GetMotherId(), startx, starty, startz
 
     decaylen = pow(pow(track.GetStartX() - mothertrack.GetStartX(),2)+pow(track.GetStartY() - mothertrack.GetStartY(),2)+pow(track.GetStartZ() - mothertrack.GetStartZ(),2),0.5)
     hlen.Fill(decaylen)

@@ -16,6 +16,7 @@ def getdaughtertracks(inputtree,eventnumber):
  pdg = r.TDatabasePDG.Instance()
 
  tracksID = []
+ charmIDs = []
 
  inputtree.GetEntry(eventnumber)
  mctracks = inputtree.MCTrack
@@ -32,6 +33,9 @@ def getdaughtertracks(inputtree,eventnumber):
 
    if pdg.GetParticle(pdgcode):
     name = pdg.GetParticle(pdgcode).GetName()
+
+   if (r.TMath.Abs(pdgcode) in signallist): #charmed hadron
+    charmIDs.append(j)
 
    cmtomicron = 1E+4
    startx = track.GetStartX()* cmtomicron + 62500;
@@ -53,5 +57,5 @@ def getdaughtertracks(inputtree,eventnumber):
     if ((r.TMath.Abs(motherpdg) in signallist) and (r.TMath.Abs(pdgcode) not in intermediatelist)):
      print j, pdgcode, momentum, motherpdg, motherID, startx, starty, startz
      tracksID.append(j)
- return tracksID
+ return charmIDs, tracksID
 

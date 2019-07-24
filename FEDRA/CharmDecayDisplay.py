@@ -50,12 +50,16 @@ def drawtracks(tracks, charmdaughters):
  for track in tracks:
   if track.MCTrack() in charmdaughters:
    ds.TrackDraw(track, ROOT.kMagenta)
-  if track.MCTrack() == 1:
+  if track.MCTrack() in charmIDs:
    ds.TrackDraw(track, ROOT.kBlue)
+   testrmax = decaysearch.FedraTrackKink(track)
+   print "Prova ", testrmax
 
+ROOT.gSystem.Load("/afs/cern.ch/work/a/aiuliano/public/macros-ship/DecaySearchKinematics/ShipCharmDecaySearch_C.so")
+decaysearch = ROOT.ShipCharmDecaySearch()
 simfile = ROOT.TFile.Open(shipfilename)
 cbmsim = simfile.Get("cbmsim")
-charmdaughters = recognizecharmdaughters.getdaughtertracks(cbmsim,int(eventnumber))
+(charmIDs, charmdaughters) = recognizecharmdaughters.getdaughtertracks(cbmsim,int(eventnumber))
 ROOT.gStyle.SetPalette(1);
 dsname="Charm simulation FEDRA display"
 ds = ROOT.EdbDisplay.EdbDisplayExist(dsname);

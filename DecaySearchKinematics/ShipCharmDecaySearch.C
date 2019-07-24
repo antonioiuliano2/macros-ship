@@ -47,8 +47,8 @@ float ShipCharmDecaySearch::IPtoVertex(TVector3 vertexpos, TVector3 trackstartpo
  //'''Impact parameter of track with respect to primary vertex'''
  
  float dz = vertexpos(2) - trackstartpos(2);
- float ipx = tracktx * dz + trackstartpos(0);
- float ipy = trackty * dz + trackstartpos(1);
+ float ipx = tracktx * dz + trackstartpos(0) -vertexpos(0);
+ float ipy = trackty * dz + trackstartpos(1) - vertexpos(1);
 
  float ip = TMath::Sqrt(pow(ipx,2)+pow(ipy,2));
 
