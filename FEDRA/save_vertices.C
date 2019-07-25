@@ -3,11 +3,11 @@
 
 void save_vertices(){
 
-TFile *file = TFile::Open("/eos/experiment/ship/user/aiuliano/CHARM1_RUN6/Emulsion/vertexing/MVA_selection_files/vertices_secondquarter.root");
+TFile *file = TFile::Open("/eos/experiment/ship/user/aiuliano/CHARM1_RUN6/Emulsion/vertexing/MVA_selection_files/vertices_firstquarter.root");
 EdbVertexRec *vertexlist = (EdbVertexRec*) file->Get("EdbVertexRec"); //getting object
  TTree *vtxtree = (TTree*) file->Get("vtx");
 
-TFile *bdtfile = TFile::Open("/eos/experiment/ship/user/aiuliano/CHARM1_RUN6/Emulsion/vertexing/MVA_selection_files/vtx_BDT_evaluated.root");
+TFile *bdtfile = TFile::Open("/eos/experiment/ship/user/aiuliano/CHARM1_RUN6/Emulsion/vertexing/MVA_selection_files/vtx_BDT_first_quarter_15_04_19_evaluated.root");
 TTree *bdttree = (TTree*) bdtfile->Get("bdt");
 
 float bdt_value;
@@ -15,7 +15,7 @@ const float bdtcut = 0.; //cut from MVA discriminator
 
 bdttree->SetBranchAddress("bdt_value",&bdt_value);
 
-TFile *outfile = new TFile("/eos/experiment/ship/user/aiuliano/CHARM1_RUN6/Emulsion/vertexing/selected_vertices_second_quarter.root","RECREATE");
+TFile *outfile = new TFile("/eos/experiment/ship/user/aiuliano/CHARM1_RUN6/Emulsion/vertexing/selected_vertices_first_quarter.root","RECREATE");
 TTree *tree = new TTree("emulsion","Reconstructed vertices, tracks and segments in emulsion");
 
 //objects to be saved
