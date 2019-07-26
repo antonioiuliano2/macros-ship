@@ -1,9 +1,10 @@
 import ROOT as r
 import fedrarootlogon
 import fedrautils
+import sys
 
-trackfilepath = "linked_tracks.root" #file with all the tracks
-vertexfilepath = "vertices_firstquarter.root" #file used for the vertices
+trackfilepath = sys.argv[1] #file with all the tracks
+vertexfilepath = sys.argv[2] #file used for the vertices
 
 
 dproc = r.EdbDataProc()
@@ -22,7 +23,7 @@ for vertex in vertexlist: #loop on vertices
  ntracks = vertex.N()
  for itrk in range(ntracks): #loop on tracks from each vertex
   vertextrack = vertex.GetTrack(itrk)
-  trackID = vertextrack.GetSegmentFirst().Track()
+  trackID = vertextrack.ID() #taking from the segment, so it tell us the position in the tracklist!
 
   tracklist.RemoveAt(trackID)
 
@@ -43,12 +44,7 @@ dproc.MakeTracksTree(newtracklist, xv,yv,"verticesandtracks.root")
 
 newfile = r.TFile.Open("verticesandtracks.root","UPDATE")
 
-newvertexrec = r.EdbVertexRec(vertexrec)
-newvertexrec.eVTX = vertexrec.eVTX
-
-newvertexrec.Write()
-
-newvertextree = vertextree.CloneTree()
+newvertextree = vertextree.CloneTree() #copying only the tree now, avoiding handling FEDRA objects too much
 newvertextree.Write()
 print "Finished Copying the objects"
 newfile.Close()

@@ -9,7 +9,7 @@ Test commit 18 Aprile 2019
 */
 TString path = "/afs/cern.ch/work/a/aiuliano/public/sim_fedra/CH1_testcharmpoints/b000001/"; 
 
-TString inputfilename = path + "vertexing/vertices_MC.root";
+TString inputfilename = path + "vertexing2/vertices_MC.root";
 
 void first_creation(){ //to be launched the first time a new vertices tree is created (reset of indices)
 
@@ -222,7 +222,7 @@ void modify_distribution_tree(){ //script to access the tree with the variables
   // vt->rmsDistAngle() is average distance from vertex to tracks
   // vt->angle() is average angle between tracks
   
-  cout << "vtx_before " << ivtx << " " << n << " " << vertexobject->N() << endl;
+  //cout << "vtx_before " << ivtx << " " << n << " " << vertexobject->N() << endl;
   
   //Loop on tracks
   for (int itrk = 0; itrk < n; itrk++){
@@ -243,7 +243,8 @@ void modify_distribution_tree(){ //script to access the tree with the variables
    rmsthetatransverse[itrk] = rmstransverse;
    rmsthetalongitudinal[itrk] = rmslongitudinal;
    */
-   TrackID[itrk] = track->GetSegmentFirst()->Track();
+   TrackID[itrk] = track->Track(); //NOT ID(), which is resetted!
+   if (track->Track()==10737) cout<<track->MCEvt()<<" "<<track->MCTrack()<<" "<<track->N()<<endl;
    //Storing MC true information
    MCEventID[itrk] = track->MCEvt();
    MCTrackID[itrk] = track->MCTrack();
@@ -332,7 +333,7 @@ void modify_distribution_tree(){ //script to access the tree with the variables
        if(seg_index>0){
          seg0 = (EdbSegP *)(track->GetSegment(tmp_id_seg));
          seg_delta_theta[seg_index-1] = seg->DeltaTheta(seg0);
-         cout << "delta_theta " << ivtx << " " << itrk << " " << seg_index-1 << " " << seg_delta_theta[seg_index-1] << " " << seg->Plate() << " " << seg0->Plate() <<  endl; 
+         //cout << "delta_theta " << ivtx << " " << itrk << " " << seg_index-1 << " " << seg_delta_theta[seg_index-1] << " " << seg->Plate() << " " << seg0->Plate() <<  endl; 
        }
        tmp_id_seg = iseg;
        seg_index++;
