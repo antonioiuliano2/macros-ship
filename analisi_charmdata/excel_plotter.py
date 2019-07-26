@@ -17,10 +17,10 @@ percdone = df['Ndone']/df['Npairs'] * 100
 percgood = df['Ngood']/df['Npairs'] * 100
 
 plt.xlabel('RUN')
-plt.ylabel('%')
+plt.ylabel('Percentage (%)')
 
 ax.plot(percdone,'b.',label='scanned and processed for alignment')
 ax.plot(percgood,'g.',label='aligned successfully')
 
-plt.legend()
+plt.legend(fontsize='x-large')
 plt.show()

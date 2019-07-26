@@ -27,7 +27,7 @@ print("Start loop on NuTauTT parameters")
 for attr, value in ship_geo.NuTauTT.__dict__.iteritems():
         print attr, value
 print("Start loop on tauHPT parameters")
-for attr, value in ship_geo.NutauHPT.__dict__iteritems():
+for attr, value in ship_geo.tauHPT.__dict__.iteritems():
         print attr,value
 print("Start loop on tauMudet parameters")
 for attr, value in ship_geo.tauMudet.__dict__.iteritems():
