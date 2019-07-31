@@ -126,8 +126,9 @@ void do_vertex()
   Float_t maxaperture;
   Float_t probability;
   Int_t n;
-  const Int_t maxdim = 1000;
+  const Int_t maxdim = 1000; //maximum number of tracks associated to a vertex that can be saved in the tree
   //big arrays for containers of track variables
+  Int_t TrackID[maxdim];
   Int_t nholes[maxdim];
   Int_t maxgap[maxdim];
   Int_t nseg[maxdim];
@@ -145,6 +146,7 @@ void do_vertex()
   vtx->Branch("probability",&probability,"probability/F");
   vtx->Branch("n",&n,"n/I");
   //track variables (they are array with the number of tracks as size)
+  vtx->Branch("TrackID",&TrackID,"TrackID[n]/I");
   vtx->Branch("TX",&TX,"TX[n]/F");
   vtx->Branch("TY",&TY,"TY[n]/F");
   vtx->Branch("nseg",&nseg,"nseg[n]/I");
@@ -180,6 +182,8 @@ void do_vertex()
     //loop on tracks //now it can be done offline (again)
     for (int itrk = 0; itrk < n; itrk++){
      track = vertex->GetTrack(itrk);
+
+     TrackID[itrk] = track->Track(); //the eTrack attribute of EdbSegP now allows association to original root tree
      nseg[itrk] = track->N();
      Int_t zpos = vertex->GetVTa(itrk)->Zpos();
      incoming[itrk] = zpos;

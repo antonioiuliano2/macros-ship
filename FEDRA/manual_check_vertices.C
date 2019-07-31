@@ -243,8 +243,7 @@ void modify_distribution_tree(){ //script to access the tree with the variables
    rmsthetatransverse[itrk] = rmstransverse;
    rmsthetalongitudinal[itrk] = rmslongitudinal;
    */
-   TrackID[itrk] = track->Track(); //NOT ID(), which is resetted!
-   if (track->Track()==10737) cout<<track->MCEvt()<<" "<<track->MCTrack()<<" "<<track->N()<<endl;
+   TrackID[itrk] = track->Track(); //NOT ID(), which is resetted! The eTrack attribute of EdbSegP now allows association to original root tree
    //Storing MC true information
    MCEventID[itrk] = track->MCEvt();
    MCTrackID[itrk] = track->MCTrack();

@@ -103,8 +103,8 @@ def drawtracks(vertextracks,tracks):
  #loop on tracks, find charm daughters and replot them with a different color
  #print "PROVA:", len(tracks)
  for track in tracks:
-  if track.GetSegmentFirst().Track() in fedratrackslist: #note, we need to pass to the segments because track() may be confused with the index of the track in the vertex    
-   nfoundtrack = fedratrackslist.index(track.GetSegmentFirst().Track())
+  if track.Track() in fedratrackslist: #note, we need to pass to the segments because track() may be confused with the index of the track in the vertex    
+   nfoundtrack = fedratrackslist.index(track.Track())
    ds.TrackDraw(track, isolatedtrackcolors[nfoundtrack])
  #loop on vertices to draw associated tracks
  for ivtx, vertex in enumerate(drawnvertices):
