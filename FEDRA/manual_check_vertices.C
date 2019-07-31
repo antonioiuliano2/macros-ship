@@ -161,7 +161,6 @@ void modify_distribution_tree(){ //script to access the tree with the variables
  Int_t MCMotherID[maxdim];
  double rmsthetatransverse[maxdim];
  double rmsthetalongitudinal[maxdim];
- Float_t rIP_segments[maxdim];
  //track variables
  Int_t TrackID[maxdim];
  Float_t TX[maxdim];
@@ -196,7 +195,6 @@ void modify_distribution_tree(){ //script to access the tree with the variables
  outvertextree->Branch("trackfill",trackfill,"trackfill[n]/F");
  outvertextree->Branch("incoming",&incoming,"incoming[n]/I");
  outvertextree->Branch("impactparameter",&impactparameter,"impactparameter[n]/F");
- outvertextree->Branch("rIP_segments",&rIP_segments,"rIP_segments[n]/F")
  outvertextree->Branch("trk_num_holes",&trk_num_holes,"trk_num_holes[n]/I");
  outvertextree->Branch("trk_max_gap",&trk_max_gap,"trk_max_gap[n]/I");
  //inserting MCtrue information
@@ -265,15 +263,10 @@ void modify_distribution_tree(){ //script to access the tree with the variables
    //Loops on segments
    
    // Find segments in the same plate
-   Float_t ipnseg[track->N()];
    for (int iseg = 0; iseg < track->N(); iseg++){
      same_plate[iseg]=false;
      rem_seg[iseg]=false;
      seg = (EdbSegP *)(track->GetSegment(iseg));
-     //impact parameter of segments with respect to primary vertex
-     segpos = ROOT.TVector3(segment.X(),segment.Y(),segment.Z());
-     ipnseg[iseg]=decaysearch.IPtoVertex(vertexpos,segpos,segment.TX(), segment.TY());
-
      if (iseg>0){
        seg0 = (EdbSegP *)(track->GetSegment(iseg-1));
        if(seg->Plate()==seg0->Plate()){
@@ -283,11 +276,6 @@ void modify_distribution_tree(){ //script to access the tree with the variables
      }
      //cout << "before "<< ivtx << " " << itrk << " " << iseg << " " <</* rmstransverse << " " << rmslongitudinal << " " <<*/ seg->ID()<< " " << same_plate[iseg] <<" "<<seg->X()<<" "<<seg->Y()<<" "<<seg->Z()<<" "<<seg->Plate() <<  endl;
    }
-
-   Float_t maxip = TMath::Max(n,ipnseg);
-   Float_t minip = TMath::Min(n,ipnseg);
-   Float_t rmsip = TMath::RMS(n,ipnseg);
-   rIP_segments[itrk] = (maxip - minip)/rmsip;
       
    // Mean x and y positions of segments in track (same plate excluded)
    for (int iseg = 0; iseg < track->N(); iseg++){
