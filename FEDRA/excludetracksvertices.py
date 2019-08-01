@@ -23,7 +23,7 @@ for vertex in vertexlist: #loop on vertices
  ntracks = vertex.N()
  for itrk in range(ntracks): #loop on tracks from each vertex
   vertextrack = vertex.GetTrack(itrk)
-  trackID = vertextrack.ID() #taking from the segment, so it tell us the position in the tracklist!
+  trackID = vertextrack.Track() #taking from the segment, so it tell us the position in the tracklist!
 
   tracklist.RemoveAt(trackID)
 
