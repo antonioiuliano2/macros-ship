@@ -43,7 +43,7 @@ void set_segments_dz(float dz)
   }
 }
 
-void vertexfiles_production(){ //script to access the tree with the variables
+void vertexfiles_processing(){ //script to fill vertex tree with various information and produce a tree with not associated tracks
  trvol(0,"nseg>1");
  TObjArray *tracklist = gAli->eTracks; 
 
@@ -182,6 +182,76 @@ void savingremainingtracks(TObjArray* tracklist){
 
  dproc->MakeTracksTree(newtracklist, 0.,0.,"verticesandtracks.root");
 
+}
+
+void estimatemeanseg(EdbTrack* mytrack){ //original script by Valerio for mean seg computation
+   
+   EdbSegP * seg0 =0;
+   EdbSegP * seg=0;
+   EdbSegP * seg2=0;   
+   Bool_t  * same_plate= new Bool_t[mytrack->N()]; // 
+   Bool_t  * rem_seg= new Bool_t[mytrack->N()]; // 
+   //Float_t  * same_plate= new Float_t[mytrack->N()]; // 
+   Float_t mean_seg_x=0;
+   Float_t mean_seg_y=0;
+   Int_t no_same_plate=0;
+   
+   //Loops on segments
+   
+   // Find segments in the same plate
+   for (int iseg = 0; iseg < mytrack->N(); iseg++){
+     same_plate[iseg]=false;
+     rem_seg[iseg]=false;
+     seg = (EdbSegP *)(mytrack->GetSegment(iseg));
+     if (iseg>0){
+       seg0 = (EdbSegP *)(mytrack->GetSegment(iseg-1));
+       if(seg->Plate()==seg0->Plate()){
+         same_plate[iseg]=true;
+         same_plate[iseg-1]=true;       
+       }
+     }
+     //cout << "before "<< ivtx << " " << itrk << " " << iseg << " " <</* rmstransverse << " " << rmslongitudinal << " " <<*/ seg->ID()<< " " << same_plate[iseg] <<" "<<seg->X()<<" "<<seg->Y()<<" "<<seg->Z()<<" "<<seg->Plate() <<  endl;
+   }
+      
+   // Mean x and y positions of segments in mytrack (same plate excluded)
+   for (int iseg = 0; iseg < mytrack->N(); iseg++){
+     seg = (EdbSegP *)(mytrack->GetSegment(iseg));
+     if(same_plate[iseg]==false){
+       mean_seg_x = seg->X();
+       mean_seg_y = seg->Y();
+       no_same_plate++;
+     }
+   }
+   if(no_same_plate!=0){
+    mean_seg_x /= no_same_plate;
+    mean_seg_y /= no_same_plate;
+   }
+   else {
+     mean_seg_x =-1;
+     mean_seg_y =-1;
+   }
+   
+   
+   
+   // Tag bad segments
+   for (int iseg = 0; iseg < mytrack->N(); iseg++){
+     seg = (EdbSegP *)(mytrack->GetSegment(iseg));
+     if(iseg>0){
+       seg0 = (EdbSegP *)(mytrack->GetSegment(iseg-1));
+       if(seg->Plate()==seg0->Plate() && mean_seg_x!=-1 && mean_seg_y!=-1){
+         float gap_seg = TMath::Sqrt(TMath::Power(seg->X()- mean_seg_x,2) + TMath::Power(seg->Y() - mean_seg_y,2)); 
+         float gap_seg0 = TMath::Sqrt(TMath::Power(seg0->X()- mean_seg_x,2) + TMath::Power(seg0->Y() - mean_seg_y,2));       
+         if(gap_seg > gap_seg0) rem_seg[iseg]=true;
+         else rem_seg[iseg-1]=true; 
+         nseg[itrk]--;                    
+     }
+     if(mean_seg_x==-1 && mean_seg_y==-1) {
+       vertexrec->RemoveTrackFromVertex(vertexobject, itrk);
+       //cout << "eccomi " << ivtx << " " << itrk << endl;
+     } //rimozione di tracce inserita da Valerio
+   }
+   //cout << "after "<< ivtx << " " << itrk << " " << iseg << " " <</* rmstransverse << " " << rmslongitudinal << " " <<*/ seg->ID()<< " " << same_plate[iseg] << " "<< rem_seg[iseg] << " "<<seg->X()<<" "<<seg->Y()<<" "<<seg->Z()<<" "<<seg->Plate() <<  endl;
+   }
 }
 
 
