@@ -23,7 +23,7 @@ fedra.track.do_use_mcs:                  0
 fedra.track.RadX0:                       5810
 fedra.track.erase:                       0
 fedra.track.do_misalign:                 0
-fedra.track.do_realign:                  1
+fedra.track.do_realign:                  0 #not predictable, use only to increase efficiency if needed
 fedra.track.misalign_offset:             500
 fedra.track.do_local_corr:               1
 fedra.track.do_comb:                     0
