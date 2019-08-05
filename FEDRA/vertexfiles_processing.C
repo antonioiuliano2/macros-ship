@@ -184,7 +184,7 @@ void savingremainingtracks(TObjArray* tracklist){
 
 }
 
-void estimatemeanseg(EdbTrack* mytrack){ //original script by Valerio for mean seg computation
+void estimatemeanseg(EdbTrackP* mytrack, Int_t * nseg, EdbVertexRec * vertexrec, Int_t itrk, EdbVertex *vertexobject){ //original script by Valerio for mean seg computation
    
    EdbSegP * seg0 =0;
    EdbSegP * seg=0;

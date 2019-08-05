@@ -136,7 +136,11 @@ void do_vertex()
   Float_t TY[maxdim];
   Float_t impactparameter[maxdim];
   Int_t incoming[maxdim]; //coming from the vertex
- 
+  //MC information
+  Int_t MCEventID[maxdim];
+  Int_t MCTrackID[maxdim];
+  Int_t MCMotherID[maxdim];
+
   vtx->Branch("vID",&vID,"vID/I");
   vtx->Branch("vx",&vx,"vx/F");
   vtx->Branch("vy",&vy,"vy/F");
@@ -155,9 +159,9 @@ void do_vertex()
   vtx->Branch("incoming",&incoming,"incoming[n]/I");
   vtx->Branch("impactparameter",&impactparameter,"impactparameter[n]/F");
   //inserting MCtrue information
-  outvertextree->Branch("MCEventID", &MCEventID, "MCEventID[n]/I");
-  outvertextree->Branch("MCTrackID",&MCTrackID,"MCTrackID[n]/I");
-  outvertextree->Branch("MCMotherID",&MCMotherID,"MCMotherID[n]/I");
+  vtx->Branch("MCEventID", &MCEventID, "MCEventID[n]/I");
+  vtx->Branch("MCTrackID",&MCTrackID,"MCTrackID[n]/I");
+  vtx->Branch("MCMotherID",&MCMotherID,"MCMotherID[n]/I");
   EdbVertex *vertex = new EdbVertex();
   EdbTrackP *track = new EdbTrackP();
 
