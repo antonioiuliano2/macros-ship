@@ -22,9 +22,10 @@ using namespace TMath;
 TRandom *grandom = new TRandom3(); //creating every time a TRandom3 is a bad idea
 TFile *file = NULL;
 TH1D *heff = NULL ; //efficiency at different angles
-
+/*
 void EmuTracksfromFairShip2Fedra(TString filename){ //directly read emutracks, no corrections here because they are done directly at digitization level
  const int nplates = 29;
+ int nbrick = 1;
 
  //**********************OPENING INPUT FILE***************************
  TFile * inputfile = TFile::Open(filename.Data());
@@ -48,8 +49,8 @@ void EmuTracksfromFairShip2Fedra(TString filename){ //directly read emutracks, n
  EdbCouplesTree *ect[nplates];
  for (int i = 1; i <= nplates; i++){
   ect[i-1] = new EdbCouplesTree();
-  if (i <10) ect[i-1]->InitCouplesTree("couples",Form("b000001/p00%i/1.%i.0.0.cp.root",i,i),"RECREATE");
-  else ect[i-1]->InitCouplesTree("couples",Form("b000001/p0%i/1.%i.0.0.cp.root",i,i),"RECREATE");
+  if (i <10) ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p00%i/1.%i.0.0.cp.root",nbrick,i,i),"RECREATE");
+  else ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p0%i/1.%i.0.0.cp.root",nbrick,i,i),"RECREATE");
  }
  Int_t Flag = 1;
  cout<<"Start processing nevents: "<<nevents<<endl;  
@@ -75,6 +76,7 @@ void EmuTracksfromFairShip2Fedra(TString filename){ //directly read emutracks, n
      ect[nfilmhit-1]->eS->SetMC(ievent, trackID); //objects used to store MC true information
      ect[nfilmhit-1]->eS->SetAid(motherID, 0); //forcing areaID member to store mother MC track information
      ect[nfilmhit-1]->eS->SetW(ngrains); //need a high weight to do tracking
+     ect[nfilmhit-1]->eS->SetVid(pdgcode,0); //forcing viewID[0] member to store pdgcode information
      ect[nfilmhit-1]->Fill();
      ihit++; //hit entry, increasing as the tree is filled        
      
@@ -86,11 +88,13 @@ void EmuTracksfromFairShip2Fedra(TString filename){ //directly read emutracks, n
    ect[iplate]->Close();  
  }
 }
-
+*/
 void fromFairShip2Fedra(TString filename){
  const int nplates = 29;
+ int nbrick = 1; // to set b00000%i number
+
  const bool useefficiencymap = false; //use the map instead of the constant value down
- const bool dosmearing = false; //gaussian smearing or not
+ const bool dosmearing = true; //gaussian smearing or not
 
  if (useefficiencymap){ 
   file = TFile::Open("efficiency_alltracks.root");
@@ -121,8 +125,8 @@ void fromFairShip2Fedra(TString filename){
  EdbCouplesTree *ect[nplates];
  for (int i = 1; i <= nplates; i++){
   ect[i-1] = new EdbCouplesTree();
-  if (i <10) ect[i-1]->InitCouplesTree("couples",Form("b000001/p00%i/1.%i.0.0.cp.root",i,i),"RECREATE");
-  else ect[i-1]->InitCouplesTree("couples",Form("b000001/p0%i/1.%i.0.0.cp.root",i,i),"RECREATE");
+  if (i <10) ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p00%i/2.%i.0.0.cp.root",nbrick,i,i),"RECREATE");
+  else ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p0%i/2.%i.0.0.cp.root",nbrick,i,i),"RECREATE");
  }
  Int_t Flag = 1;
  cout<<"Start processing nevents: "<<nevents<<endl;  
@@ -166,7 +170,9 @@ void fromFairShip2Fedra(TString filename){
       ect[nfilmhit-1]->eS->Set(ihit,xem,yem,tx,ty,1,Flag);
       ect[nfilmhit-1]->eS->SetMC(ievent, trackID); //objects used to store MC true information
       ect[nfilmhit-1]->eS->SetAid(motherID, 0); //forcing areaID member to store mother MC track information
+      ect[nfilmhit-1]->eS->SetVid(pdgcode,0); //forcing viewID[0] member to store pdgcode information
       ect[nfilmhit-1]->eS->SetW(ngrains); //need a high weight to do tracking
+      ect[nfilmhit-1]->eS->Set
       ect[nfilmhit-1]->Fill();
       ihit++; //hit entry, increasing as the tree is filled        
       }
