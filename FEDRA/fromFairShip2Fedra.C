@@ -17,6 +17,23 @@ void fromFairShip2Fedra(){
  fromFairShip2Fedra("ship.conical.Pythia8CharmOnly-TGeant4.root");
 }
 
+TF1 angularresolution(){
+  //estimate angular resolution from OPERA data (Nuclear Instruments and Methods in Physics Research A 554 (2005) 247–254, M.De Serio et al.)
+ const int npoints = 3;
+ float angles[npoints] = {0.05, 0.2, 0.3}; //angles of tracks from which measurements have been performed
+ float accuracy[npoints] = {0.0004, 0.00064,0.00094}; //angular accuracy
+  
+ TF1 fres = TF1 ("fres","pol1",0,0.3); //resolution function to interpolate
+ 
+ TGraph *resgraph = new TGraph(npoints, angles, accuracy);
+  
+ TCanvas *rescanvas = new TCanvas();
+ resgraph->Draw("AP*");
+ resgraph->Fit(&fres);
+ rescanvas->Print("resfunction.root");
+ return fres;
+}
+
 //#include "/home/utente/fedra/include/EdbCouplesTree.h"
 using namespace TMath;
 TRandom *grandom = new TRandom3(); //creating every time a TRandom3 is a bad idea
@@ -172,7 +189,6 @@ void fromFairShip2Fedra(TString filename){
       ect[nfilmhit-1]->eS->SetAid(motherID, 0); //forcing areaID member to store mother MC track information
       ect[nfilmhit-1]->eS->SetVid(pdgcode,0); //forcing viewID[0] member to store pdgcode information
       ect[nfilmhit-1]->eS->SetW(ngrains); //need a high weight to do tracking
-      ect[nfilmhit-1]->eS->Set
       ect[nfilmhit-1]->Fill();
       ihit++; //hit entry, increasing as the tree is filled        
       }
