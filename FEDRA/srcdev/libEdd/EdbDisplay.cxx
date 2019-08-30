@@ -94,7 +94,7 @@ void EdbTrackG::EstimateMomentum()
 const char *EdbTrackG::GetTitle() const
 {
     static char title[80];
-    if (eTr) sprintf(title, "Track ID %d, Nseg %d, Prob %.4f, P %.3f", eTr->ID(), eTr->N(), eTr->Prob(), eTr->P());
+    if (eTr) sprintf(title, "Track ID %d, OrigTrackID %d, Nseg %d, Prob %.4f, P %.3f", eTr->ID(), eTr->Track(), eTr->N(), eTr->Prob(), eTr->P());
     else strcpy(title, "Track address not defined");
     return title;
 }
