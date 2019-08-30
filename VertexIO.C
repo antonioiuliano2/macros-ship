@@ -6,6 +6,19 @@
 #include "TCut.h"
 #include "TEventList.h"
 
+// structure of vertextree
+/* 
+ Each entry is a vertex
+ float and int numbers for vertex variables
+ TClonesArrays of EdbSegP objects for tracks, segments and fitted segments
+ 
+ Size of t. array:
+  number of tracks in the vertex
+
+ Size of s and sf arrays:
+  total number of segments and fitted segments (each track has many segments) 
+
+*/
 class VertexIO:public TObject{
  public:
  static int MakeVertexTree(TObjArray &vtxarr, const char *file)
