@@ -59,7 +59,7 @@ drawnvertices = ROOT.TObjArray(100)
 drawntracksfromvertex = ROOT.TObjArray(10000)
 
 if (options.new): #new format, vertex information saved in tree
- ROOT.gSystem.Load("VertexIO_C.so")
+ ROOT.gROOT.ProcessLine(".L VertexIO.C")
  for vertexnumber in vertexnumberlist:
   vertex = ROOT.VertexIO.GetVertexFromTree(gAli,vertexfilename,int(vertexnumber))
   ntracksfromvertex = vertex.N()

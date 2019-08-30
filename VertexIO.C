@@ -1,11 +1,3 @@
-#include "TObject.h"
-#include "EdbPVRec.h"
-#include "EdbPattern.h"
-#include "EdbVertex.h"
-#include "TFile.h"
-#include "TCut.h"
-#include "TEventList.h"
-
 // structure of vertextree
 /* 
  Each entry is a vertex
