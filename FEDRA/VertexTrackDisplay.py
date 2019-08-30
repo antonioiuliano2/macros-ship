@@ -55,27 +55,37 @@ for trackID in fedratrackslist:
  mytrack.Copy(temptrack)
  tracks.append(mytrack)
 
+drawnvertices = ROOT.TObjArray(100)
+drawntracksfromvertex = ROOT.TObjArray(10000)
+
 if (options.new): #new format, vertex information saved in tree
- dproc.ReadVertexTree(gAli,vertexfilename,"nseg>1")
- vertexlist = gAli.eVTX
+ ROOT.gSystem.Load("VertexIO_C.so")
+ for vertexnumber in vertexnumberlist:
+  vertex = ROOT.VertexIO.GetVertexFromTree(gAli,vertexfilename,int(vertexnumber))
+  ntracksfromvertex = vertex.N()
+  #adding tracks and vertices to list to be drawn (only one vertex in this case)
+  drawnvertices.Add(vertex)
+
+  for i in range(ntracksfromvertex):
+   vertextrack = vertex.GetTrack(i)
+   drawntracksfromvertex.Add(vertextrack)
+   #dproc.ReadVertexTree(gAli,vertexfilename,"nseg>1")
+
 else:
  vertexfile = ROOT.TFile.Open(vertexfilename)
  vertexrec = vertexfile.Get("EdbVertexRec")
  vertexlist = vertexrec.eVTX
 
-drawnvertices = ROOT.TObjArray(100)
-drawntracksfromvertex = ROOT.TObjArray(10000)
-
 #adding vertices
-for vertexnumber in vertexnumberlist:
- vertex = vertexlist.At(int(vertexnumber))
- ntracksfromvertex = vertex.N()
+ for vertexnumber in vertexnumberlist:
+  vertex = vertexlist.At(int(vertexnumber))
+  ntracksfromvertex = vertex.N()
 #adding tracks and vertices to list to be drawn (only one vertex in this case)
- drawnvertices.Add(vertex)
+  drawnvertices.Add(vertex)
 
- for i in range(ntracksfromvertex):
-  vertextrack = vertex.GetTrack(i)
-  drawntracksfromvertex.Add(vertextrack)
+  for i in range(ntracksfromvertex):
+   vertextrack = vertex.GetTrack(i)
+   drawntracksfromvertex.Add(vertextrack)
 
 def drawtracks(vertextracks,othertracks):
  #ds.SetVerRec(gEVR);
