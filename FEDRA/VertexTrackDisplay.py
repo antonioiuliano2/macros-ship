@@ -6,6 +6,9 @@ import sys
 
 from argparse import ArgumentParser #not present in good old nusrv9, but the commands should work in a reasonable python setup, only need to remove the parser and options comments,then comment the sys.argv lines
 
+dproc = ROOT.EdbDataProc()
+gAli = dproc.PVR()
+
 fedratrackslist = []
 #vertexnumberlist = [10, 20]
 isolatedtrackcolors = [ROOT.kMagenta, ROOT.kBlue, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta] #so we can set different colors for different tracks
@@ -18,6 +21,7 @@ parser.add_argument("-t", "--tracks", dest="tracksfilename", help="file with fed
                     required=True)
 parser.add_argument("-nv", "--nvertices", nargs='+', dest="vertexnumberlist", help="number of vertices to display", required=True)
 parser.add_argument("-nt", "--ntracks", nargs='*', dest="tracklist", help="number of isolated tracks to display")
+parser.add_argument("-new", action='store_true') #for new file format
 
 options = parser.parse_args()
 vertexnumberlist = options.vertexnumberlist
@@ -51,9 +55,13 @@ for trackID in fedratrackslist:
  mytrack.Copy(temptrack)
  tracks.append(mytrack)
 
-vertexfile = ROOT.TFile.Open(vertexfilename)
-vertexrec = vertexfile.Get("EdbVertexRec")
-vertexlist = vertexrec.eVTX
+if (options.new): #new format, vertex information saved in tree
+ dproc.ReadVertexTree(gAli,vertexfilename,"nseg>1")
+ vertexlist = gAli.eVTX
+else:
+ vertexfile = ROOT.TFile.Open(vertexfilename)
+ vertexrec = vertexfile.Get("EdbVertexRec")
+ vertexlist = vertexrec.eVTX
 
 drawnvertices = ROOT.TObjArray(100)
 drawntracksfromvertex = ROOT.TObjArray(10000)
