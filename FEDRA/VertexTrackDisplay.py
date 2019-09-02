@@ -46,9 +46,9 @@ for trackID in fedratrackslist:
  segments = tracktree.s
  fittedsegments = tracktree.sf
  #loop on segments associated to the track
- for seg, segf in zip(segments,fittedsegments):
+ for seg in segments:
      temptrack .AddSegment(seg)
-     temptrack .AddSegmentF(segf)
+     #temptrack .AddSegmentF(segf)
      temptrack .SetSegmentsTrack(temptrack.ID())
      temptrack .SetCounters()
  mytrack = ROOT.EdbTrackP()
@@ -93,7 +93,7 @@ def drawtracks(vertextracks,othertracks):
  ds.SetArrTr( vertextracks )
  ds.SetArrV(drawnvertices)
  ds.Draw()
- print "{} other tracks to display\n".format(len(othertracks))
+ print len(othertracks),"other tracks to display\n"
  for itrk, track in enumerate(othertracks):
    ds.TrackDraw(track,isolatedtrackcolors[itrk])
  #loop on vertices to draw associated tracks
