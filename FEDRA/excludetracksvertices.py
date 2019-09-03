@@ -2,28 +2,41 @@ import ROOT as r
 import fedrarootlogon
 import fedrautils
 import sys
+from argparse import ArgumentParser #not present in good old nusrv9, but the commands should work in a
 
-trackfilepath = sys.argv[1] #file with all the tracks
-vertexfilepath = sys.argv[2] #file used for the vertices
+parser = ArgumentParser()
+parser.add_argument("-f", "--fedra", dest="vertexfilename", help="file with fedra vertices",
+                    required=True)
+parser.add_argument("-t", "--tracks", dest="tracksfilename", help="file with fedra tracks",
+                    required=True)
+parser.add_argument("-new", action='store_true') #for new file format
 
+options = parser.parse_args()
+trackfilepath = options.tracksfilename #file with all the tracks
+vertexfilepath =  options.vertexfilename #file used for the vertices
 
 dproc = r.EdbDataProc()
 gAli = dproc.PVR()
 tracklist = fedrautils.buildtracks(trackfilepath, dproc, gAli)
 
-vertexfile = r.TFile.Open(vertexfilepath,'read')
-vertexrec = vertexfile.Get("EdbVertexRec")
-vertextree = vertexfile.Get("vtx")
+if (options.new): #new format, vertex information saved in tree
+ ROOT.gROOT.ProcessLine(".L VertexIO.C")
+ ROOT.VertexIO.ReadVertexTree(gAli,vertexfilename," ")
+ vertexlist = gAli.eVTX
 
-vertexlist = vertexrec.eVTX
+else:
+ vertexfile = r.TFile.Open(vertexfilepath,'read')
+ vertexrec = vertexfile.Get("EdbVertexRec")
+ vertextree = vertexfile.Get("vtx") 
 
-vertex = vertexlist[0]
+ vertexlist = vertexrec.eVTX
+
 
 for vertex in vertexlist: #loop on vertices
  ntracks = vertex.N()
  for itrk in range(ntracks): #loop on tracks from each vertex
   vertextrack = vertex.GetTrack(itrk)
-  trackID = vertextrack.ID() #taking from the segment, so it tell us the position in the tracklist!
+  trackID = vertextrack.Track() #taking from the segment, so it tell us the position in the tracklist!
 
   tracklist.RemoveAt(trackID)
 

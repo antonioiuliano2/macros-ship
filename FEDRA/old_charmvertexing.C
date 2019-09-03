@@ -38,14 +38,20 @@ namespace VERTEX_PAR
   int   QualityMode= 0;      // vertex quality estimation method (0:=Prob/(sigVX^2+sigVY^2); 1:= inverse average track-vertex distance)
 }
 
+namespace VERTEX_CUTS //which vertices are saved
+{
+  int nmintracks = 4;
+  float angleaperture = 0.01;
+}
+
 //---------------------------------------------------------------------
 void charm_vertexing(char *dset=0)
 {
   //trvol(dset);
   //trvol(dset,"nseg>1 && TMath::Abs(s.eY-50000)<5000 && TMath::Abs(s.eX-50000)<5000");   
 // SELECTION WHICH TRACKS TO USE FOR VERTEXING
-   trvol(dset,"nseg>1 && TMath::Abs(s.eX-62500)<5000 && TMath::Abs(s.eY-50000)<5000");
- // trvol(dset,"nseg>1 && s.eX > 62500 && s.eY > 50000"); //fourth quarter
+ trvol(dset,"nseg>1 && TMath::Abs(s.eY-50000)<5000");
+
    // reconstruct vertexes starting from linked_tracks.root
 }
 
@@ -113,7 +119,107 @@ void do_vertex()
   int nl = gEVR->LinkedVertexes(); //should avoid same track associated to multiple vertices
   printf("%d vertices are linked\n",nl);
 
-  EdbDataProc::MakeVertexTree(*(gEVR->eVTX),"vertextree_test.root");
+  TFile *fvtx = new TFile("vertices_MC.root","RECREATE"); //OUTPUT FILE NAME
+  TTree *vtx = new TTree("vtx","vtx");
+  Float_t vx, vy, vz;
+  Int_t vID = 0;
+  Float_t maxaperture;
+  Float_t probability;
+  Int_t n;
+  const Int_t maxdim = 1000; //maximum number of tracks associated to a vertex that can be saved in the tree
+  //big arrays for containers of track variables
+  Int_t TrackID[maxdim];
+  Int_t nholes[maxdim];
+  Int_t maxgap[maxdim];
+  Int_t nseg[maxdim];
+  Float_t TX[maxdim];
+  Float_t TY[maxdim];
+  Float_t impactparameter[maxdim];
+  Int_t incoming[maxdim]; //coming from the vertex
+  //MC information
+  Int_t MCEventID[maxdim];
+  Int_t MCTrackID[maxdim];
+  Int_t MCMotherID[maxdim];
+
+  vtx->Branch("vID",&vID,"vID/I");
+  vtx->Branch("vx",&vx,"vx/F");
+  vtx->Branch("vy",&vy,"vy/F");
+  vtx->Branch("vz",&vz,"vz/F");
+  vtx->Branch("maxaperture",&maxaperture,"maxaperture/F");
+  //vtx->Branch("maxrmsthetaspace",&maxrmsthetaspace,"maxrmsthetaspace/F");
+  vtx->Branch("probability",&probability,"probability/F");
+  vtx->Branch("n",&n,"n/I");
+  //track variables (they are array with the number of tracks as size)
+  vtx->Branch("TrackID",&TrackID,"TrackID[n]/I");
+  vtx->Branch("TX",&TX,"TX[n]/F");
+  vtx->Branch("TY",&TY,"TY[n]/F");
+  vtx->Branch("nseg",&nseg,"nseg[n]/I");
+  vtx->Branch("nholes",&nholes,"nholes[n]/I"); //even more variables in this tree
+  vtx->Branch("maxgap",&maxgap,"maxgap[n]/I"); 
+  vtx->Branch("incoming",&incoming,"incoming[n]/I");
+  vtx->Branch("impactparameter",&impactparameter,"impactparameter[n]/F");
+  //inserting MCtrue information
+  vtx->Branch("MCEventID", &MCEventID, "MCEventID[n]/I");
+  vtx->Branch("MCTrackID",&MCTrackID,"MCTrackID[n]/I");
+  vtx->Branch("MCMotherID",&MCMotherID,"MCMotherID[n]/I");
+  EdbVertex *vertex = new EdbVertex();
+  EdbTrackP *track = new EdbTrackP();
+
+  //gAli->Write();
+  fvtx->cd();
+  TObjArray *varr = new TObjArray(); //vertices to be saved
+  //gEVR->Write();
+  cout<<"Ho salvato i vertici nel file"<<endl;
+  for(Int_t ivtx=0; ivtx<gEVR->eVTX->GetEntries(); ivtx++){
+    vertex=(EdbVertex*)(gEVR->eVTX->At(ivtx));
+    vx=vertex->X();
+    vy=vertex->Y();
+    vz=vertex->Z();
+    n=vertex->N();
+    maxaperture = vertex->MaxAperture();
+    probability = vertex->V()->prob();  
+    if(vertex->Flag()<0) continue; //saving only 'true' vertices in the tree file and in the object
+    if(n < VERTEX_CUTS::nmintracks) continue; 
+    if (maxaperture < VERTEX_CUTS::angleaperture) continue;
+    varr->Add(vertex); //true vertex, we can save it
+    //adding vertex to list to be saved
+    //loop on tracks //now it can be done offline (again)
+    for (int itrk = 0; itrk < n; itrk++){
+     track = vertex->GetTrack(itrk);
+
+     TrackID[itrk] = track->Track(); //the eTrack attribute of EdbSegP now allows association to original root tree
+     nseg[itrk] = track->N();
+     Int_t zpos = vertex->GetVTa(itrk)->Zpos();
+     incoming[itrk] = zpos;
+     TX[itrk] = track->TX();
+     TY[itrk] = track->TY();
+     nholes[itrk] = track->N0();
+     maxgap[itrk] = track->CheckMaxGap();
+     impactparameter[itrk] = vertex->GetVTa(itrk)->Imp();
+     //Storing MCTrue information (of course for real data these values have no sense)
+     MCEventID[itrk] = track->MCEvt();
+     MCTrackID[itrk] = track->MCTrack();
+     MCMotherID[itrk] = track->Aid(0); //used to store MotherID information
+    }
+    vtx->Fill();
+    vID++; //now the number of elements in the tree and vertices is the same. vID starts from 0
+  }
+  //trying to save the selected vertices
+  EdbVertexRec *mygEVR = new EdbVertexRec();
+  mygEVR->eVTX = varr;  
+  //using same parameters for vertexrec as the original one
+  mygEVR->eDZmax=DZmax;
+  mygEVR->eProbMin=ProbMinV;
+  mygEVR->eImpMax=ImpMax;
+  mygEVR->eUseMom=UseMom;
+  mygEVR->eUseSegPar=UseSegPar;
+  mygEVR->eQualityMode=QualityMode;
+  mygEVR->Write();
+
+  vtx->Write();
+  hip->Draw();
+  fvtx->Close(); //close the file where vertices are saved
+  //fclose(tvtx);
 }
 
 //---------------------------------------------------------------------
