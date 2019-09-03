@@ -98,6 +98,7 @@ class VertexIO:public TObject{
      //getting track and track variables to fill branches
      track = vertex->GetTrack(itrk);
      tr->Copy(*track);
+     tr->ForceCOV(track->COV());
      if(tr) new((*tracks)[itrk])  EdbSegP( *tr ); //adding track to trackclonesarray
 
      TrackID[itrk] = track->Track(); //the eTrack attribute of EdbSegP now allows association to original root tree
@@ -242,14 +243,14 @@ static int ReadVertexTree( EdbPVRec &ali, const char     *fname, const char *rcu
     //tr1->FitTrackKFS(true);
      tr1->SetTrack(TrackID[itrk]); //providing trackid to eTrack so it will not be lost when trackID resets
      ali.AddTrack(tr1);
-     vertextracks->Add(tr1);     
+     vertextracks->Add(tr1);
      //v1 = vertexrec->AddTrackToVertex(v1, tr1, incoming[itrk]);
     }
     //setting vertex parameters and saving vertex
     v1 = vertexrec->Make1Vertex(*vertextracks,vz);
     v1->SetID(vID);
     v1->SetFlag(flag);
-    v1->SetXYZ(vx,vy,vz);   
+   // v1->SetXYZ(vx,vy,vz);   
     ali.AddVertex(v1);
   }
 
