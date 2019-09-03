@@ -2599,6 +2599,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
      //getting track and track variables to fill branches
      track = vertex->GetTrack(itrk);
      tr->Copy(*track);
+     tr->ForceCOV(track->COV());
      if(tr) new((*tracks)[itrk])  EdbSegP( *tr ); //adding track to trackclonesarray
 
      TrackID[itrk] = track->Track(); //the eTrack attribute of EdbSegP now allows association to original root tree
