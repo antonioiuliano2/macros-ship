@@ -46,7 +46,6 @@ void neutrino_fluxes(){ //projecting neutrino fluxes to the target
  //nutau
  hspectrumdet[16] = new TH1D("hnu_tau","Spectrum tau neutrinos arrived at detector",400,0,400);
  hspectrumdet[-16] = new TH1D("hnu_tau_bar","Spectrum tau neutrinos arrived at detector",400,0,400);
- TH2D *hxy_nutau_arrived = new TH2D("hxy", "XY distribution of tau neutrinos at detector",2000,-1000,1000,2000,-1000,1000);
  TH2D *hxy_nutau_arrived_det = new TH2D("hxy_det", "XY distribution of tau neutrinos at detector",90,-45,45,76,-38,38);
 
  TH1D *hnutaubar_weight = new TH1D("hnutaubar_weight", "Mean density per length transversed in target region",400,0,400);
@@ -62,31 +61,34 @@ void neutrino_fluxes(){ //projecting neutrino fluxes to the target
  cout<<"N NEUTRINOS: "<<nneutrinos<<endl;
  for (int i = 0; i < nneutrinos; i++){
 
- tree->GetEntry(i);
- if (i%100000 == 0) cout<<i<<endl;
- tanx = px/pz;
- tany = py/pz;
+  tree->GetEntry(i);
+  if (i%100000 == 0) cout<<i<<endl;
+  tanx = px/pz;
+  tany = py/pz;
 
- Double_t momentum = TMath::Sqrt(pow(px,2) + pow(py,2) + pow(pz,2));
+  Double_t momentum = TMath::Sqrt(pow(px,2) + pow(py,2) + pow(pz,2));
 
- start[0] = tanx * deltaz; //projecting produced neutrinos to neutrino detector, aggiungere x e y non cambia significativamente il risultato
- start[1] = tany * deltaz;
- start[2] = -3259;
+  start[0] = tanx * deltaz; //projecting produced neutrinos to neutrino detector, aggiungere x e y non cambia significativamente il risultato
+  start[1] = tany * deltaz;
+  start[2] = -3259;
 
- end[0] = tanx * (deltaz + targetZ);
- end[1] = tany * (deltaz + targetZ);
- end[2] = start[2] + targetZ;
+  end[0] = tanx * (deltaz + targetZ);
+  end[1] = tany * (deltaz + targetZ);
+  end[2] = start[2] + targetZ;
 
- nallneutrinos += w;
+  nallneutrinos += w;
 
- nall[id] +=w;
+  nall[id] +=w;
 
- if(TMath::Abs(start[0]) < targetdx && TMath::Abs(start[1]) < targetdy){ //checking how many neutrinos are inside the detector
-  nnudet += w;
-  ndet[id] += w;
-  hspectrumdet[id]->Fill(momentum,w);
-  bparam = fMaterialInvestigator->MeanMaterialBudget(start, end, mparam);
-  if (id == -16) hnutaubar_weight->Fill(mparam[0]/mparam[4]);
+  if(TMath::Abs(start[0]) < targetdx && TMath::Abs(start[1]) < targetdy){ //checking how many neutrinos are inside the detector
+   nnudet += w;
+   ndet[id] += w;
+   hspectrumdet[id]->Fill(momentum,w);
+   bparam = fMaterialInvestigator->MeanMaterialBudget(start, end, mparam);
+   if (id == -16){ 
+    hnutaubar_weight->Fill(mparam[0]/mparam[4]);
+    hxy_nutau_arrived_det->Fill(start[0],start[1],w);
+   }
   }
  }
  
@@ -110,8 +112,6 @@ void neutrino_fluxes(){ //projecting neutrino fluxes to the target
  cout<<ndet[16]<<" "<<ndet[-16]<<endl; //dovrebbe escludere underflow and overflow
  cout<<"Ratio arriving at det: "<<ndet[16]/nall[16]<<" "<<ndet[-16]/nall[-16]<<endl;
 
- TCanvas *c4 = new TCanvas();
- hxy_nutau_arrived->Draw("COLZ");
  TCanvas *c5 = new TCanvas();
  hxy_nutau_arrived_det->Draw("COLZ");
 
