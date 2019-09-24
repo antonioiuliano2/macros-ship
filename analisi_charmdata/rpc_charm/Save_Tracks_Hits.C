@@ -169,12 +169,12 @@ void Save_Tracks_Hits(const char *filein, const char *fileout){
 }
 
 
-void Save_Tracks_Hits(){
+void Save_Tracks_Hits(TString subpath){
  //writing clearly the paths shouls avoid errors
  TString afsinputpath = TString("/afs/cern.ch/work/a/aiuliano/public/Charmdata/rpc_charm/");
  TString eosoutputpath = TString("/eos/experiment/ship/data/rpc_charm/with_hits/");
 
- TString subpath = TString("CHARM0/RPC_RecoTracks_run2863_spill1f27ef8d.root");
+ // TString subpath = TString("CHARM0/RPC_RecoTracks_run2863_spill1f27ef8d.root");
  Save_Tracks_Hits((afsinputpath+subpath).Data(),(eosoutputpath+subpath).Data());
 
 }
