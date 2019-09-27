@@ -1,13 +1,15 @@
 void merge_histograms(){
 
-TFile *f10 = TFile::Open("/eos/experiment/ship/data/Mbias/background-prod-2018/pythia8_Geant4_10.0_withCharm_nu.root"); //10 GeV cut
-TFile *f1 = TFile::Open("/eos/experiment/ship/data/Mbias/background-prod-2018/pythia8_Geant4_1.0_withCharm_nu.root"); //1 GeV cut
+TFile *f10 = TFile::Open("root://eospublic.cern.ch//eos/experiment/ship/data/Mbias/background-prod-2018/pythia8_Geant4_10.0_withCharm_nu.root"); //10 GeV cut
+TFile *f1 = TFile::Open("root://eospublic.cern.ch//eos/experiment/ship/data/Mbias/background-prod-2018/pythia8_Geant4_1.0_withCharm_nu.root"); //1 GeV cut
 
 Int_t neutrinos[6] = {12,14,16,-12,-14,-16}; //same numbers as the names of the histograms to get
 TH1D *h10[6];
 TH1D *h1[6];
 
-TFile *outfile = new TFile("/afs/cern.ch/work/a/aiuliano/public/macros-ship/temp_outputs/neutrinos_merged.root","RECREATE");
+TFile *outfile = new TFile("/home/utente/Lavoro/Analisi/macro_SHiP/temp_outputs/neutrinos_merged.root","RECREATE");
+
+//TFile *outfile = new TFile("/afs/cern.ch/work/a/aiuliano/public/macros-ship/temp_outputs/neutrinos_merged.root","RECREATE");
 TH1D *hsum[6];
 
 TH2D *h2D_10[6];
