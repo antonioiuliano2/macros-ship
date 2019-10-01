@@ -72,7 +72,9 @@ def scanned(name, emulsion):
 
 allscanned('ch1r1')
 allscanned('ch1r2')
+allscanned('ch1r3')
 allscanned('ch1r4')
+allscanned('ch1r5')
 allscanned('ch1r6')
 
 allscanned('ch2r1')
@@ -82,11 +84,13 @@ allscanned('ch2r4')
 allscanned('ch2r5')
 allscanned('ch2r6')
 
+allscanned('ch3r1')
 allscanned('ch3r2')
 bademulsions = bademulsions + 2 #CH3-R2 P42 and P41 ruined by fixer
 allscanned('ch3r3')
 bademulsions = bademulsions + 57 #CH3-R3 developed Slavich
 
+allscanned('ch4r1')
 allscanned('ch4r2')
 allscanned('ch4r3') #just because i need to subtract the bad ones, I know we have not scanned them yet
 bademulsions = bademulsions + 57 #CH4-R3 developed Slavich
@@ -125,12 +129,12 @@ def generalreport():
    generalratio = nscannedemulsions/ntotalemulsions
    #inserting elements of the graph
    ratios= []
-   ratios.append(generalratio*100)
-   ratios.append((1-generalratio)*100)
-
+   ratios.append((1-hardtoscan/ntotalemulsions)*100)
+   ratios.append(hardtoscan/ntotalemulsions*100)
+  
    explode = [0.1,0]
    colors = ['g','y']
-   labels = ['Scanned', 'To be done']
+   labels = ['Scanned correctly', 'Damaged emulsions']
    #ready to plot
    plt.pie(ratios, explode=explode, colors=colors, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
    plt.axis('equal')
