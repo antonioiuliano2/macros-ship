@@ -6,6 +6,9 @@ import sys
 
 from argparse import ArgumentParser #not present in good old nusrv9, but the commands should work in a reasonable python setup, only need to remove the parser and options comments,then comment the sys.argv lines
 
+dproc = ROOT.EdbDataProc()
+gAli = dproc.PVR()
+
 fedratrackslist = []
 #vertexnumberlist = [10, 20]
 isolatedtrackcolors = [ROOT.kMagenta, ROOT.kBlue, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta] #so we can set different colors for different tracks
@@ -18,6 +21,7 @@ parser.add_argument("-t", "--tracks", dest="tracksfilename", help="file with fed
                     required=True)
 parser.add_argument("-nv", "--nvertices", nargs='+', dest="vertexnumberlist", help="number of vertices to display", required=True)
 parser.add_argument("-nt", "--ntracks", nargs='*', dest="tracklist", help="number of isolated tracks to display")
+parser.add_argument("-new", action='store_true') #for new file format
 
 options = parser.parse_args()
 vertexnumberlist = options.vertexnumberlist
@@ -42,32 +46,46 @@ for trackID in fedratrackslist:
  segments = tracktree.s
  fittedsegments = tracktree.sf
  #loop on segments associated to the track
- for seg, segf in zip(segments,fittedsegments):
+ for seg in segments:
      temptrack .AddSegment(seg)
-     temptrack .AddSegmentF(segf)
+     #temptrack .AddSegmentF(segf)
      temptrack .SetSegmentsTrack(temptrack.ID())
      temptrack .SetCounters()
  mytrack = ROOT.EdbTrackP()
  mytrack.Copy(temptrack)
  tracks.append(mytrack)
 
-vertexfile = ROOT.TFile.Open(vertexfilename)
-vertexrec = vertexfile.Get("EdbVertexRec")
-vertexlist = vertexrec.eVTX
-
 drawnvertices = ROOT.TObjArray(100)
 drawntracksfromvertex = ROOT.TObjArray(10000)
 
-#adding vertices
-for vertexnumber in vertexnumberlist:
- vertex = vertexlist.At(int(vertexnumber))
- ntracksfromvertex = vertex.N()
-#adding tracks and vertices to list to be drawn (only one vertex in this case)
- drawnvertices.Add(vertex)
+if (options.new): #new format, vertex information saved in tree
+ ROOT.gROOT.ProcessLine(".L VertexIO.C")
+ for vertexnumber in vertexnumberlist:
+  vertex = ROOT.VertexIO.GetVertexFromTree(gAli,vertexfilename,int(vertexnumber))
+  ntracksfromvertex = vertex.N()
+  #adding tracks and vertices to list to be drawn (only one vertex in this case)
+  drawnvertices.Add(vertex)
 
- for i in range(ntracksfromvertex):
-  vertextrack = vertex.GetTrack(i)
-  drawntracksfromvertex.Add(vertextrack)
+  for i in range(ntracksfromvertex):
+   vertextrack = vertex.GetTrack(i)
+   drawntracksfromvertex.Add(vertextrack)
+   #dproc.ReadVertexTree(gAli,vertexfilename,"nseg>1")
+
+else:
+ vertexfile = ROOT.TFile.Open(vertexfilename)
+ vertexrec = vertexfile.Get("EdbVertexRec")
+ vertexlist = vertexrec.eVTX
+
+#adding vertices
+ for vertexnumber in vertexnumberlist:
+  vertex = vertexlist.At(int(vertexnumber))
+  ntracksfromvertex = vertex.N()
+#adding tracks and vertices to list to be drawn (only one vertex in this case)
+  drawnvertices.Add(vertex)
+
+  for i in range(ntracksfromvertex):
+   vertextrack = vertex.GetTrack(i)
+   drawntracksfromvertex.Add(vertextrack)
 
 <<<<<<< Updated upstream
 def drawtracks(vertextracks,othertracks):
@@ -103,7 +121,7 @@ def drawtracks(vertextracks,tracks):
  ds.SetArrTr( vertextracks )
  ds.SetArrV(drawnvertices)
  ds.Draw()
- print "{} other tracks to display\n".format(len(othertracks))
+ print len(othertracks),"other tracks to display\n"
  for itrk, track in enumerate(othertracks):
    ds.TrackDraw(track,isolatedtrackcolors[itrk])
  #loop on vertices to draw associated tracks
