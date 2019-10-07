@@ -1,9 +1,9 @@
 //adding a channel branch to the clusters
-void addchannelinfo(){
+void channel_rpc_clusters(TString subpath){
  TString eosinputpath = TString("/eos/experiment/ship/data/rpc_charm/");
  TString afsoutputpath = TString("/afs/cern.ch/work/a/aiuliano/public/Charmdata/rpc_charm/");
 
- TString subpath = TString("CHARM1/RPC_RecoTracks_run2793_s1f22afc8.root");
+ //TString subpath = TString("CHARM1/RPC_RecoTracks_run2793_s1f22afc8.root");
 
 
  TFile *RPCmap = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/Charmdata/rpc_charm/RPCchannelmapfunctions.root","read");
