@@ -23,7 +23,8 @@ void draw_selected_vertices(int trmin=2, float amin=0.01){
  EdbVertex *v=0;
  EdbTrackP *t1=0;
 
- for (int vID: vertexlist){
+ for (int ivtx = 0; ivtx < nvertices; ivtx++){
+    int vID = vertexlist[ivtx];
     v = (EdbVertex *)(gEVR->eVTX->At(vID));
     int ntracks = v->N();
     cout<<"Flag: "<<v->Flag()<<" ntracks: "<<v->N()<<" maxaperture: "<<v->MaxAperture()<<endl;
