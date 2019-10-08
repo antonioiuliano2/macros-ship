@@ -14,9 +14,10 @@ def getdaughtertracks(inputtree,eventnumber):
 
  #for recognizing particles name
  pdg = r.TDatabasePDG.Instance()
-
+#information to be stored
  tracksID = []
  charmIDs = []
+ ndaughters = {} #how many charged daughters are expected?
 
  inputtree.GetEntry(eventnumber)
  mctracks = inputtree.MCTrack
@@ -30,12 +31,15 @@ def getdaughtertracks(inputtree,eventnumber):
    pz = track.GetPz()
    momentum = track.GetP()
    motherID = track.GetMotherId()
+   charge = 0.
 
    if pdg.GetParticle(pdgcode):
     name = pdg.GetParticle(pdgcode).GetName()
+    charge = pdg.GetParticle(pdgcode).Charge()
 
    if (r.TMath.Abs(pdgcode) in signallist): #charmed hadron
     charmIDs.append(j)
+    ndaughters[j] = 0 #new charm, starting counter for daughters
 
    cmtomicron = 1E+4
    startx = track.GetStartX()* cmtomicron + 62500;
@@ -54,8 +58,9 @@ def getdaughtertracks(inputtree,eventnumber):
      motherpdg = mothertrack.GetPdgCode()
 
   #checking if daughter of charm
-    if ((r.TMath.Abs(motherpdg) in signallist) and (r.TMath.Abs(pdgcode) not in intermediatelist)):
-     print j, pdgcode, momentum, motherpdg, motherID, startx, starty, startz
+    if ((r.TMath.Abs(motherpdg) in signallist) and (r.TMath.Abs(pdgcode) not in intermediatelist)and (abs(charge)>0.)):
+      #print(j, pdgcode, momentum, motherpdg, motherID, startx, starty, startz)
      tracksID.append(j)
- return charmIDs, tracksID
+     ndaughters[motherID] = ndaughters[motherID] + 1
+ return charmIDs, tracksID, ndaughters
 
