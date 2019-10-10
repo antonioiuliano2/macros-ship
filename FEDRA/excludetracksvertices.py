@@ -20,8 +20,8 @@ gAli = dproc.PVR()
 tracklist = fedrautils.buildtracks(trackfilepath, dproc, gAli)
 
 if (options.new): #new format, vertex information saved in tree
- ROOT.gROOT.ProcessLine(".L VertexIO.C")
- ROOT.VertexIO.ReadVertexTree(gAli,vertexfilename," ")
+ r.gROOT.ProcessLine(".L VertexIO.C")
+ r.VertexIO.ReadVertexTree(gAli,vertexfilepath,"nseg>1")
  vertexlist = gAli.eVTX
 
 else:
@@ -55,9 +55,9 @@ dproc.MakeTracksTree(newtracklist, xv,yv,"verticesandtracks.root")
 
 #prepare a file with all information for Valerio
 
-newfile = r.TFile.Open("verticesandtracks.root","UPDATE")
+#newfile = r.TFile.Open("verticesandtracks.root","UPDATE")
 
-newvertextree = vertextree.CloneTree() #copying only the tree now, avoiding handling FEDRA objects too much
-newvertextree.Write()
+#newvertextree = vertextree.CloneTree() #copying only the tree now, avoiding handling FEDRA objects too much
+#newvertextree.Write()
 print "Finished Copying the objects"
-newfile.Close()
+#newfile.Close()
