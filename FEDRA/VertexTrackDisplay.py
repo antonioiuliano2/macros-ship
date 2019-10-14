@@ -87,35 +87,7 @@ else:
    vertextrack = vertex.GetTrack(i)
    drawntracksfromvertex.Add(vertextrack)
 
-<<<<<<< Updated upstream
 def drawtracks(vertextracks,othertracks):
-=======
-graphip = ROOT.TGraphErrors()
-graphkink = ROOT.TGraph()
-decaysearch = ROOT.ShipCharmDecaySearch()
-
-def fillip(vertexpos, track):
- nseg = track.N()
- ipoint = 0
- print "Test ", vertexpos[0], vertexpos[1], vertexpos[2]
- for iseg in range(nseg):
-  segment = track.GetSegment(iseg)
-  segpos = ROOT.TVector3(segment.X(),segment.Y(),segment.Z())
-  print "ReTest ", segpos[0], segpos[1], segpos[2]
-  graphip.SetPoint(ipoint, segment.Plate(), decaysearch.IPtoVertex(vertexpos,segpos,segment.TX(), segment.TY()))
-  ipoint = ipoint+1
-
-def fillkinkangle(track):
- nseg = track.N()
- ipoint = 0
- for iseg in range(nseg-1):
-  segment = track.GetSegment(iseg)
-  segmentafter = track.GetSegment(iseg+1)
-  graphkink.SetPoint(ipoint, (segment.Plate()+segment.Plate()+1)/2., decaysearch.KinkAngle(segment.TX(), segment.TY(), segmentafter.TX(), segmentafter.TY()))
-  ipoint = ipoint+1
-
-def drawtracks(vertextracks,tracks):
->>>>>>> Stashed changes
  #ds.SetVerRec(gEVR);
  ds.SetDrawTracks(4)
  ds.SetArrTr( vertextracks )
@@ -128,21 +100,7 @@ def drawtracks(vertextracks,tracks):
  for ivtx, vertex in enumerate(drawnvertices):
   for itrk in range(vertex.N()):#tracks associated to that vertex
    track = vertex.GetTrack(itrk)
-<<<<<<< Updated upstream
    ds.TrackDraw(track, vertextrackcolors[ivtx])
-=======
-   if track.MCTrack() == 1:
-    print "Test "
-    vx = vertex.X()
-    vy = vertex.Y()
-    vz = vertex.Z()
-    vertexpos = ROOT.TVector3(vx,vy,vz)
-    fillip(vertexpos,track)
-    fillkinkangle(track)
-    ds.TrackDraw(track,ROOT.kBlue)
-   else:
-    ds.TrackDraw(track, vertextrackcolors[ivtx])
->>>>>>> Stashed changes
 
 ROOT.gStyle.SetPalette(1);
 dsname="Charm simulation FEDRA display"
@@ -150,11 +108,4 @@ ds = ROOT.EdbDisplay.EdbDisplayExist(dsname);
 if not ds:  
   ds=ROOT.EdbDisplay(dsname,-50000.,50000.,-50000.,50000.,-4000.,80000.)
 drawtracks(drawntracksfromvertex,tracks)
-
-
-
-c2 = ROOT.TCanvas()
-graphkink.Draw("AP*")
-graphkink.GetXaxis().SetTitle("NPlate")
-graphkink.GetYaxis().SetTitle("kinkangle[rad]")
 
