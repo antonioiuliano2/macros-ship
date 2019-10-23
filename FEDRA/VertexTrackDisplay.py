@@ -4,7 +4,7 @@ import fedrarootlogon
 import sys
 #usage: python -i VerteTrackDisplay.py -f vertexfile -t tracksfile -nt trackIDS -nv vertexIDS
 
-from argparse import ArgumentParser #not present in good old nusrv9, but the commands should work in a reasonable python setup, only need to remove the parser and options comments,then comment the sys.argv lines
+from argparse import ArgumentParser 
 
 dproc = ROOT.EdbDataProc()
 gAli = dproc.PVR()

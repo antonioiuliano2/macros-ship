@@ -1,9 +1,10 @@
-void drawEDAtrack(int trackID = 1487){
+//fast drawing, no need to loop over all tracks in file. Readout is done manually. Does not work for more than one track.
+void drawEDAtrack(int trackID = 129){
 
  EdbPVRec *ali = new EdbPVRec();
  TObjArray *drawntracks = new TObjArray(100);
   //reading track file and setting branches
- TFile *trackfile = TFile::Open("tracks_Giuliana.root");
+ TFile *trackfile = TFile::Open("linked_tracks.root");
  TTree *tracks = (TTree*)trackfile->Get("tracks");
 
   Int_t   trid=0;
@@ -48,7 +49,6 @@ void drawEDAtrack(int trackID = 1487){
     //tr1->FitTrackKFS(true);
 
  //adding track to drawing set and building EDA
-
  if(tr1->ID()==trackID) drawntracks->Add(tr1);
  ali->eTracks = drawntracks;
  //ali->eVTX = drawnvertices;
