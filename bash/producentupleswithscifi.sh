@@ -4,7 +4,7 @@ NRUN=$1
 SPILLCODELIST=/afs/cern.ch/work/a/aiuliano/public/Charmdata/spillcodes/spillcodes_run$NRUN.csv
 DATADIR=/eos/experiment/ship/data/charmxsec/DATA_8000_charmTest/rootdata/RUN_8000_$NRUN
 SCIFIDATADIR=/eos/experiment/ship/data/charmxsec/DATA_0900/rootdata/RUN_0900_$NRUN/
-OUTPUTDIR=/eos/experiment/ship/data/charmxsec/DATA_8000_charmTest/ntuples/test_250719/
+OUTPUTDIR=/eos/experiment/ship/data/charmxsec/DATA_8000_charmTest/ntuples/RUN_8000_$NRUN/
 
 for SPILLCODE in $(cat $SPILLCODELIST);
 

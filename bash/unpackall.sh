@@ -1,7 +1,7 @@
 #!/bin/bash
 #environment definition
 DATADIR=/eos/experiment/ship/data/charmxsec/DATA_8000_charmTest
-ONLINEFOLDER=/afs/cern.ch/work/a/aiuliano/public/SHIPBuild/oliver_online
+ONLINEFOLDER=/afs/cern.ch/work/a/aiuliano/public/oliver_online
 
 #loop on folders
 
