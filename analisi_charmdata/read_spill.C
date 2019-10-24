@@ -1,8 +1,8 @@
-void read_spill(){
+void read_spill(TString runname="16"){
     //sum interacting protons and predicted charm for the spills in a selection of runs
     ROOT::RDataFrame df("spill","charm_spills_predictions.root");
     //select the run (or runs, i.e. name<20&&name>0 for first configuration)
-    auto df1 = df.Filter("name==16");
+    auto df1 = df.Filter((TString("name==")+runname).Data());
 
     //doing sums (not getting values yet "lazy" operations)
     auto sumpot = df1.Sum("pot");
@@ -146,7 +146,7 @@ void compute_spill(){
 
 void add_info(){ //additional information about number of emulsion and lead plates
 
-    ROOT::RDataFrame df("spill","../input/charm_spills.root");
+    ROOT::RDataFrame df("spill","charm_spills.root");
     
     //methods for getting the number of plates
     auto nemulsions = [](int name){
@@ -181,5 +181,5 @@ void add_info(){ //additional information about number of emulsion and lead plat
     auto hpassive = dfinal.Histo1D("npassive");
     hpassive->DrawCopy();
     //saving the results
-    dfinal.Snapshot("spill","charm_spills.root");
+    dfinal.Snapshot("spill","charm_spills.root",{"minute","runcode","pot","spillcode","name","nemu","npassive"});
 }
