@@ -24,6 +24,7 @@ with open(options.charmlistfilename, 'rb') as fp:
     charmlist = pickle.load(fp)
     daughterlist = pickle.load(fp)
     ndaughterslist = pickle.load(fp)
+    decaylengthlist = pickle.load(fp)
 
 def countX(lst, x): 
     count = 0
@@ -50,7 +51,7 @@ vtxtree = inputfile.Get("vtx")
 
 outputfile = open(options.vertexcsv,"a") 
 #main loop on vertices
-#outputfile.write("ntracks,ivtx,itrk,MCEventID,MCTrackID,MCMotherID,predmolt,quantity,vx,vy,vz,topology\n") #quantity means 1 for reconstructed vertices daughter, 0 for not reconstructed
+#outputfile.write("ntracks,ivtx,itrk,MCEventID,MCTrackID,MCMotherID,predmolt,preddecaylen,quantity,vx,vy,vz,topology\n") #quantity means 1 for reconstructed vertices daughter, 0 for not reconstructed
 for ivtx,vtx in enumerate(vtxtree):
     ntracks=vtx.n
 
@@ -63,11 +64,13 @@ for ivtx,vtx in enumerate(vtxtree):
     for (MCEventID,MCTrackID,MCMotherID,TrackID,incomingtrack) in zip(vtx.MCEventID,vtx.MCTrackID,vtx.MCMotherID,vtx.TrackID,incominglist):
         #getting list of IDs for charm daughters from that event
         daughterIDs = daughterlist[MCEventID]
-        ndaughters = ndaughterslist[MCEventID]       
+        ndaughters = ndaughterslist[MCEventID]
+        decaylengths = decaylengthlist[MCEventID]  # in cm, needs to be multiplied for 1E+4 to micron conversion     
         #if MCMotherID == -1 and incomingtrack == 1:
         #        outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8:.0f},{9:.0f},{10:.0f},{11}\n".format(ntracks, vID, TrackID, MCEventID, MCTrackID,MCMotherID,0,1,vx,vy,vz,1))
         if MCTrackID in daughterIDs and incomingtrack == 1:
-                outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8:.0f},{9:.0f},{10:.0f},{11}\n".format(ntracks, vID, TrackID, MCEventID, MCTrackID,MCMotherID,ndaughters[MCMotherID],1,vx,vy,vz,2))
+                outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7:.0f},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".
+                    format(ntracks, vID, TrackID, MCEventID, MCTrackID,MCMotherID,ndaughters[MCMotherID],decaylengths[MCMotherID] *1E+4,1, vx,vy,vz,2))
 
 def lookforcharm(df,ievent,charmID):
     ''' handling the case where no charm daughter was reconstructed, missing entry in dataframe'''
