@@ -6,6 +6,24 @@ import sys
 
 #opening the file and getting the tree
 
+def conversion2fedraunits(x,y,z):
+   fedrax = x* cmtomicron + 62500
+   fedray = y* cmtomicron + 49500
+   fedraz = (z - 125.56649)*cmtomicron
+   return fedrax, fedray, fedraz
+
+def decaylen(mothertrack, track):
+  """ Estimation of charm decay length: distance between start of mother and start of daughter """
+  mx = mothertrack.GetStartX()
+  my = mothertrack.GetStartY()
+  mz = mothertrack.GetStartZ()
+
+  tx = track.GetStartX()
+  ty = track.GetStartY()
+  tz = track.GetStartZ()
+
+  return r.TMath.Sqrt(pow(tx-mx,2)+pow(ty-my,2)+pow(tz-mz,2))
+
 def getdaughtertracks(inputtree,eventnumber):
 
  #interesting pdgcodes to check
@@ -18,6 +36,7 @@ def getdaughtertracks(inputtree,eventnumber):
  tracksID = []
  charmIDs = []
  ndaughters = {} #how many charged daughters are expected?
+ decaylength = {}
 
  inputtree.GetEntry(eventnumber)
  mctracks = inputtree.MCTrack
@@ -26,10 +45,6 @@ def getdaughtertracks(inputtree,eventnumber):
    name = "UNKNOWN"
 
    pdgcode = track.GetPdgCode()
-   px = track.GetPx()
-   py = track.GetPy()
-   pz = track.GetPz()
-   momentum = track.GetP()
    motherID = track.GetMotherId()
    charge = 0.
 
@@ -40,11 +55,9 @@ def getdaughtertracks(inputtree,eventnumber):
    if (r.TMath.Abs(pdgcode) in signallist): #charmed hadron
     charmIDs.append(j)
     ndaughters[j] = 0 #new charm, starting counter for daughters
+    decaylength[j] = 0.
 
    cmtomicron = 1E+4
-   startx = track.GetStartX()* cmtomicron + 62500;
-   starty = track.GetStartY()* cmtomicron + 49500;
-   startz = (track.GetStartZ() - 125.56649)*cmtomicron;
 
    if (motherID >= 0):
 
@@ -62,5 +75,6 @@ def getdaughtertracks(inputtree,eventnumber):
       #print(j, pdgcode, momentum, motherpdg, motherID, startx, starty, startz)
      tracksID.append(j)
      ndaughters[motherID] = ndaughters[motherID] + 1
- return charmIDs, tracksID, ndaughters
+     decaylength[motherID] = decaylen(mothertrack,track)
+ return charmIDs, tracksID, ndaughters, decaylength
 
