@@ -1,15 +1,15 @@
 //read Vertex object and insert information in FairShip (created as an exercise on 23 November 2018)
 
-#include "/home/utente/Scrivania/SHIPBuild/FairShip/shipdata/ShipMCTrack.h"
-#include "/home/utente/Scrivania/SHIPBuild/FairShip/charmdet/BoxPoint.h"
-#include "/home/utente/Scrivania/SHIPBuild/sw/ubuntu1604_x86-64/FairRoot/May30-ship-2/include/FairMCEventHeader.h"
+#include "/afs/cern.ch/work/a/aiuliano/public/SHIPBuild_test/FairShip/shipdata/ShipMCTrack.h"
+#include "/afs/cern.ch/work/a/aiuliano/public/SHIPBuild_test/FairShip/charmdet/BoxPoint.h"
+#include "/cvmfs/ship.cern.ch/SHiPBuild/sw/slc6_x86-64/FairRoot/May30-ship-2/include/FairMCEventHeader.h"
 
 void Fedra2FairShip(){
 
-TFile *file = TFile::Open("/home/utente/Lavoro/Analisi/CharmData/CH1-R6/vertices_zfrom_6000.root");
+TFile *file = TFile::Open("/eos/experiment/ship/user/aiuliano/CHARM1_RUN6/Emulsion/vertexing/MVA_selection_files/vertices_firstquarter.root");
 EdbVertexRec *vertexlist = (EdbVertexRec*) file->Get("EdbVertexRec"); //getting object
 
-TFile *outfile = new TFile("/home/utente/Lavoro/Analisi/CharmData/CH1-R6/vertices_FairShip.root","RECREATE");
+TFile *outfile = new TFile("/eos/experiment/ship/user/aiuliano/CHARM1_RUN6/Emulsion/vertexing/MVA_selection_files/vertices_firstquarter_formatted.root","RECREATE");
 TTree *tree = new TTree("cbmsim","Reconstructed vertices, tracks and segments in emulsion");
 
 //objects to be saved

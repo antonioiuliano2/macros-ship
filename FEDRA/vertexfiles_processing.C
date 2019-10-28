@@ -166,7 +166,8 @@ void vertexfiles_processing(){ //script to fill vertex tree with various informa
  vertexrec->Write();
 
  savingremainingtracks(tracklist);
-
+ TFile * tracksandvertices = TFile::Open("verticesandtracks.root","UPDATE");
+ outvertextree->Write();
 }
 
 void savingremainingtracks(TObjArray* tracklist){
@@ -181,7 +182,7 @@ void savingremainingtracks(TObjArray* tracklist){
  }
 
  dproc->MakeTracksTree(newtracklist, 0.,0.,"verticesandtracks.root");
-
+ 
 }
 
 void estimatemeanseg(EdbTrackP* mytrack, Int_t * nseg, EdbVertexRec * vertexrec, Int_t itrk, EdbVertex *vertexobject){ //original script by Valerio for mean seg computation

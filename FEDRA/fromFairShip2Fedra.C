@@ -118,7 +118,8 @@ void fromFairShip2Fedra(TString filename){
   heff = (TH1D*) file->Get("heff");
  }
  const float emuefficiency = 1.0; // i am efficient to everything
- const float angres = 0.003; // 3 milliradians
+ TF1 resfunction = angularresolution();
+ //const float angres = 0.003; // 3 milliradians
  const float ngrains = 70; //the same number for all the couples, so they have the same weigth.
  //**********************OPENING INPUT FILE***************************
  TFile * inputfile = TFile::Open(filename.Data());
@@ -142,8 +143,8 @@ void fromFairShip2Fedra(TString filename){
  EdbCouplesTree *ect[nplates];
  for (int i = 1; i <= nplates; i++){
   ect[i-1] = new EdbCouplesTree();
-  if (i <10) ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p00%i/2.%i.0.0.cp.root",nbrick,i,i),"RECREATE");
-  else ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p0%i/2.%i.0.0.cp.root",nbrick,i,i),"RECREATE");
+  if (i <10) ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p00%i/1.%i.0.0.cp.root",nbrick,i,i),"RECREATE");
+  else ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p0%i/1.%i.0.0.cp.root",nbrick,i,i),"RECREATE");
  }
  Int_t Flag = 1;
  cout<<"Start processing nevents: "<<nevents<<endl;  
@@ -181,7 +182,10 @@ void fromFairShip2Fedra(TString filename){
      }
      //constant value of efficiency
      else if(!efficiency(emuefficiency)) savehit = false;
-     if (dosmearing) smearing(tx,ty,angres);
+     if (dosmearing){ 
+      float angres = resfunction.Eval(TMath::ATan(tantheta));
+      smearing(tx,ty,angres);
+     }
      //**************SAVING HIT IN FEDRA BASE-TRACKS****************
      if (savehit){        
       ect[nfilmhit-1]->eS->Set(ihit,xem,yem,tx,ty,1,Flag);

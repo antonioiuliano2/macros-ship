@@ -1,8 +1,9 @@
-void read_spill(TString runname="16"){
+
+void read_spill (int runname){
     //sum interacting protons and predicted charm for the spills in a selection of runs
     ROOT::RDataFrame df("spill","charm_spills_predictions.root");
     //select the run (or runs, i.e. name<20&&name>0 for first configuration)
-    auto df1 = df.Filter((TString("name==")+runname).Data());
+    auto df1 = df.Filter(TString::Format("name==%d",runname).Data());
 
     //doing sums (not getting values yet "lazy" operations)
     auto sumpot = df1.Sum("pot");
@@ -14,8 +15,18 @@ void read_spill(TString runname="16"){
     float nintpots = suminteractingpot.GetValue();
     float ncharms = sumcharm.GetValue();
     //printing the result;
-    cout<<TString::Format("On a total of %d pot, estimated %.2e interactions with %.2e charm pairs", npots, nintpots, ncharms)<<endl;
-    
+    //cout<<TString::Format("On a total of %d pot, estimated %.2e interactions with %.2e charm pairs", npots, nintpots, ncharms)<<endl;
+    cout<<TString::Format("%d, %d, %.2e, %.2e", runname, npots, nintpots, ncharms)<<endl;
+}
+
+void read_spills(){
+//    ROOT::RDataFrame df("spill","charm_spills_predictions.root");
+    ROOT::VecOps::RVec<int> runs = {11,12,13,14,15,16,21,22,23,24,25,26,31,32,33,41,42,43,51,52,53,61,62,63}; //list of runs
+    cout<<"runname pot signalpot primarycharm"<<endl;
+    for (auto run:runs){
+	 //not a lazy way to do it, but the runs are not too many and I am too tired. To fix it at a later time
+         read_spill(run);	 
+	}
 }
 
 void compute_spill(){

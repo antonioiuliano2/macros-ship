@@ -93,7 +93,7 @@ def drawtracks(vertextracks,othertracks):
  ds.SetArrTr( vertextracks )
  ds.SetArrV(drawnvertices)
  ds.Draw()
- print len(othertracks),"other tracks to display\n"
+ print (len(othertracks),"other tracks to display\n")
  for itrk, track in enumerate(othertracks):
    ds.TrackDraw(track,isolatedtrackcolors[itrk])
  #loop on vertices to draw associated tracks

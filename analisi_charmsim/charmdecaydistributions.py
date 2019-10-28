@@ -13,8 +13,12 @@ hdecaylen= r.TH1D("hdecaylen","Decay length charmed hadrons",1000,0,10000)
 hxytovertex = r.TH2D("hxytovertex", "Distance between charmed daughters and vertex", 2000, -1000, 1000, 2000, -1000, 1000)
 hztovertex = r.TH1D("hztovertex","Distance between z of charmed daughters and vertex",200,0,20000)
 hkink= r.TH1D("hkink","Kink angle charm and daughters",100,0,1)
+hkink2D= r.TH2D("hkink2D","Kink angle ty vs tx charm and daughters",400,0,0.4,400,0,0.4)
 hkinkprong = []
 maxnprongs = 7
+
+hnfilmsmomentum = r.TH2D("hnfilmsmomentum","Number of films versus charm momentum",40,0,400,20,0,20)
+hnfilmsstartz = r.TH2D("hnfilmsstartz","Number of films versus production z",8,120.5,128.5,20,0,20)
 
 #TH1D for recognizing plate position
 zstart =  121.8880
@@ -88,6 +92,8 @@ def decaylen(parenttrack, daughtertrack):
 def Kinkangle(parenttrack, daughtertrackslist):
 
  kink=0.
+ kinkx = 0.
+ kinky = 0. 
 
  parenttx = parenttrack.GetPx()/parenttrack.GetPz()
  parentty = parenttrack.GetPy()/parenttrack.GetPz()
@@ -97,9 +103,11 @@ def Kinkangle(parenttrack, daughtertrackslist):
   daughtertx = daughtertrack.GetPx()/daughtertrack.GetPz()
   daughterty = daughtertrack.GetPy()/daughtertrack.GetPz()
   kink += r.TMath.ATan(r.TMath.Sqrt(pow(parenttx - daughtertx,2) + pow(parentty - daughterty,2)))
- 
+  kinkx += r.TMath.Abs(parenttx - daughtertx)
+  kinky += r.TMath.Abs(parentty - daughterty)
+
  ndaughters = len(daughtertrackslist)
- return kink/ndaughters
+ return kink/ndaughters, kinkx/ndaughters, kinky/ndaughters
 
 def IPtoVertex(vertexpos, track):
  #getting vertex and start of track position as two TVector3 objects
@@ -132,6 +140,16 @@ def IPtoVertex(vertexpos, track):
  return r.TMath.Sqrt(ip)
 
 
+def countemulsions(pdgcode): 
+ '''how many emulsions films for that track?'''
+ nemulsionsfilms = 0
+ emulsionpoints = inputtree.BoxPoint
+ for point in emulsionpoints:
+  if (point.PdgCode() == pdgcode and point.GetDetectorID()<100): #two emulsions for layer, one with id less than 100, one larger   
+   nemulsionsfilms = nemulsionsfilms + 1
+ return nemulsionsfilms
+
+
 def getdaughtertracks(inputtree,eventnumber):
 
  #interesting pdgcodes to check
@@ -150,6 +168,13 @@ def getdaughtertracks(inputtree,eventnumber):
    name = "UNKNOWN"
 
    pdgcode = track.GetPdgCode()
+
+   cmtomicron = 1E+4
+   startx = track.GetStartX()
+   starty = track.GetStartY()
+   startz = track.GetStartZ()
+   startpos = r.TVector3(startx,starty,startz)
+
    px = track.GetPx()
    py = track.GetPy()
    pz = track.GetPz()
@@ -158,16 +183,14 @@ def getdaughtertracks(inputtree,eventnumber):
    if (r.TMath.Abs(pdgcode) in signallist): #charmed hadron
     charmhadrons.append(track)
     charmpdgs.append(pdgcode)
+    if abs(pdgcode)==431 or abs(pdgcode) ==411 or abs(pdgcode)==4122:
+     nemulsionsincharm = countemulsions(pdgcode)
+     hnfilmsstartz.Fill(startz,nemulsionsincharm)
+     hnfilmsmomentum.Fill(momentum,nemulsionsincharm)
 
    if pdgdatabase.GetParticle(pdgcode):
     name = pdgdatabase.GetParticle(pdgcode).GetName()
     charge = pdgdatabase.GetParticle(pdgcode).Charge()
-
-   cmtomicron = 1E+4
-   startx = track.GetStartX()
-   starty = track.GetStartY()
-   startz = track.GetStartZ()
-   startpos = r.TVector3(startx,starty,startz)
 
    if (j == 0):
     vertex = startpos #saving position of primary vertex
@@ -220,8 +243,11 @@ def getdaughtertracks(inputtree,eventnumber):
    firstcharmdaughter = charmdaughterslist[0]#one of the daughters to check the start position
 
 
-   averagekinkangle = Kinkangle(charmhadrons[i],charmdaughterslist)
+   averagekinkangle, averagekinkx, averagekinky = Kinkangle(charmhadrons[i],charmdaughterslist)
+
    hkink.Fill(averagekinkangle)
+   hkink2D.Fill(averagekinkx, averagekinky)
+
    hxytovertex.Fill((firstcharmdaughter.GetStartX() - vertex(0))*cmtomicron,(firstcharmdaughter.GetStartY() - vertex(1))*cmtomicron)
    hztovertex.Fill((firstcharmdaughter.GetStartZ() - vertex(2))*cmtomicron)
    hdecaylen.Fill(decaylen(charmhadrons[i],firstcharmdaughter)*cmtomicron)	
@@ -277,6 +303,18 @@ for ievent in range(nevents):
 
 #drawing histograms and saving them to file
 histofile.cd("")
+
+
+cnfilms1 = r.TCanvas()
+hnfilmsstartz.GetXaxis().SetTitle("startz[cm]")
+hnfilmsstartz.GetYaxis().SetTitle("nfilms")
+hnfilmsstartz.Draw("COLZ")
+
+cnfilms = r.TCanvas()
+hnfilmsmomentum.Draw("COLZ")
+hnfilmsmomentum.GetXaxis().SetTitle("momentum[GeV]")
+hnfilmsmomentum.GetYaxis().SetTitle("nfilms")
+
 c0 = r.TCanvas()
 hipcharm.GetXaxis().SetTitle("ip[#mum]")
 hipcharm.Draw()
@@ -366,6 +404,10 @@ c2 = r.TCanvas()
 hkink.GetXaxis().SetTitle("rad")
 hkink.Draw()
 hkink.Write()
+
+hkink2D.GetXaxis().SetTitle("KinkX[rad]")
+hkink2D.GetYaxis().SetTitle("KinkY[rad]")
+hkink2D.Write()
 
 c3 = r.TCanvas()
 c3.Divide(3,3)

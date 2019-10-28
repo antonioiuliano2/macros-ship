@@ -2,8 +2,8 @@
 void align_check(TString runname, int lastplate=29, int firstplate=1);
 void align_check(TString runname, int lastplate, int firstplate){
  //TString run = "CH1-R6";
-
- TString path = "/ship/CHARM2018/" + runname +"/b000001/"; 
+ TString path = TString("/eos/user/a/aiuliano/public/Emulsion_SHiPCharm/") + runname +TString("/b000001/");
+ //TString path = "/ship/CHARM2018/" + runname +"/b000001/"; 
  TFile *inputfile;
  TCanvas *c = new TCanvas((runname+TString("_dz_phi_coarse")).Data());
  c->SetTitle((runname+TString("_dz_phi_coarse")).Data());
@@ -79,7 +79,7 @@ void align_check(TString runname, int lastplate, int firstplate){
   hdzA->Draw();
   hdzA->GetXaxis()->SetTitle("dZ[#mum]");
   cdz->cd(2);
-  hgraphA->SetTitle("Dz obtained after alignment for brick")+runname;
+  hgraphA->SetTitle("Dz obtained after alignment for brick"+runname);
   hgraphA->Draw("AP*");
   hgraphA->GetXaxis()->SetTitle("nplate");
   hgraphA->GetYaxis()->SetTitle("dZ[#mum]");
@@ -170,7 +170,7 @@ void checkdzold(TString runname, int nplates=29, int firstplate=1){
  hdzA->Draw();
  hdzA->GetXaxis()->SetTitle("dZ[#mum]");
  cdz->cd(2);
- hgraphA->SetTitle("Dz obtained after alignment for brick")+brickA;
+ hgraphA->SetTitle("Dz obtained after alignment for brick"+brickA);
  hgraphA->Draw("AP*");
  hgraphA->GetXaxis()->SetTitle("nplate");
  hgraphA->GetYaxis()->SetTitle("dZ[#mum]");
