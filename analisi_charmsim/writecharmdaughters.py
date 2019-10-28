@@ -17,14 +17,17 @@ nentries = inputtree.GetEntries()
 charmlist = []
 daughterlist = []
 ndaughterslist = []
+decaylengthlist = []
 
 for ievent in range(nentries):
- charmIDs, daughterIDs, ndaughters = recognizecharmdaughters.getdaughtertracks(inputtree,ievent)
+ charmIDs, daughterIDs, ndaughters, decaylengths = recognizecharmdaughters.getdaughtertracks(inputtree,ievent)
+
  charmlist.append(charmIDs)
  daughterlist.append(daughterIDs)
  ndaughterslist.append(ndaughters)
+ decaylengthlist.append(decaylengths)
 
-print ("Testing storage")
+print ("Saving lists")
 
 try:
     import cPickle as pickle
@@ -36,3 +39,4 @@ with open(options.charmlistfilename, 'wb') as fp:
     pickle.dump(charmlist, fp)
     pickle.dump(daughterlist, fp)
     pickle.dump(ndaughterslist,fp)
+    pickle.dump(decaylengthlist,fp)
