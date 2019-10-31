@@ -1,7 +1,6 @@
 #script to recognize daughters of charm and other particles from the primary proton interaction (created on 13 May 2019)
 
 import ROOT as r
-from rootUtils import bookHist
 import sys
 
 #opening the file and getting the tree
