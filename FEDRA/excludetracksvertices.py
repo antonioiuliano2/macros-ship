@@ -19,16 +19,15 @@ dproc = r.EdbDataProc()
 gAli = dproc.PVR()
 tracklist = fedrautils.buildtracks(trackfilepath, dproc, gAli)
 
+vertexfile = r.TFile.Open(vertexfilepath,'read')
+vertextree = vertexfile.Get("vtx") 
+
 if (options.new): #new format, vertex information saved in tree
- ROOT.gROOT.ProcessLine(".L VertexIO.C")
- ROOT.VertexIO.ReadVertexTree(gAli,vertexfilename," ")
+ r.EdbDataProc.ReadVertexTree(gAli,vertexfilepath,"1")
  vertexlist = gAli.eVTX
 
 else:
- vertexfile = r.TFile.Open(vertexfilepath,'read')
  vertexrec = vertexfile.Get("EdbVertexRec")
- vertextree = vertexfile.Get("vtx") 
-
  vertexlist = vertexrec.eVTX
 
 
@@ -37,8 +36,9 @@ for vertex in vertexlist: #loop on vertices
  for itrk in range(ntracks): #loop on tracks from each vertex
   vertextrack = vertex.GetTrack(itrk)
   trackID = vertextrack.Track() #taking from the segment, so it tell us the position in the tracklist!
-
-  tracklist.RemoveAt(trackID)
+  zpos = vertex.GetVTa(itrk).Zpos()
+  if (zpos == 1): #tracks starting from here
+   tracklist.RemoveAt(trackID)
 
 
 xv = 0.
