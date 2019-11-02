@@ -1,8 +1,8 @@
 import pandas as pd
-
+import sys
 #getting the dataframe
 
-dfall = pd.read_csv('MC_vertexlist_testremainingtracks.csv')
+dfall = pd.read_csv(sys.argv[1])
 
 #removing duplicates of same track
 
