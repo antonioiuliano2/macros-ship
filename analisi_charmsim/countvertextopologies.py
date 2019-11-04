@@ -1,11 +1,13 @@
 import pandas as pd
-
+import sys
 #getting the dataframe
 
-dfall = pd.read_csv('MC_vertexlist_testremainingtracks.csv')
+dfall = pd.read_csv(sys.argv[1])
 
 dfall = dfall.sort_values(["MCEventID","topology","ntracks"])
 #removing duplicates of same track
+
+dfall = dfall.sort_values(["MCEventID","topology"])
 
 df = dfall.drop_duplicates(subset=["MCEventID","MCTrackID","MCMotherID"]) #many tracks are splitted up, first instance is kept
 

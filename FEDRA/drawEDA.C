@@ -1,10 +1,11 @@
 EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int vertexID );
 
-void drawEDA(bool newversion = true, TString vertexfilename = "vertextree_newformat.root", TString trackfilename = "linked_tracks.root"){
- const int nvertices = 1;
+void drawEDA(bool newversion = true, TString vertexfilename = "vertextree_thirdquarter.root", TString trackfilename = "linked_tracks.root"){
+ const int nvertices = 2;
  const int ntracks = 1;
- int vertexlist[nvertices] = {26456};
- int tracklist[ntracks] = {287};
+ int vertexlist[nvertices] = {139653, 40204};
+ int vertexcolors[nvertices] = {kRed, kBlue};
+ int tracklist[ntracks] = {9975};
 
  TObjArray *drawnvertices = new TObjArray(100);
  TObjArray *drawntracks = new TObjArray(100);
@@ -12,7 +13,9 @@ void drawEDA(bool newversion = true, TString vertexfilename = "vertextree_newfor
  EdbPVRec *ali = new EdbPVRec();
  EdbVertex *vertex = NULL;
 
- for (int vID: vertexlist){ //range for loop, C++11
+ for (int ivtx = 0; ivtx < nvertices; ivtx++){
+  int vID = vertexlist[ivtx];
+ //for (int vID: vertexlist){ //range for loop, C++11
   if (newversion) vertex = GetVertexFromTree(*ali,vertexfilename,vID);
   else{ 
    TFile * inputfile = TFile::Open(vertexfilename.Data());
@@ -23,7 +26,10 @@ void drawEDA(bool newversion = true, TString vertexfilename = "vertextree_newfor
   drawnvertices->Add(vertex); // assuming the array is filled with EdbVertex.
   for (int itrk = 0; itrk < vertex->N(); itrk++){
      EdbTrackP* track =  vertex->GetTrack(itrk);
-     for (int iseg = 0; iseg < track->N(); iseg++) track->GetSegment(iseg)->SetFlag(kBlue); // to color them differently
+     for (int iseg = 0; iseg < track->N(); iseg++) track->GetSegment(iseg)->SetFlag(vertexcolors[ivtx]); // to color them differently
+     if (track->Track()==tracklist[0]){
+       for (int iseg = 0; iseg < track->N(); iseg++) track->GetSegment(iseg)->SetFlag(kMagenta); // to color them differently
+     }
      drawntracks->Add(track);
   }
  }
@@ -66,7 +72,7 @@ void drawEDA(bool newversion = true, TString vertexfilename = "vertextree_newfor
 
   for(int i=0; i<nseg; i++) {
       s1 = (EdbSegP*)(seg->At(i));
-      s1->SetFlag(kRed);
+      s1->SetFlag(kMagenta);
       tr1->AddSegment( s1 );
       tr1->AddSegmentF( new EdbSegP(*((EdbSegP*)(segf->At(i)))) );
     }
