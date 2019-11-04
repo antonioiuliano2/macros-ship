@@ -1,9 +1,17 @@
 //comparing the dz after alignment for a brick with tungsten and one with lead, both use Slavich emulsions
+
+TFile *outputfile = new TFile("alignchecks.root","RECREATE");
+
 void align_check(TString runname, int lastplate=29, int firstplate=1);
 void align_check(TString runname, int lastplate, int firstplate){
  //TString run = "CH1-R6";
+<<<<<<< HEAD
  TString path = TString("/eos/user/a/aiuliano/public/Emulsion_SHiPCharm/") + runname +TString("/b000001/");
  //TString path = "/ship/CHARM2018/" + runname +"/b000001/"; 
+=======
+ const int maxplates = 57;
+ TString path = "/ship/CHARM2018/" + runname +"/b000001/"; 
+>>>>>>> gitlab/master
  TFile *inputfile;
  TCanvas *c = new TCanvas((runname+TString("_dz_phi_coarse")).Data());
  c->SetTitle((runname+TString("_dz_phi_coarse")).Data());
@@ -15,8 +23,8 @@ void align_check(TString runname, int lastplate, int firstplate){
  if (lastplate>29)cxy->Divide(7,8);
  else cxy->Divide(5,6);
 
- TH2F *hzphi[57];
- TH2F *hxy[57];
+ TH2F *hzphi[maxplates];
+ TH2F *hxy[maxplates];
 
  TGraph *peakgraph = new TGraph();
  peakgraph->SetName("peakgraph");
@@ -27,7 +35,7 @@ void align_check(TString runname, int lastplate, int firstplate){
 
  EdbPeak2 *combinations;
 
- TH1F *hdzA = new TH1F("hdzA",(TString("Dz obtained after alignment for brick ")+runname).Data(),20,1200,1400);
+ TH1F *hdzA = new TH1F((TString("hdzA")+runname).Data(),(TString("Dz obtained after alignment for brick ")+runname).Data(),20,1200,1400);
 
  TGraph *hgraphA = new TGraph();
  hgraphA->SetName("hgraph");
@@ -72,8 +80,12 @@ void align_check(TString runname, int lastplate, int firstplate){
 
   }
  }
- 
-  TCanvas *cdz = new TCanvas("cdz");
+  outputfile->mkdir(runname.Data());
+  outputfile->cd(runname.Data()); //saving canvas in output root file
+
+  c->Write();
+  cxy->Write();
+  TCanvas *cdz = new TCanvas((runname+TString("dz")).Data());
   cdz->Divide(1,2);
   cdz->cd(1);
   hdzA->Draw();
@@ -83,8 +95,9 @@ void align_check(TString runname, int lastplate, int firstplate){
   hgraphA->Draw("AP*");
   hgraphA->GetXaxis()->SetTitle("nplate");
   hgraphA->GetYaxis()->SetTitle("dZ[#mum]");
+  cdz->Write();
 
-  TCanvas *ccomb = new TCanvas("ccomb");
+  TCanvas *ccomb = new TCanvas((runname+TString("ccomb")).Data());
   peakgraph->SetTitle("Study of combinations");
   peakgraph->SetMarkerColor(kRed);
   peakgraph->Draw("AP*");
@@ -98,12 +111,15 @@ void align_check(TString runname, int lastplate, int firstplate){
   //legend->AddEntry("meangraph","Mean in a 3 X 3 region","lp");
   legend->AddEntry("noisegraph","Average of random combinations","lp");
   legend->Draw();
+
+  ccomb->Write();
+  outputfile->cd("..");
 }
 
 void global_check_align(){
 
  const int nalignedbricks = 17;
-
+ 
  TString alignedbricks[nalignedbricks];
 
  alignedbricks[0] = TString("CH1-R1");
@@ -131,6 +147,7 @@ void global_check_align(){
   if (i < 9) align_check(alignedbricks[i],29);
   else align_check(alignedbricks[i],57);
  }
+<<<<<<< HEAD
 
 }
 
@@ -179,5 +196,7 @@ void checkdzold(TString runname, int nplates=29, int firstplate=1){
  align_check(brickA,nplates);
  //file->cd("");
  //hgraphA->Write();
+=======
+ outputfile.Close();
+>>>>>>> gitlab/master
 }
-
