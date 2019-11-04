@@ -5,13 +5,8 @@ TFile *outputfile = new TFile("alignchecks.root","RECREATE");
 void align_check(TString runname, int lastplate=29, int firstplate=1);
 void align_check(TString runname, int lastplate, int firstplate){
  //TString run = "CH1-R6";
-<<<<<<< HEAD
  TString path = TString("/eos/user/a/aiuliano/public/Emulsion_SHiPCharm/") + runname +TString("/b000001/");
  //TString path = "/ship/CHARM2018/" + runname +"/b000001/"; 
-=======
- const int maxplates = 57;
- TString path = "/ship/CHARM2018/" + runname +"/b000001/"; 
->>>>>>> gitlab/master
  TFile *inputfile;
  TCanvas *c = new TCanvas((runname+TString("_dz_phi_coarse")).Data());
  c->SetTitle((runname+TString("_dz_phi_coarse")).Data());
@@ -147,7 +142,6 @@ void global_check_align(){
   if (i < 9) align_check(alignedbricks[i],29);
   else align_check(alignedbricks[i],57);
  }
-<<<<<<< HEAD
 
 }
 
@@ -196,7 +190,4 @@ void checkdzold(TString runname, int nplates=29, int firstplate=1){
  align_check(brickA,nplates);
  //file->cd("");
  //hgraphA->Write();
-=======
- outputfile.Close();
->>>>>>> gitlab/master
 }
