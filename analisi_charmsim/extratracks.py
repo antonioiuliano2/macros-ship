@@ -39,7 +39,7 @@ vtxfile = r.TFile.Open(options.vertexfilename)
 vtxtree = vtxfile.Get("vtx")
 
 outputfile = open(options.vertexcsv,"a") 
-outputfile.write("MCEvent,charmMCTrackID,daughterMCTrackID,TrackID\n")
+#outputfile.write("MCEvent,charmMCTrackID,daughterMCTrackID,TrackID\n")
 for itrk,track in enumerate(tracklist):
     # getting list of IDs for that MC event
     sfirst = track.GetSegmentFirst()
