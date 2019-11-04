@@ -39,32 +39,57 @@ dfprimaryvertices =df[df["topology"]==1]
 indexes = dfprimaryvertices.groupby("MCEventID")['ntracks'].idxmax()#returning indexes with maximum value
 dfprimaryvertices = dfprimaryvertices.loc[indexes] #splicing to keep only the vertices with more tracks
 #come cerco i vertici primari di un dato evento da quelli secondari?
+nbad = 0
+ngood = 0
+
+dfvertices = dfcharm[dfcharm['topology']==2]
+
 for ientry in range(1000): #old style loop
-    if dfcharm.index.contains(ientry):
+    if dfvertices.index.contains(ientry):       
         dfprimaryvertex = dfprimaryvertices.query("MCEventID=={}".format(ientry)) #vertex for that ID
         if len(dfprimaryvertex)==1:
-            dfcharm.loc[[ientry],"ivtx"]==dfprimaryvertex["ivtx"].iloc[0] #matching ivtx, they are not charm but primary vertices
+            asprimary = dfvertices.loc[[ientry],"ivtx"]==dfprimaryvertex["ivtx"].iloc[0] #matching ivtx, they are not charm but primary vertices
+            for ndaughter in range(len(asprimary)):
+                if (asprimary.iloc[ndaughter]):
+                     nbad = nbad + 1
+                     #print ("Test: ",ientry,ndaughter, asprimary.iloc[ndaughter])
+                else:
+                     ngood = ngood + 1
+                     #print ("Test: ",ientry,ndaughter, asprimary.iloc[ndaughter])
+        else: #no primary, all daughters bad
+         for ndaughter in range(len(dfvertices.loc[[ientry],"ivtx"])):
+             nbad = nbad +1
+print("After loop: found {} as secondary, {} as primary".format(ngood,nbad))
+dfprimaryvertices = dfprimaryvertices.groupby("MCEventID").first()
 
 
-dfvertices = dfcharm[dfcharm['topology']<=2.5]
-dfvertices = dfvertices[dfvertices['topology']>=1.5]
+def inspectevent(eventID):
+    if (eventID in dfprimaryvertices.index):
+            print ("Primary vertex")
+            print (dfprimaryvertices.loc[[eventID],["ivtx"]])
+    else:
+        print ("No Primary vertex identified as such in event ",eventID)
+    if (eventID in dfvertices.index):    
+      print ("Secondary vertex")
+      print (dfvertices.loc[[eventID],["ivtx"]])
 
-dfprimaryvertices["MCEventID"]==dfvertices["MCEventID"]
 #dfvertices.groupby(['MCEventID','ivtx']).sum()
 # Double Signal: topology 1, 2 ,2 total 5
 # Single Signal: topology 1,2 or 2,2: total less than 5
 
-#Quick check, molteplicity (TO DO; uso topology)
-dfprimary = dfvertices[dfvertices['ntracks']>=6]
-print ("How many associated to primary",len(dfprimary))
-dfsecondary = dfvertices[dfvertices['ntracks']<6]
-print ("How many associated to secondary",len(dfsecondary))
 
-#counting for pair
-pairprimary = dfprimary.groupby(['MCEventID']).sum()
-print ("Single charm daughter connected to primary: ",len(pairprimary))
-print ("Both charm daughters connected to primary: ",len(pairprimary[pairprimary['quantity']==2]))
+def rawcheck():
+ '''Quick check, molteplicity (now replaced with topology)'''
+ dfprimary = dfvertices[dfvertices['ntracks']>=6]
+ print ("How many associated to primary",len(dfprimary))
+ dfsecondary = dfvertices[dfvertices['ntracks']<6]
+ print ("How many associated to secondary",len(dfsecondary))
 
-pairsecondary = dfsecondary.groupby(['MCEventID']).sum()
-print ("Single charm daughter connected to secondary: ",len(pairsecondary))
-print ("Both charm daughters connected to secondary: ",len(pairsecondary[pairsecondary['quantity']==2]))
+ #counting for pair
+ pairprimary = dfprimary.groupby(['MCEventID']).sum()
+ print ("Single charm daughter connected to primary: ",len(pairprimary))
+ print ("Both charm daughters connected to primary: ",len(pairprimary[pairprimary['quantity']==2])) 
+
+ pairsecondary = dfsecondary.groupby(['MCEventID']).sum()
+ print ("Single charm daughter connected to secondary: ",len(pairsecondary))
+ print ("Both charm daughters connected to secondary: ",len(pairsecondary[pairsecondary['quantity']==2]))
