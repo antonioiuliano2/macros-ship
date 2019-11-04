@@ -33,8 +33,23 @@ print ("Single charm daughter connected to parent: ",len(pairextra))
 print ("Both charm daughters connected to parent: ",len(pairextra[pairextra['quantity']==2]))
 
 #vertex reconstruction (1 primary, 2 secondary)
+
+#recognizing primary vertices
+dfprimaryvertices =df[df["topology"]==1]
+indexes = dfprimaryvertices.groupby("MCEventID")['ntracks'].idxmax()#returning indexes with maximum value
+dfprimaryvertices = dfprimaryvertices.loc[indexes] #splicing to keep only the vertices with more tracks
+#come cerco i vertici primari di un dato evento da quelli secondari?
+for ientry in range(1000): #old style loop
+    if dfcharm.index.contains(ientry):
+        dfprimaryvertex = dfprimaryvertices.query("MCEventID=={}".format(ientry)) #vertex for that ID
+        if len(dfprimaryvertex)==1:
+            dfcharm.loc[[ientry],"ivtx"]==dfprimaryvertex["ivtx"].iloc[0] #matching ivtx, they are not charm but primary vertices
+
+
 dfvertices = dfcharm[dfcharm['topology']<=2.5]
 dfvertices = dfvertices[dfvertices['topology']>=1.5]
+
+dfprimaryvertices["MCEventID"]==dfvertices["MCEventID"]
 #dfvertices.groupby(['MCEventID','ivtx']).sum()
 # Double Signal: topology 1, 2 ,2 total 5
 # Single Signal: topology 1,2 or 2,2: total less than 5
