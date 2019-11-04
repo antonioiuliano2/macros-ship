@@ -12,16 +12,14 @@ parser.add_argument("-t", "--tracks", dest="tracksfilename", help="file with fed
 parser.add_argument("-new", action='store_true') #for new file format
 
 options = parser.parse_args()
-trackfilepath = options.tracksfilename #file with all the tracks
-vertexfilepath =  options.vertexfilename #file used for the vertices
 
 dproc = r.EdbDataProc()
 gAli = dproc.PVR()
-tracklist = fedrautils.buildtracks(trackfilepath, dproc, gAli)
+tracklist = fedrautils.buildtracks(options.tracksfilename, dproc, gAli)
 
 if (options.new): #new format, vertex information saved in tree
- ROOT.gROOT.ProcessLine(".L VertexIO.C")
- ROOT.VertexIO.ReadVertexTree(gAli,vertexfilename," ")
+ r.gROOT.ProcessLine(".L VertexIO.C")
+ r.VertexIO.ReadVertexTree(gAli,options.vertexfilename,"1")
  vertexlist = gAli.eVTX
 
 else:
@@ -37,8 +35,9 @@ for vertex in vertexlist: #loop on vertices
  for itrk in range(ntracks): #loop on tracks from each vertex
   vertextrack = vertex.GetTrack(itrk)
   trackID = vertextrack.Track() #taking from the segment, so it tell us the position in the tracklist!
-
-  tracklist.RemoveAt(trackID)
+  zpos = vertex.GetVTa(itrk).Zpos() # 1 if track starts from vertex, 0 if track ends in vertex
+  if zpos == 1:
+    tracklist.RemoveAt(trackID)
 
 
 xv = 0.
@@ -51,13 +50,13 @@ for track in tracklist:
   newtracklist.Add(track)
 
 
-dproc.MakeTracksTree(newtracklist, xv,yv,"verticesandtracks.root")
+dproc.MakeTracksTree(newtracklist, xv,yv,"remainingtracks.root")
 
 #prepare a file with all information for Valerio
 
-newfile = r.TFile.Open("verticesandtracks.root","UPDATE")
+#newfile = r.TFile.Open("verticesandtracks.root","UPDATE")
 
-newvertextree = vertextree.CloneTree() #copying only the tree now, avoiding handling FEDRA objects too much
-newvertextree.Write()
-print "Finished Copying the objects"
-newfile.Close()
+#newvertextree = vertextree.CloneTree() #copying only the tree now, avoiding handling FEDRA objects too much
+#newvertextree.Write()
+#print "Finished Copying the objects"
+#newfile.Close()
