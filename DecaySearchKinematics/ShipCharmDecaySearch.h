@@ -32,6 +32,7 @@ class ShipCharmDecaySearch:public TObject {
 	static float GetpT(float parenttx, float parentty, float daughterttx, float daughtertty, float daughtermomentum);
 
 	static float IPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, float tracktx, float trackty);
+        static float TransverseIPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, float tracktx, float trackty);
      
     static float InvariantMass(std::vector<TVector3> momenta, std::vector<float> masses);
 
@@ -40,7 +41,7 @@ class ShipCharmDecaySearch:public TObject {
     //functions to take into account beam angle need the angles, so they are not static
     TRotation* rotation_to_beam(); 
 
-	ClassDef(ShipCharmDecaySearch,1) // List of functions for Decay Search. Original idea by Giuliana, modified by Antonio
+	ClassDef(ShipCharmDecaySearch,2) // List of functions for Decay Search. Original idea by Giuliana, modified by Antonio
 	private:
     float fbeamTX;
     float fbeamTY;
