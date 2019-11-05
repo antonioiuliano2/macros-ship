@@ -45,6 +45,33 @@ float ShipCharmDecaySearch::FedraTrackKink(EdbTrackP* mytrack){
 
 float ShipCharmDecaySearch::IPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, float tracktx, float trackty){
  //'''Impact parameter of track with respect to primary vertex'''
+//from EdbEDAUtil CalcIP
+ float ax = tracktx;
+ float ay = trackty;
+
+ float x = vertexpos(0);
+ float y = vertexpos(1);
+ float z = vertexpos(2);
+ 
+ float bx = trackstartpos(0) - ax * trackstartpos(2) ;
+ float by = trackstartpos(1) - ay * trackstartpos(2);
+
+ 
+ float a;
+ float r;
+ float xx,yy,zz;
+	
+ a = (ax*(x-bx)+ay*(y-by)+1.*(z-0.))/(ax*ax+ay*ay+1.);
+ xx = bx +ax*a;
+ yy = by +ay*a;
+ zz = 0. +1.*a;
+ r = sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)+(zz-z)*(zz-z));
+
+ return r;
+}
+
+float ShipCharmDecaySearch::TransverseIPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, float tracktx, float trackty){
+ //'''Impact parameter of track with respect to primary vertex'''
  
  float dz = vertexpos(2) - trackstartpos(2);
  float ipx = tracktx * dz + trackstartpos(0) -vertexpos(0);
