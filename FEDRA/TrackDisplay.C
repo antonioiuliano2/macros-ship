@@ -56,7 +56,8 @@ void TrackDisplay(){
         cout<<temptrack->N()<<endl;
         ds->TrackDraw(temptrack);
     }   
-
+ //need to draw again to register information
+ ds->Draw();
 }
 
 
