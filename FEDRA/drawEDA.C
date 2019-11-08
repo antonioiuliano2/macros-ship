@@ -3,13 +3,21 @@ EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int ve
 void drawEDA(bool newversion = true, TString vertexfilename = "vertextree_thirdquarter.root", TString trackfilename = "linked_tracks.root"){
  bool drawvertices = true;
  bool drawtracks = false;
- const int nvertices = 1;
+ const int nvertices = 2;
  const int ntracks = 2;
- int vertexlist[nvertices] = {120864};
- int vertexcolors[nvertices] = {kBlue};
+ int vertexlist[nvertices] = {120864, 10};
+ int vertexcolors[nvertices] = {kBlue, kYellow};
  int tracklist[ntracks] = {9, 12};
  
  EdbPVRec *ali = new EdbPVRec();
+
+ EdbDataProc* dproc = new EdbDataProc();
+
+ dproc->InitVolume(100, "nseg>1 && trid<500"); //reading some tracks to set the patterns
+ ali = dproc->PVR();
+ ali->eTracks=0; //removing tracks used for patterns
+ ali->FillCell(30,30,0.009,0.009);
+ cout<<"TEST"<<endl;
  EdbVertex *vertex = NULL;
  if (drawvertices){
   for (int ivtx = 0; ivtx < nvertices; ivtx++){
@@ -70,13 +78,14 @@ if (drawtracks){
   tr1->SetM(0.139);                 //TODO  
     for(int i=0; i<nseg; i++) {
       s1 = (EdbSegP*)(seg->At(i));
-/*      pat = ali->GetPattern(s1->PID());
+      pat = ali->GetPattern(s1->PID());
       if (!pat){
+        cout<<"Creating new pattern"<<endl;
         pat = new EdbPattern( 0., 0., s1->Z());
         pat->SetID(s1->PID());
         pat->SetScanID(s1->ScanID());
         ali->AddPatternAt(pat,s1->PID());
-      }*/
+      }
 
       s1f = (EdbSegP*)(segf->At(i));
       s1->SetDZ(300);
