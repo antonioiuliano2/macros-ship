@@ -1,40 +1,35 @@
 EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int vertexID );
 
 void drawEDA(bool newversion = true, TString vertexfilename = "vertextree_thirdquarter.root", TString trackfilename = "linked_tracks.root"){
- const int nvertices = 2;
- const int ntracks = 1;
- int vertexlist[nvertices] = {139653, 40204};
- int vertexcolors[nvertices] = {kRed, kBlue};
- int tracklist[ntracks] = {9975};
-
- TObjArray *drawnvertices = new TObjArray(100);
- TObjArray *drawntracks = new TObjArray(100);
+ bool drawvertices = true;
+ bool drawtracks = false;
+ const int nvertices = 1;
+ const int ntracks = 2;
+ int vertexlist[nvertices] = {120864};
+ int vertexcolors[nvertices] = {kBlue};
+ int tracklist[ntracks] = {9, 12};
  
  EdbPVRec *ali = new EdbPVRec();
  EdbVertex *vertex = NULL;
-
- for (int ivtx = 0; ivtx < nvertices; ivtx++){
-  int vID = vertexlist[ivtx];
- //for (int vID: vertexlist){ //range for loop, C++11
-  if (newversion) vertex = GetVertexFromTree(*ali,vertexfilename,vID);
-  else{ 
-   TFile * inputfile = TFile::Open(vertexfilename.Data());
-   EdbVertexRec *vertexrec = (EdbVertexRec*) inputfile->Get("EdbVertexRec");
-   vertex = (EdbVertex*) vertexrec->eVTX->At(vID);
+ if (drawvertices){
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+    int vID = vertexlist[ivtx];
+ //f or (int vID: vertexlist){ //range for loop, C++11
+    if (newversion) vertex = GetVertexFromTree(*ali,vertexfilename,vID);
+    else{ 
+      TFile * inputfile = TFile::Open(vertexfilename.Data());
+      EdbVertexRec *vertexrec = (EdbVertexRec*) inputfile->Get("EdbVertexRec");
+      vertex = (EdbVertex*) vertexrec->eVTX->At(vID);
+    }
+    for (int itrk = 0; itrk < vertex->N(); itrk++){
+      EdbTrackP* track =  vertex->GetTrack(itrk);
+      for (int iseg = 0; iseg < track->N(); iseg++) track->GetSegment(iseg)->SetFlag(vertexcolors[ivtx]); // to color them differently
+    }
+    }
   }
-
-  drawnvertices->Add(vertex); // assuming the array is filled with EdbVertex.
-  for (int itrk = 0; itrk < vertex->N(); itrk++){
-     EdbTrackP* track =  vertex->GetTrack(itrk);
-     for (int iseg = 0; iseg < track->N(); iseg++) track->GetSegment(iseg)->SetFlag(vertexcolors[ivtx]); // to color them differently
-     if (track->Track()==tracklist[0]){
-       for (int iseg = 0; iseg < track->N(); iseg++) track->GetSegment(iseg)->SetFlag(kMagenta); // to color them differently
-     }
-     drawntracks->Add(track);
-  }
- }
 
   //reading track file and setting branches
+if (drawtracks){
  TFile *trackfile = TFile::Open(trackfilename.Data());
  TTree *tracks = (TTree*)trackfile->Get("tracks");
 
@@ -49,6 +44,7 @@ void drawEDA(bool newversion = true, TString vertexfilename = "vertextree_thirdq
  TClonesArray *segf = new TClonesArray("EdbSegP", 60);
  EdbSegP *trk=0;
  EdbSegP *s1=0;
+ EdbSegP *s1f=0;
 
  tracks->SetBranchAddress("trid", &trid);
  tracks->SetBranchAddress("nseg", &nseg);
@@ -63,27 +59,39 @@ void drawEDA(bool newversion = true, TString vertexfilename = "vertextree_thirdq
  //Getting Entry
 
  tracks->BuildIndex("trid");
+ EdbPattern *pat = 0;
  for (int trackID: tracklist){
+  seg->Clear();
+  segf->Clear();
   tracks->GetEntryWithIndex(trackID);
 
   EdbTrackP *tr1 = new EdbTrackP();
   ((EdbSegP*)tr1)->Copy(*trk);
-  tr1->SetM(0.139);                 //TODO
-
-  for(int i=0; i<nseg; i++) {
+  tr1->SetM(0.139);                 //TODO  
+    for(int i=0; i<nseg; i++) {
       s1 = (EdbSegP*)(seg->At(i));
-      s1->SetFlag(kMagenta);
-      tr1->AddSegment( s1 );
-      tr1->AddSegmentF( new EdbSegP(*((EdbSegP*)(segf->At(i)))) );
-    }
+/*      pat = ali->GetPattern(s1->PID());
+      if (!pat){
+        pat = new EdbPattern( 0., 0., s1->Z());
+        pat->SetID(s1->PID());
+        pat->SetScanID(s1->ScanID());
+        ali->AddPatternAt(pat,s1->PID());
+      }*/
+
+      s1f = (EdbSegP*)(segf->At(i));
+      s1->SetDZ(300);
+      s1f->SetDZ(300);
+      s1->SetFlag(kMagenta); //EDA colours tracks according to flag
+      tr1->AddSegment(  new EdbSegP(*((EdbSegP*)(s1))) );
+      tr1->AddSegmentF( new EdbSegP(*((EdbSegP*)(s1f))) );
+    } //end on loop on segments associated to the track
   tr1->SetSegmentsTrack(tr1->ID());
   tr1->SetCounters();    
 
   //adding track to drawing set and building EDA
-  drawntracks->Add(tr1);
+  ali->AddTrack(tr1);
+  } //end loop on tracks
  }
- ali->eTracks = drawntracks;
- ali->eVTX = drawnvertices;
  EdbEDA * eda = new EdbEDA(ali); // init DataSet but doesn't read linked_track.root
  eda->GetTrackSet("TS")->SetColorMode(kCOLOR_BY_PARTICLE);
  eda->Run();
@@ -116,13 +124,6 @@ EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int ve
   Int_t MCEventID[maxdim];
   Int_t MCTrackID[maxdim];
   Int_t MCMotherID[maxdim];
-/*
-  Int_t   trid=0;
-  Int_t   nseg=0;
-  Int_t   npl=0;
-  Int_t   n0=0;
-  Float_t xv=0.;
-  Float_t yv=0.;*/
 
   int nentr = (int)(vtx->GetEntries());
   //if(cut) Log(2,"EdbDataProc::ReadVtxTree","select %d of %d vertices by cut %s",nlst, nentr, cut.GetTitle() );
@@ -180,10 +181,9 @@ EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int ve
 	     pat->SetScanID(s1->ScanID());
 	     ali.AddPatternAt(pat,s1->PID());
       }
-
        tr1->AddSegment( pat->AddSegment(*s1 ) );
        tr1->AddSegmentF( new EdbSegP(*((EdbSegP*)(segf->At(itotalseg)))) );
-       itotalseg++; //ALWAYS REMEMBER COUNTERS, YOU IDIOT!
+       itotalseg++;
     }
      tr1->SetSegmentsTrack(tr1->ID());
      tr1->SetCounters();

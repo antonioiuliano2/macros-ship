@@ -7,7 +7,7 @@
 void TrackDisplay(){
     
     // int trackID=0;
-    TFile *inputfile = TFile::Open("b000002.0.0.0.trk.root","READ");
+    TFile *inputfile = TFile::Open("linked_tracks.root","READ");
     TTree *tracktree = (TTree*) inputfile->Get("tracks");
     //tracktree.SetAlias("trk","t.") #points create confusion to python
     
@@ -24,7 +24,30 @@ void TrackDisplay(){
     tracktree->SetBranchAddress("t.",&trk);
     tracktree->SetBranchAddress("s",&segments);
     tracktree->SetBranchAddress("sf",&fittedsegments);
-    
+
+    for(int trackID=1; trackID<5; trackID++){
+        segments->Clear();
+        fittedsegments->Clear();
+        tracktree->GetEntryWithIndex(trackID);
+        //temporary object for reading the file and building EdbTrackP
+        EdbTrackP * temptrack = new EdbTrackP();
+        ((EdbSegP*)temptrack)->Copy(*trk);
+       // temptrack->Copy(EdbTrackP(trk));
+        cout<<"Track: " << trackID << " with " << nseg << " segments" <<endl;
+        //start loop on segments associated to the track
+        for (int i = 0; i< nseg; i++){
+            temptrack->SetID(trk->ID());
+            EdbSegP *seg = (EdbSegP*) segments->At(i);
+            EdbSegP *segf = (EdbSegP*) fittedsegments->At(i);
+            seg->SetDZ(300);
+            segf->SetDZ(300);
+            temptrack->AddSegmentF(new EdbSegP(*((EdbSegP*)(seg))));
+	        temptrack->AddSegmentF(new EdbSegP(*((EdbSegP*)(segf))));
+            temptrack->SetSegmentsTrack(temptrack->ID()); //track segments association
+            temptrack->SetCounters();
+        }    
+	trackstodraw->Add(temptrack);
+    }
     gStyle->SetPalette(1);
 
     const float zmin = -100000.;
@@ -32,32 +55,8 @@ void TrackDisplay(){
 
     EdbDisplay * ds = new EdbDisplay("FOOT simulation FEDRA display",-50000.,50000.,-50000.,50000.,zmin,zmax);
     ds->SetDrawTracks(4); //option to draw tracks with segments
-    //ds->SetArrTr(trackstodraw);
+    ds->SetArrTr(trackstodraw);
     ds->Draw();
-
-    for(int trackID=1; trackID<20; trackID++){
-        tracktree->GetEntryWithIndex(trackID);
-        //temporary object for reading the file and building EdbTrackP
-        EdbTrackP * temptrack = new EdbTrackP();
-       // temptrack->Copy(EdbTrackP(trk));
-        cout<<"Track: " << trackID << " with " << nseg << " segments" <<endl;
-        //start loop on segments associated to the track
-        for (int i = 0; i< nseg; i++){
-            temptrack->SetID(trk->ID());
-            EdbSegP *seg = segments->At(i);
-            EdbSegP *segf = fittedsegments->At(i);
-            seg->SetDZ(300);
-            segf->SetDZ(300);
-            temptrack->AddSegment(seg);
-            temptrack->AddSegmentF(segf);
-            temptrack->SetSegmentsTrack(temptrack->ID()); //track segments association
-            temptrack->SetCounters();
-        }    
-        cout<<temptrack->N()<<endl;
-        ds->TrackDraw(temptrack);
-    }   
- //need to draw again to register information
- ds->Draw();
 }
 
 
