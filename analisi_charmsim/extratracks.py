@@ -56,9 +56,9 @@ for itrk,track in enumerate(tracklist):
     if ((sfirst.MCTrack() in charmIDs) and (slast.MCTrack() in daughterIDs)):
         # Topology 3: track connected to parent
         outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7:.0f},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".
-                    format(0, 0., itrk, slast.MCEvt(), slast.MCTrack(),slast.Aid(0),ndaughters[slast.Aid(0)],decaylengths[slast.Aid(0)] *1E+4,1, 0.,0.,0.,3))
+                    format(0, 0, itrk, slast.MCEvt(), slast.MCTrack(),slast.Aid(0),ndaughters[slast.Aid(0)],decaylengths[slast.Aid(0)] *1E+4,1, 0.,0.,0.,3))
     elif ((sfirst.MCTrack() in daughterIDs) and (vtxtree.GetEntries("TrackID=={}".format(itrk)) == 0)):
         # Topology 4: track not associated to any vertex
         outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7:.0f},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".
-                    format(0, 0., itrk, sfirst.MCEvt(), sfirst.MCTrack(),sfirst.Aid(0),ndaughters[sfirst.Aid(0)],decaylengths[sfirst.Aid(0)] *1E+4,1, 0.,0.,0.,4))
+                    format(0, 0, itrk, sfirst.MCEvt(), sfirst.MCTrack(),sfirst.Aid(0),ndaughters[sfirst.Aid(0)],decaylengths[sfirst.Aid(0)] *1E+4,1, 0.,0.,0.,4))
 outputfile.close()
