@@ -15,11 +15,11 @@ dfcharm = df[df['topology']>1.5].groupby(['MCEventID','MCMotherID']).first()
 
 print ("How many charm daughters in log?", len(dfcharm))
 
-dfconnected = dfcharm[dfcharm['topology'] > 2.5]
+dfconnected = dfcharm[dfcharm['topology'] == 3]
 
 print ("How many connected? ",len(dfconnected))
 
-dfextra = dfcharm[dfcharm['topology'] > 3.5]
+dfextra = dfcharm[dfcharm['topology'] == 4]
 
 print ("How many extra? ",len(dfextra))
 
@@ -64,6 +64,8 @@ dfprimaryvertices = dfprimaryvertices.groupby("MCEventID").first()
 
 
 def inspectevent(eventID):
+    '''inspecting the two decay topologies in the event: a vertex takes priority over connected tracks and extra tracks'''
+    topologies = [-1,-1]
     if (eventID in dfprimaryvertices.index):
             print ("Primary vertex")
             print (dfprimaryvertices.loc[[eventID],["ivtx"]])
@@ -72,6 +74,12 @@ def inspectevent(eventID):
     if (eventID in dfvertices.index):    
       print ("Secondary vertex")
       print (dfvertices.loc[[eventID],["ivtx"]])
+    if (eventID in dfconnected.index):
+      print ("Track Connected to parent")
+      print (dfconnected.loc[[eventID],["itrk"]])
+    if (eventID in dfextra.index):
+      print ("Extra track")
+      print (dfextra.loc[[eventID],["itrk"]])
 
 #dfvertices.groupby(['MCEventID','ivtx']).sum()
 # Double Signal: topology 1, 2 ,2 total 5
