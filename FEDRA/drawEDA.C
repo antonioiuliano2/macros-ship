@@ -1,13 +1,13 @@
 EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int vertexID );
 
-void drawEDA(bool newversion = true, TString vertexfilename = "vertextree_thirdquarter.root", TString trackfilename = "linked_tracks.root"){
+void drawEDA(bool newversion = true, TString vertexfilename = "vertextree.root", TString trackfilename = "linked_tracks.root"){
  bool drawvertices = true;
- bool drawtracks = false;
- const int nvertices = 2;
- const int ntracks = 2;
- int vertexlist[nvertices] = {120864, 10};
- int vertexcolors[nvertices] = {kBlue, kYellow};
- int tracklist[ntracks] = {9, 12};
+ bool drawtracks = true;
+ const int nvertices = 1;
+ const int ntracks = 1;
+ int vertexlist[nvertices] = {23807};
+ int vertexcolors[nvertices] = {kRed};
+ int tracklist[ntracks] = {123411};
  
  EdbPVRec *ali = new EdbPVRec();
 

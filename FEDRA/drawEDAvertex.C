@@ -2,9 +2,9 @@
 
 EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int vertexID );
 
-void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree_newformat.root"){
- const int nvertices = 2;
- int vertexlist[nvertices] = {25578,25972};
+void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree.root"){
+ const int nvertices = 1;
+ int vertexlist[nvertices] = {139653, 40204};
  int vertexcolors[nvertices] = {kRed,kGreen};
 
  TFile * inputfile = TFile::Open(vertexfilename.Data());
@@ -29,11 +29,8 @@ void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree_n
 
   drawnvertices->Add(vertex); // assuming the array is filled with EdbVertex.
   for (int itrk = 0; itrk < vertex->N(); itrk++){
-     EdbTrackP* track =  vertex->GetTrack(itrk);
-     int color;
-     if (track->Track()== 16236) color = kBlue;
-     else color = kRed;
-     for (int iseg = 0; iseg < track->N(); iseg++) track->GetSegment(iseg)->SetFlag(color); // to color them differently
+     EdbTrackP* track =  vertex->GetTrack(itrk);     
+     for (int iseg = 0; iseg < track->N(); iseg++) track->GetSegment(iseg)->SetFlag(vertexcolors[i]); // to color them differently
  //    for (int iseg = 0; iseg < track->N(); iseg++) track->GetSegment(iseg)->SetFlag(vertexcolors[i]); // to color them differently
      drawntracks->Add(track);
 //     specialtrack = track;
