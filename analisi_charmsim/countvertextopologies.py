@@ -1,6 +1,14 @@
 import numpy as np
 import pandas as pd
 import sys
+import ROOT
+
+def df2TH1D(column, name, title, nbins,xmin,xmax ):
+    '''filling a histogram from pandas'''
+    histo = ROOT.TH1D(name, title, nbins, xmin, xmax)
+    for item in column:
+        histo.Fill(item)
+    return histo
 #getting the dataframe
 
 dfall = pd.read_csv(sys.argv[1])
@@ -56,19 +64,29 @@ for ientry in range(1000): #old style loop
     if dfvertices.index.contains(ientry):       
         dfprimaryvertex = dfprimaryvertices.query("MCEventID=={}".format(ientry)) #vertex for that ID
         if len(dfprimaryvertex)==1:
-            asprimary = dfvertices.loc[[ientry],"ivtx"]==dfprimaryvertex["ivtx"].iloc[0] #matching ivtx, they are not charm but primary vertices
-            for ndaughter in range(len(asprimary)):
-                if (asprimary.iloc[ndaughter]):
+            asprimary = dfvertices.loc[[ientry],"ivtx"]==dfprimaryvertex["ivtx"].iloc[0] #matching ivtx, they are not charm but primary vertices            
+            indeces = [x[1] for x in asprimary.index]  #first index is MCEventID, second index is MCMotherID
+            #need to take into account cases where only one vertex is present
+            #if len(asprimary)==2:
+            # indeces.append(asprimary.index[0][1])
+            # indeces.append(asprimary.index[1][1])             
+            #if len(asprimary)==1:
+            # indeces.append(asprimary.index[0][1])
+            for ndaughter in indeces:
+                #print (ientry, ndaughter)
+                if (asprimary.loc[ientry,ndaughter]):
                      nbad = nbad + 1
                      nbadevent = nbadevent + 1
                      #print ("Test: ",ientry,ndaughter, asprimary.iloc[ndaughter])
-                else:
+                else:                    
+                     dfvertices.loc[(ientry,ndaughter),["topology"]] = 22 #TEST to save primary vs secondary separation
                      ngood = ngood + 1
                      ngoodevent = ngoodevent + 1
                      #print ("Test: ",ientry,ndaughter, asprimary.iloc[ndaughter])
         else: #no primary, all daughters bad
          for ndaughter in range(len(dfvertices.loc[[ientry],"ivtx"])):
              nbad = nbad +1
+             nbadevent = nbadevent + 1
     # how many connected tracks and extra tracks?
     if (ientry in dfconnected.index):
       nconnectedevent = len(dfconnected.loc[ientry])
@@ -120,10 +138,74 @@ for ientry in range(1000): #old style loop
 print("After loop: found {} as secondary, {} as primary".format(ngood,nbad))
 print(np.sum(topologymatrix))
 #obtaining a symmetric matrix
-topologymatrix = (topologymatrix + topologymatrix.T)/2.
+#topologymatrix = (topologymatrix + topologymatrix.T)/2.
 print(topologymatrix)
 dfprimaryvertices = dfprimaryvertices.groupby("MCEventID").first()
 
+dftosecondary = dfvertices.query("topology==22")
+dftoprimary = dfvertices.query("topology==2")
+
+#drawing histograms
+hconnectedlength = df2TH1D(dfconnected["preddecaylength"],"hconnectedlength", "connected to parent;decaylength[#mum]", 30,0.,30000. )
+hextralength = df2TH1D(dfextra["preddecaylength"],"hextralength", "extra tracks;decaylength[#mum]", 30,0.,30000. )
+htoprimarylength = df2TH1D(dftoprimary["preddecaylength"],"htoprimarylength", "associated to primary vertex;decaylength[#mum]", 30,0.,30000. )
+htosecondarylength = df2TH1D(dftosecondary["preddecaylength"],"htosecondarylength", "associated to secondary vertex;decaylength[#mum]", 30,0.,30000. )
+#normalizing
+hconnectedlength.Scale(1./hconnectedlength.Integral())
+hextralength.Scale(1./hextralength.Integral())
+htoprimarylength.Scale(1./htoprimarylength.Integral())
+htosecondarylength.Scale(1./htosecondarylength.Integral())
+#setting colors
+#hconnectedlength.SetFillColorAlpha(ROOT.kBlue,0.5)
+hextralength.SetLineColor(ROOT.kRed)
+#hextralength.SetFillColorAlpha(ROOT.kRed,0.5)
+htoprimarylength.SetLineColor(ROOT.kYellow)
+#htoprimarylength.SetFillColorAlpha(ROOT.kYellow,0.5)
+htosecondarylength.SetLineColor(ROOT.kMagenta)
+#htosecondarylength.SetFillColorAlpha(ROOT.kMagenta,0.5)
+#finally drawing
+canvas = ROOT.TCanvas()
+htoprimarylength.Draw("histo")
+htosecondarylength.Draw("histo && SAMES")
+hconnectedlength.Draw("histo && SAMES")
+hextralength.Draw("histo && SAMES")
+canvas.BuildLegend()
+
+#drawing histograms
+hconnectedmolt = df2TH1D(dfconnected["predmolt"],"hconnectedmolt", "connected to parent;molt[#mum]", 10,0,10 )
+hextramolt = df2TH1D(dfextra["predmolt"],"hextramolt", "extra tracks;molt[#mum]", 10,0,10 )
+htoprimarymolt = df2TH1D(dftoprimary["predmolt"],"htoprimarymolt", "associated to primary vertex;molt[#mum]", 10,0,10 )
+htosecondarymolt = df2TH1D(dftosecondary["predmolt"],"htosecondarymolt", "associated to secondary vertex;molt[#mum]", 10,0,10 )
+#normalizing
+hconnectedmolt.Scale(1./hconnectedmolt.Integral())
+hextramolt.Scale(1./hextramolt.Integral())
+htoprimarymolt.Scale(1./htoprimarymolt.Integral())
+htosecondarymolt.Scale(1./htosecondarymolt.Integral())
+#setting colors
+#hconnectedmolt.SetFillColorAlpha(ROOT.kBlue,0.5)
+hextramolt.SetLineColor(ROOT.kRed)
+#hextramolt.SetFillColorAlpha(ROOT.kRed,0.5)
+htoprimarymolt.SetLineColor(ROOT.kYellow)
+#htoprimarymolt.SetFillColorAlpha(ROOT.kYellow,0.5)
+htosecondarymolt.SetLineColor(ROOT.kMagenta)
+#htosecondarymolt.SetFillColorAlpha(ROOT.kMagenta,0.5)
+#finally drawing
+canvas1 = ROOT.TCanvas()
+hextramolt.Draw("histo")
+htoprimarymolt.Draw("histo&&SAMES")
+htosecondarymolt.Draw("histo && SAMES")
+hconnectedmolt.Draw("histo && SAMES")
+canvas1.BuildLegend()
+
+#import matplotlib.pyplot as plt #using matplotlib instead of ROOT for faster drawings
+#plt.figure()
+#plt.hist(dfconnected["preddecaylength"],bins = 30, range = (0,30000),density=True,alpha = 0.5, label = "connected to parent")
+#plt.hist(dfextra["preddecaylength"],bins = 30, range = (0,30000),density=True,alpha = 0.5,color="r", label = "extra tracks")
+#plt.hist(dftoprimary["preddecaylength"],bins = 30, range = (0,30000),density=True,alpha = 0.5,color="y",label = "associated to primary vertex")
+#plt.hist(dftosecondary["preddecaylength"],bins = 30, range = (0,30000),density=True,alpha = 0.5,color="m",label = "associated to secondary vertex")
+#plt.xlabel("decaylength[micron]")
+#plt.legend()
+#plt.show()
 
 def inspectevent(eventID):
     '''inspecting the two decay topologies in the event: a vertex takes priority over connected tracks and extra tracks'''
@@ -133,10 +215,12 @@ def inspectevent(eventID):
             print (dfprimaryvertices.loc[[eventID],["ivtx"]])
     else:
         print ("No Primary vertex identified as such in event ",eventID)
-    if (eventID in dfvertices.index):    
-      nsecondaries = len(dfvertices.loc[eventID])
-      print ("How many secondary vertices", nsecondaries)
-      #print (dfvertices.loc[[eventID],["ivtx"]])
+    if (eventID in dftoprimary.index):        
+      print ("Charm daughter associated to primary")
+      print (dftoprimary.loc[[eventID],["ivtx"]])
+    if (eventID in dftosecondary.index):          
+      print ("Charm daughter associated to secondary")
+      print (dftosecondary.loc[[eventID],["ivtx"]])
      # for single in dfvertices.loc[eventID]:
        # help(single)
     if (eventID in dfconnected.index):
