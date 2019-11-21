@@ -1,0 +1,5 @@
+*.so
+*.d
+*.pcm
+*.pyc
+.ipynb_checkpoints
