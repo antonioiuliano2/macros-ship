@@ -3,3 +3,4 @@
 *.pcm
 *.pyc
 .ipynb_checkpoints
+*~
