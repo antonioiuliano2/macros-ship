@@ -16,13 +16,13 @@
 
 
 #variables with file paths
-macropath = "/home/antonio/Dottorato/Analisi/macros-ship"
-workdir = "/home/antonio/Dottorato/Charmdata/CH1-R6/decay_search_MC"
+macropath = "/afs/cern.ch/work/a/aiuliano/public/macros-ship/"
+workdir = "/afs/cern.ch/work/a/aiuliano/public/sim_fedra/CH1_testcharmpoints/b000002"
 
 #INPUT FILES
-inputsimtree = workdir+"/ship.conical.Pythia8CharmOnly-TGeant4.root"
-inputvertextree = workdir+"/vertextree_newformat.root"
-inputtrackstree = workdir+"/linked_tracks.root"
+inputsimtree = workdir+"/../ship.conical.Pythia8CharmOnly-TGeant4.root"
+inputvertextree = workdir+"/vertextree_test.root"
+inputtrackstree = workdir+"/verticesandtracks.root"
 
 #OUTPUT FILES
 charmlistfile = workdir+"/charmlist.p"

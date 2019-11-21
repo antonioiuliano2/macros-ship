@@ -4,7 +4,7 @@ import sys
 globalfile = ROOT.TFile.Open(sys.argv[1])
 scififile = ROOT.TFile.Open(sys.argv[2])
 
-outputfile = ROOT.TFile.Open("entrycomparison.root","UPDATE")
+#outputfile = ROOT.TFile.Open("entrycomparison.root","UPDATE")
 
 globaltree = globalfile.Get("cbmsim")
 scifitree = scififile.Get("cbmsim")
@@ -19,4 +19,18 @@ for event in globaltree:
  nentries = scifitree.GetEntries("TMath::Abs(EventHeader.GetEventTime()-"+str(globaltime)+")<"+str(sensitivity))
  hentries.Fill(nentries)
 
-outputfile.Write()
+hdelta = ROOT.TH1D("hdelta", "histogram of time differences", 400,-2,2)
+for entry in range(scifitree.GetEntries()):
+    scifitree.GetEntry(entry)
+    globaltree.GetEntry(entry)
+    globalheader = scifitree.EventHeader
+    scifiheader = scifitree.EventHeader
+    globalheader = globaltree.EventHeader
+    delta = globalheader.GetEventTime() - scifiheader.GetEventTime()
+    hdelta.Fill(delta/1E+6)
+
+hdelta.GetXaxis().SetTitle("#Deltat[ms]")
+hdelta.SetTitle("globalheadereventtime - scifiheadereventtime")
+ROOT.gStyle.SetOptStat(111111)
+hdelta.Draw()
+#outputfile.Write()
