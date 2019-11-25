@@ -10,8 +10,8 @@ npoints = int(1E+5)
 
 hxy = r.TH2D("hxy","Produced positions;x[cm];y[cm]",30,-1.5,1.5,30,-1.5,1.5)
 hx1y1 = r.TH2D("hx1y1","Tilted positions;x[cm];y[cm]",30,-1.5,1.5,30,-1.5,1.5)
-hdt = r.TH1D("hdt","DeltaTimeStamp",200,0,200)
-ht = r.TH1D("ht","TimeStamp",200,0,200000)
+hdt = r.TH1D("hdt","DeltaTimeStamp;dt[25ns]",200,0,200E+3)
+ht = r.TH1D("ht","TimeStamp;t[25ns]",200,0,200E+6)
 randomgen = r.TRandom3()
 for ipoint in range(npoints):
     #generating initial pair
@@ -27,13 +27,19 @@ for ipoint in range(npoints):
     hxy.Fill(x,y) 
     hx1y1.Fill(x1,y1)
 t = 0.
-ngauspoints = 15000
-for ipoint in range(ngauspoints):
- dt = r.gRandom.Exp(7.721)
+#ngauspoints = 15000
+ngauspoints = 0
+mateifunc = r.TF1("mateifunc","TMath::Exp(7.721-0.00004251*x)",0,200000)
+while (t < 4.8E+9/25.):
+#for ipoint in range(ngauspoints):
+ #dt = r.gRandom.Exp(7.721)
+ dt = mateifunc.GetRandom()
  t = t+dt
  hdt.Fill(dt)
  ht.Fill(t)
+ ngauspoints = ngauspoints + 1
  
+print(ngauspoints) 
 c = r.TCanvas()
 c.Divide(1,2)
 c.cd(1)
