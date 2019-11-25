@@ -1,10 +1,9 @@
 //display for vertices, patterns are not drawn
 
 EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int vertexID );
-
-void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree.root"){
- const int nvertices = 1;
- int vertexlist[nvertices] = {139653, 40204};
+void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree_firstquarter_noendend.root"){
+ const int nvertices = 2;
+ int vertexlist[nvertices] = {10, 20};
  int vertexcolors[nvertices] = {kRed,kGreen};
 
  TFile * inputfile = TFile::Open(vertexfilename.Data());
@@ -44,6 +43,46 @@ void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree.r
 /* eda->GetTrackSet("TS")->RemoveTrack(specialtrack); //charm colored differently
  eda->GetTrackSet("SB")->SetTrackAttribute(4);
  eda->GetTrackSet("SB")->AddTrack(specialtrack);*/
+ eda->Run();
+}
+
+void drawEDAvertices(bool newversion = true, TString vertexfilename= "vertextree_firstquarter_noendend.root"){
+ TFile * inputfile = TFile::Open(vertexfilename.Data());
+ TTree *vtxtree = (TTree*) inputfile->Get("vtx");
+ EdbVertexRec *vertexrec = (EdbVertexRec*) inputfile->Get("EdbVertexRec");
+
+
+ TObjArray *drawnvertices = new TObjArray(1000000);
+ TObjArray *drawntracks = new TObjArray(1000000);
+
+// EdbTrackP *specialtrack = new EdbTrackP();
+
+ EdbPVRec *ali = new EdbPVRec();
+
+ const int nvertices = 10000;
+ cout<<"Reading number of vertices: "<<nvertices<<endl;
+ for (int i = 0; i < nvertices; i++){ //range for loop, C++11
+  int vID = i;
+  
+  EdbVertex *vertex = 0;
+
+  if (newversion) vertex = GetVertexFromTree(*ali,vertexfilename,vID);
+  else vertex = (EdbVertex*) vertexrec->eVTX->At(vID);
+
+  if (vertex->N()< 4) continue;
+  drawnvertices->Add(vertex); // assuming the array is filled with EdbVertex.
+  for (int itrk = 0; itrk < vertex->N(); itrk++){
+     EdbTrackP* track =  vertex->GetTrack(itrk);          
+ //    for (int iseg = 0; iseg < track->N(); iseg++) track->GetSegment(iseg)->SetFlag(vertexcolors[i]); // to color them differently
+     drawntracks->Add(track);
+//     specialtrack = track;
+  }
+ }
+
+ ali->eTracks = drawntracks;
+ ali->eVTX = drawnvertices;
+ EdbEDA * eda = new EdbEDA(ali); // init DataSet but doesn't read linked_track.root
+ eda->GetTrackSet("TS")->SetColorMode(kCOLOR_BY_PARTICLE);
  eda->Run();
 }
 
