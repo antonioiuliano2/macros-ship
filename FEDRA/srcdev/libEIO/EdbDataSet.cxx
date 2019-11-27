@@ -2518,7 +2518,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
 {
   Log(2,"EdbDataProc::MakeVertexTree","write vertices into %s ... ",file);
   TFile fil(file,"RECREATE");
-  TTree *vtx= new TTree("vtx","Reconstructed vertices in emulion");
+  TTree *vtx= new TTree("vtx","Reconstructed vertices in emulsion");
   
   EdbSegP      *tr = new EdbSegP();
   EdbTrackP *track = NULL;
@@ -2541,6 +2541,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
   Int_t nholes[maxdim];
   Int_t maxgap[maxdim];
   Int_t nseg[maxdim];
+  Int_t npl[maxdim];
   Float_t TX[maxdim];
   Float_t TY[maxdim];
   Float_t impactparameter[maxdim];
@@ -2567,6 +2568,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
   //track variables (they are array with the number of tracks as size)
   vtx->Branch("TrackID",&TrackID,"TrackID[n]/I");
   vtx->Branch("nseg",&nseg,"nseg[n]/I");
+  vtx->Branch("npl",&npl,"npl[n]/I");
   vtx->Branch("nholes",&nholes,"nholes[n]/I"); //even more variables in this tree
   vtx->Branch("maxgap",&maxgap,"maxgap[n]/I"); 
   vtx->Branch("incoming",&incoming,"incoming[n]/I");
@@ -2604,6 +2606,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
 
      TrackID[itrk] = track->Track(); //the eTrack attribute of EdbSegP now allows association to original root tree
      nseg[itrk] = track->N();
+     npl[itrk]  = track->Npl();
      Int_t zpos = vertex->GetVTa(itrk)->Zpos();
      incoming[itrk] = zpos;
      nholes[itrk] = track->N0();
