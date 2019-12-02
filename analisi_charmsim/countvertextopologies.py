@@ -61,6 +61,10 @@ for ientry in range(1000): #old style loop
     ngoodevent = 0
     nconnectedevent = 0
     nextraevent = 0
+    dfprimaryvertex = dfprimaryvertices.query("MCEventID=={}".format(ientry)) #vertex for that ID
+    if len(dfprimaryvertex)==1:
+        asprimary = dfall["ivtx"]==dfprimaryvertex["ivtx"].iloc[0] #matching ivtx, they are not charm but primary vertices
+        dfall.loc[asprimary,'topology']=1
     if dfvertices.index.contains(ientry):       
         dfprimaryvertex = dfprimaryvertices.query("MCEventID=={}".format(ientry)) #vertex for that ID
         if len(dfprimaryvertex)==1:
@@ -234,6 +238,9 @@ def inspectevent(eventID):
 # Double Signal: topology 1, 2 ,2 total 5
 # Single Signal: topology 1,2 or 2,2: total less than 5
 
+#saving edited dfall
+dfall.sort_values("ivtx")
+dfall.to_csv("edited_vtx_list.csv",index=False)
 
 def rawcheck():
  '''Quick check, molteplicity (now replaced with topology)'''
