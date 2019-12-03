@@ -41,7 +41,7 @@ TFile *file = NULL;
 TH1D *heff = NULL ; //efficiency at different angles
 void fromFairShip2Fedra(TString filename){
  const int nplates = 29;
- int nbrick = 1; // to set b00000%i number
+ int nbrick = 2; // to set b00000%i number
 
  const bool useefficiencymap = false; //use the map instead of the constant value down
  const bool dosmearing = true; //gaussian smearing or not
@@ -51,7 +51,7 @@ void fromFairShip2Fedra(TString filename){
   file = TFile::Open("efficiency_alltracks.root");
   heff = (TH1D*) file->Get("heff");
  }
- const float emuefficiency = 1.0; // i am efficient to everything
+ const float emuefficiency = 0.85; // flat value
  TF1 resfunction = angularresolution();
  float angres = 0.003; //Used cases: 3, 5milliradians. Constant value overwritten if useresfunction=true
 
@@ -78,8 +78,8 @@ void fromFairShip2Fedra(TString filename){
  EdbCouplesTree *ect[nplates];
  for (int i = 1; i <= nplates; i++){
   ect[i-1] = new EdbCouplesTree();
-  if (i <10) ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p00%i/1.%i.0.0.cp.root",nbrick,i,i),"RECREATE");
-  else ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p0%i/1.%i.0.0.cp.root",nbrick,i,i),"RECREATE");
+  if (i <10) ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p00%i/%i.%i.0.0.cp.root",nbrick,i,nbrick,i),"RECREATE");
+  else ect[i-1]->InitCouplesTree("couples",Form("b00000%i/p0%i/%i.%i.0.0.cp.root",nbrick,i,nbrick,i),"RECREATE");
  }
  Int_t Flag = 1;
  cout<<"Start processing nevents: "<<nevents<<endl;  
