@@ -41,7 +41,7 @@ TFile *file = NULL;
 TH1D *heff = NULL ; //efficiency at different angles
 void fromFairShip2Fedra(TString filename){
  const int nplates = 29;
- int nbrick = 2; // to set b00000%i number
+ int nbrick = 1; // to set b00000%i number
 
  const bool useefficiencymap = false; //use the map instead of the constant value down
  const bool dosmearing = true; //gaussian smearing or not
@@ -52,7 +52,8 @@ void fromFairShip2Fedra(TString filename){
   heff = (TH1D*) file->Get("heff");
  }
  const float emuefficiency = 0.85; // flat value
- TF1 resfunction = angularresolution();
+ TF1 resfunction;
+ if (useresfunction) resfunction = angularresolution();
  float angres = 0.003; //Used cases: 3, 5milliradians. Constant value overwritten if useresfunction=true
 
  const float ngrains = 70; //the same number for all the couples, so they have the same weigth.
@@ -64,14 +65,14 @@ void fromFairShip2Fedra(TString filename){
  //getting tree and arrays
  TTreeReader reader("cbmsim",inputfile);
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
- TTreeReaderArray<EmuBaseTrk> emulsionhits(reader,"EmuBaseTrks");
+ TTreeReaderArray<BoxPoint> emulsionhits(reader,"EmuBaseTrks");
  
  //TTree* cbmsim = (TTree*)inputfile->Get("cbmsim");
  Float_t tx = 0, ty=0, xem= 0, yem = 0;
  const Int_t nevents = reader.GetTree()->GetEntries();
  int ihit = 0, ievent = 0;
  int nfilmhit = 0;
- float tantheta;
+ float tantheta, momentum;
  int trackID = 0, motherID = 0, pdgcode = 0;
  // ***********************CREATING FEDRA TREES**************************
  gInterpreter->AddIncludePath("/afs/cern.ch/work/a/aiuliano/public/fedra/include");
@@ -88,28 +89,38 @@ void fromFairShip2Fedra(TString filename){
  for (int i = 0; i < nevents; i++){
   if (ievent%1000==0) cout<<"processing event "<<ievent<<" out of "<<nevents<<endl;
   reader.Next();
-   for (const EmuBaseTrk& emupoint:emulsionhits){   
+   for (const BoxPoint& emupoint:emulsionhits){   
      bool savehit = true; //by default I save all hits
 //no you don't want to do this//     if (j % 2 == 0) continue;
+     momentum = TMath::Sqrt(pow(emupoint.GetPx(),2) + pow(emupoint.GetPy(),2) + pow(emupoint.GetPz(),2));
      pdgcode = emupoint.PdgCode();
      trackID = emupoint.GetTrackID();
      bool emubasetrackformat = true;
-
+     
      if (trackID >= 0) motherID = tracks[trackID].GetMotherId();
+     else motherID = -2; //hope I do not see them
      xem = emupoint.GetX()* 1E+4 + 62500;
      yem = emupoint.GetY()* 1E+4 + 49500;     
-     tx = emupoint.GetTX();
-     ty = emupoint.GetTY();  
+     tx = emupoint.GetPx()/emupoint.GetPz();
+     ty = emupoint.GetPy()/emupoint.GetPz();  
      tantheta = pow(pow(tx,2) + pow(ty,2),0.5);
-     double charge;        
+     double charge,mass;        
 
-     if ((TDatabasePDG::Instance()->GetParticle(pdgcode))!=NULL) charge = TDatabasePDG::Instance()->GetParticle(pdgcode)->Charge();
-     else charge = 0.;
+     if ((TDatabasePDG::Instance()->GetParticle(pdgcode))!=NULL){ 
+      charge = TDatabasePDG::Instance()->GetParticle(pdgcode)->Charge();
+      mass = TDatabasePDG::Instance()->GetParticle(pdgcode)->Mass();
+      }
+     else{ 
+      charge = 0.;
+      mass = 0.;
+      }
      nfilmhit = emupoint.GetDetectorID(); //getting number of the film
+     double kinenergy = TMath::Sqrt(pow(mass,2)+pow(momentum,2)) - mass;
      // *************EXCLUDE HITS FROM BEING SAVED*******************
      if (nfilmhit > 1000) savehit = false;
      if (tantheta > 1) savehit = false; //we scan from theta 0 to a maximum of 1 rad
      if(charge == 0.) savehit = false; //we do not track neutral particles
+     if(kinenergy < 0.1) savehit = false; //particles with too low kin energy 
      //saving the hits for a plate in the corresponding couples (only one layer saved, the other has ID + 10000)             
  
      if (useefficiencymap){ //efficiency map with angle
