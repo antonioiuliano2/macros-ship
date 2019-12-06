@@ -109,3 +109,13 @@ if not ds:
   ds=ROOT.EdbDisplay(dsname,-50000.,50000.,-50000.,50000.,-4000.,80000.)
 drawtracks(drawntracksfromvertex,tracks)
 
+#get vertex file and vertex tree
+vertexfile = ROOT.TFile.Open(vertexfilename,"read")
+vertextree = vertexfile.Get("vtx")
+def drawnearvertices(x,y,z,radius,minmolt):
+  '''draw vertices near a given point'''
+  nearvertices = vertextree.CopyTree("TMath::Sqrt(pow(vx-{},2)+pow(vy-{},2)+pow(vz-{},2))<{} && n >= {}".format(x,y,z,radius,minmolt))
+  print ("Other {} vertices to draw".format(nearvertices.GetEntries()))
+  for entry in nearvertices:
+    vertex = ROOT.VertexIO.GetVertexFromTree(gAli,vertexfilename,entry.vID)
+    ds.VertexDraw(vertex)
