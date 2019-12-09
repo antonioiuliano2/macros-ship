@@ -58,10 +58,12 @@ for trackID in fedratrackslist:
 drawnvertices = ROOT.TObjArray(100)
 drawntracksfromvertex = ROOT.TObjArray(10000)
 
+proc = ROOT.EdbDataProc()
+
 if (options.new): #new format, vertex information saved in tree
  ROOT.gROOT.ProcessLine(".L VertexIO.C")
  for vertexnumber in vertexnumberlist:
-  vertex = ROOT.VertexIO.GetVertexFromTree(gAli,vertexfilename,int(vertexnumber))
+  vertex = proc.GetVertexFromTree(gAli,vertexfilename,int(vertexnumber))
   ntracksfromvertex = vertex.N()
   #adding tracks and vertices to list to be drawn (only one vertex in this case)
   drawnvertices.Add(vertex)
@@ -97,10 +99,10 @@ def drawtracks(vertextracks,othertracks):
  for itrk, track in enumerate(othertracks):
    ds.TrackDraw(track,isolatedtrackcolors[itrk])
  #loop on vertices to draw associated tracks
- for ivtx, vertex in enumerate(drawnvertices):
-  for itrk in range(vertex.N()):#tracks associated to that vertex
-   track = vertex.GetTrack(itrk)
-   ds.TrackDraw(track, vertextrackcolors[ivtx])
+ #for ivtx, vertex in enumerate(drawnvertices):
+  #for itrk in range(vertex.N()):#tracks associated to that vertex
+  # track = vertex.GetTrack(itrk)
+  # ds.TrackDraw(track, vertextrackcolors[ivtx])
 
 ROOT.gStyle.SetPalette(1);
 dsname="Charm simulation FEDRA display"
@@ -117,8 +119,12 @@ def drawnearvertices(x,y,z,radius,minmolt):
   nearvertices = vertextree.CopyTree("TMath::Sqrt(pow(vx-{},2)+pow(vy-{},2)+pow(vz-{},2))<{} && n >= {}".format(x,y,z,radius,minmolt))
   print ("Other {} vertices to draw".format(nearvertices.GetEntries()))
   for ivtx,entry in enumerate(nearvertices):
-    vertex = ROOT.VertexIO.GetVertexFromTree(gAli,vertexfilename,entry.vID)
+    vertex = proc.GetVertexFromTree(gAli,vertexfilename,entry.vID)
+    if str(vertex.ID()) in vertexnumberlist:
+       print ("Already present 1 vertex")
+       continue
     ds.VertexDraw(vertex)
+    print("Test: ",vertex.VZ(),vertex.Z())
     for itrk in range(vertex.N()):#tracks associated to that vertex
      track = vertex.GetTrack(itrk)
      ds.TrackDraw(track,ivtx+2)
