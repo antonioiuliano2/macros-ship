@@ -239,6 +239,7 @@ class EdbDataProc : public TObject {
   static int MakeVertexTree(TObjArray &vtxarr, const char *file);
   static int MakeTracksTree(TObjArray &tracks, float xv=0, float yv=0, const char *file="linked_tracks.root");
   static int ReadVertexTree( EdbPVRec &ali, const char     *fname, const char *rcut );
+  EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int vertexID );
   static int ReadTracksTree(EdbPVRec &ali,
 			    const char *fname="linked_tracks.root",
 			    //			    int   nsegMin=3,

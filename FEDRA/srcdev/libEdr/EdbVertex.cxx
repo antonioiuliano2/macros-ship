@@ -870,9 +870,9 @@ EdbVertex *EdbVertexRec::Make1Vertex(TObjArray &tracks, float zexpected)
     (t->Z() >= v->VZ())? vta->SetZpos(1) : vta->SetZpos(0);
     t->AddVTA(vta);
   }
-  //if( MakeV(*v) )  AddVertex(v);
-  //else { SafeDelete(v); return 0; }                                // vertex is not valid
-  AddVertex(v);
+  if( MakeV(*v) )  AddVertex(v);
+  else { SafeDelete(v); return 0; }                                // vertex is not valid
+  //AddVertex(v);
   return v;
 }
 
