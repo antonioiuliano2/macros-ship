@@ -116,6 +116,9 @@ def drawnearvertices(x,y,z,radius,minmolt):
   '''draw vertices near a given point'''
   nearvertices = vertextree.CopyTree("TMath::Sqrt(pow(vx-{},2)+pow(vy-{},2)+pow(vz-{},2))<{} && n >= {}".format(x,y,z,radius,minmolt))
   print ("Other {} vertices to draw".format(nearvertices.GetEntries()))
-  for entry in nearvertices:
+  for ivtx,entry in enumerate(nearvertices):
     vertex = ROOT.VertexIO.GetVertexFromTree(gAli,vertexfilename,entry.vID)
     ds.VertexDraw(vertex)
+    for itrk in range(vertex.N()):#tracks associated to that vertex
+     track = vertex.GetTrack(itrk)
+     ds.TrackDraw(track,ivtx+2)
