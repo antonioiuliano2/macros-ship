@@ -11,7 +11,7 @@ gAli = dproc.PVR()
 
 fedratrackslist = []
 #vertexnumberlist = [10, 20]
-isolatedtrackcolors = [ROOT.kMagenta, ROOT.kBlue, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta] #so we can set different colors for different tracks
+isolatedtrackcolors = [ROOT.kMagenta, ROOT.kBlue, ROOT.kRed, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta] #so we can set different colors for different tracks
 vertextrackcolors = [ROOT.kYellow,ROOT.kBlue,ROOT.kRed] #so we can set different colors for different tracks
 #list of possible options
 parser = ArgumentParser()
@@ -61,7 +61,6 @@ drawntracksfromvertex = ROOT.TObjArray(10000)
 proc = ROOT.EdbDataProc()
 
 if (options.new): #new format, vertex information saved in tree
- ROOT.gROOT.ProcessLine(".L VertexIO.C")
  for vertexnumber in vertexnumberlist:
   vertex = proc.GetVertexFromTree(gAli,vertexfilename,int(vertexnumber))
   ntracksfromvertex = vertex.N()
@@ -95,14 +94,14 @@ def drawtracks(vertextracks,othertracks):
  ds.SetArrTr( vertextracks )
  ds.SetArrV(drawnvertices)
  ds.Draw()
+ #loop on vertices to draw associated tracks
+ for ivtx, vertex in enumerate(drawnvertices):
+  for itrk in range(vertex.N()):#tracks associated to that vertex
+   track = vertex.GetTrack(itrk)
+   ds.TrackDraw(track, vertextrackcolors[ivtx])
  print (len(othertracks),"other tracks to display\n")
  for itrk, track in enumerate(othertracks):
    ds.TrackDraw(track,isolatedtrackcolors[itrk])
- #loop on vertices to draw associated tracks
- #for ivtx, vertex in enumerate(drawnvertices):
-  #for itrk in range(vertex.N()):#tracks associated to that vertex
-  # track = vertex.GetTrack(itrk)
-  # ds.TrackDraw(track, vertextrackcolors[ivtx])
 
 ROOT.gStyle.SetPalette(1);
 dsname="Charm simulation FEDRA display"
@@ -122,6 +121,8 @@ def drawnearvertices(x,y,z,radius,minmolt):
     vertex = proc.GetVertexFromTree(gAli,vertexfilename,entry.vID)
     if str(vertex.ID()) in vertexnumberlist:
        print ("Already present 1 vertex")
+       continue
+    if (vertex.Flag()==2 or vertex.Flag()==5):
        continue
     ds.VertexDraw(vertex)
     print("Test: ",vertex.VZ(),vertex.Z())
