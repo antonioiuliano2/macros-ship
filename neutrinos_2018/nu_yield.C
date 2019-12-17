@@ -1,68 +1,10 @@
 #include "TLegend.h"
-//#include "GenieGenerator.h"
+#include "GenieGenerator.h"
 #include "TGeoBBox.h"
 #include <map>
 //when you discover the difficulty of copying from the masters. Trying to replicate Annarita's studies on neutrino fluxes
-
-void generate_neutrinos(){ //generate neutrino produced spectra according to Thomas histograms
-
- TFile * fInputFile = TFile::Open("neutrinos_merged.root");
- //getting 1D spectra
- TH1D *hnue_p =  (TH1D*) fInputFile->Get("1012");
- TH1D *hnumu_p =  (TH1D*) fInputFile->Get("1014");
- TH1D *hnutau_p =  (TH1D*) fInputFile->Get("1016");
- TH1D *hnue_bar_p =  (TH1D*) fInputFile->Get("2012");
- TH1D *hnumu_bar_p =  (TH1D*) fInputFile->Get("2014");
- TH1D *hnutau_bar_p =  (TH1D*) fInputFile->Get("2016");
-
- //getting 2D spectra
- /*TH2D *hnue_ppt =  (TH2D*) f->Get('1212');
- TH2D *hnumu_ppt =  (TH2D*) f->Get('1214');
- TH2D *hnutau_ppt =  (TH2D*) f->Get('1216');
- TH2D *hnue_bar_ppt =  (TH2D*) f->Get('2212');
- TH2D *hnumu_bar_ppt =  (TH2D*) f->Get('2214');
- TH2D *hnutau_bar_ppt =  (TH2D*) f->Get('2216');*/
-
- Float_t id, px, py, pz,w,x,y;
- Int_t idbase=1200;
- char ts[20];
- TH1D* pxhist[3000];//!
- TH1D* pyslice[3000][100];//!
- printf("Reading (log10(p),log10(pt)) Hists from file: %s\n",fInputFile->GetName());
-      for (Int_t idnu=12;idnu<17;idnu+=2){
-        for (Int_t idadd=-1;idadd<2;idadd+=2){
-  	  Int_t idhnu=idbase+idnu;
-          if (idadd<0) idhnu+=1000;
-	  sprintf(ts,"%d",idhnu);
-	  //pickup corresponding (log10(p),log10(pt)) histogram
-          if (fInputFile->FindObjectAny(ts)){
-           TH2F* h2tmp = (TH2F*) fInputFile->Get(ts);
-           printf("HISTID=%d, Title:%s\n",idhnu,h2tmp->GetTitle());
-	   sprintf(ts,"px_%d",idhnu);
-          //make its x-projection, to later be able to convert log10(p) to its bin-number
-           pxhist[idhnu]=h2tmp->ProjectionX(ts,1,-1);
-           Int_t nbinx=h2tmp->GetNbinsX();
-          //printf("idhnu=%d  ts=%s  nbinx=%d\n",idhnu,ts,nbinx);
-	  //project all slices on the y-axis
-           for (Int_t k=1;k<nbinx+1;k+=1){
-	    sprintf(ts,"h%d%d",idhnu,k);
-            //printf("idnu %d idhnu %d bin%d  ts=%s\n",idnu,idhnu,k,ts);
-            pyslice[idhnu][k]=h2tmp->ProjectionY(ts,k,k);
-	  		}
-        }
-	}
-   }
-
- //loop over histogram entries
- cout<<"Nentries totali: "<<hnue_p->Integral()<<endl;
- for (int i = 0; i < hnue_p->Integral(); i++){
-  pz = hnue_p->GetRandom();
-  if (i%100000==0) cout<<i<<endl;
- }
-}
-
 void neutrino_fluxes(){ //projecting neutrino fluxes to the target
- TFile * f = TFile::Open("/home/utente/pythia8_Geant4-withCharm_onlyNeutrinos.root");
+ TFile * f = TFile::Open("/home/antonio/SHIPBuild/pythia8_Geant4-withCharm_onlyNeutrinos.root");
  TTree *tree = (TTree*) f->Get("pythia8-Geant4");
  TGeoManager * tgeom = new TGeoManager("Geometry", "Geane geometry");
  tgeom->Import("geofile_full.conical.Genie-TGeant4.root");
@@ -91,7 +33,7 @@ void neutrino_fluxes(){ //projecting neutrino fluxes to the target
  tree->SetBranchAddress("w",&w);
  
  Float_t deltaz = 3969.; //distance between center of proton target and start of neutrino target
-
+ //Float_t deltaz = 5500.;
  Float_t xfin, yfin, tanx,tany; //angles and positions after projections
 
  Float_t nnudet = 0., nallneutrinos = 0.;
@@ -100,23 +42,24 @@ void neutrino_fluxes(){ //projecting neutrino fluxes to the target
 
  map<Int_t, TH1D*> hspectrumdet;
 
- TFile *outfile = new TFile("neutrinos_detector.root","RECREATE"); //spectra arrived in detector are saved here
+ TFile *outfile = new TFile("neutrinos_detector_upto1GeV.root","RECREATE"); //spectra arrived in detector are saved here
  //nutau
- hspectrumdet[16] = new TH1D("hnu_tau","Spectrum tau neutrinos arrived at detector",400,0,400);
- hspectrumdet[-16] = new TH1D("hnu_tau_bar","Spectrum tau neutrinos arrived at detector",400,0,400);
+ hspectrumdet[16] = new TH1D("hnu_tau","Spectrum tau neutrinos arrived at detector",1000,0,1);
+ hspectrumdet[-16] = new TH1D("hnu_tau_bar","Spectrum tau neutrinos arrived at detector",1000,0,1);
  TH2D *hxy_nutau_arrived = new TH2D("hxy", "XY distribution of tau neutrinos at detector",2000,-1000,1000,2000,-1000,1000);
  TH2D *hxy_nutau_arrived_det = new TH2D("hxy_det", "XY distribution of tau neutrinos at detector",90,-45,45,76,-38,38);
 
  TH1D *hnutaubar_weight = new TH1D("hnutaubar_weight", "Mean density per length transversed in target region",400,0,400);
 
  //numu
- hspectrumdet[14] = new TH1D("hnu_mu","Spectrum muon neutrinos arrived at detector",400,0,400);
- hspectrumdet[-14] = new TH1D("hnu_mu_bar","Spectrum muon antineutrinos arrived at detector",400,0,400);
+ hspectrumdet[14] = new TH1D("hnu_mu","Spectrum muon neutrinos arrived at detector",1000,0,1);
+ hspectrumdet[-14] = new TH1D("hnu_mu_bar","Spectrum muon antineutrinos arrived at detector",1000,0,1);
 
- hspectrumdet[12] = new TH1D("hnu_e","Spectrum electron neutrinos arrived at detector",400,0,400);
- hspectrumdet[-12] = new TH1D("hnu_e_bar","Spectrum electron antineutrinos arrived at detector",400,0,400);
+ hspectrumdet[12] = new TH1D("hnu_e","Spectrum electron neutrinos arrived at detector",1000,0,1);
+ hspectrumdet[-12] = new TH1D("hnu_e_bar","Spectrum electron antineutrinos arrived at detector",1000,0,1);
 
  Double_t targetdx = 45.15, targetdy = 37.45;
+ //Double_t targetdx = 55, targetdy = 55;
  cout<<"N NEUTRINOS: "<<nneutrinos<<endl;
  for (int i = 0; i < nneutrinos; i++){
 
@@ -266,8 +209,8 @@ void nu_yield(){ //passing neutrino types and interaction mode to nu_yield_gener
 }
 //general layout with FORM to estimate number of neutrino interactions 
 Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = ""){     
-  TFile *xsec = TFile::Open("../input/Nu_xsec.root");
-  TFile *flux = TFile::Open("../input/neutrinos_detector.root");
+  TFile *xsec = TFile::Open("Nu_xsec_full.root"); //normal splines are cut at 350 GeV
+  TFile *flux = TFile::Open("neutrinos_detector.root");
 
   //const char* nu = "nu_mu"; //neutrino type
   //const char* intmode = "dis_cc"; //interaction mode;
@@ -289,16 +232,18 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
 
   Float_t Ninteracting = 0.;
   Double_t mass = 8183*1e+3; //mass in grams
-  Double_t surface = 90.3 * 74.9; //surface in square centimetres
+  //Double_t surface = 90.3 * 74.9; //surface in square centimetres (rectangular configuration)
+  Double_t surface = 80. * 80.; //surface in square centimetres (squared configuration)
   //Double_t surface = 1.4e+4;
   
   Double_t avogadro = 6.022e+23;
-  Double_t NT = mass/208. * avogadro;  
+  Double_t NT = mass/A * avogadro;  
   Double_t x, y ,ysec;
 
   TFile *outputfile = new TFile(Form("plots/results_%s_%s%s.root",nu,intmode,charmmode),"RECREATE");
   TGraph *hxsec_total = new TGraph(); //summing protons and neutrons when both are present
   TH1D *hspectrum_int = new TH1D(Form("hspectrum_%s_int%s%s",nu,intmode,charmmode),Form("Spettro neutrini %s interagenti in %s%s",nu,intmode,charmmode), 400, 0, 400); 
+  TH1D *htest = new TH1D(Form("htest_%s_int%s%s",nu,intmode,charmmode),Form("Spettro neutrini %s interagenti in %s%s",nu,intmode,charmmode), 400, 0, 400); 
 
   for (int n = 0; n < hfluxnu->GetNbinsX(); n++){
   
@@ -311,15 +256,15 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   else if (nulln) ysec = hxsec_p->Eval(x);
   else ysec = (hxsec_p->Eval(x) + hxsec_n->Eval(x)); //summing proton and neutron cross section
 
-  //cout<<Form("cross section for interaction_%s_%s_%s.root",nu,intmode,charmmode)<<endl;
   hxsec_total->SetPoint(n+1,x,ysec);
-  //cout<<ysec*1e-38/208<<" "<<x<<endl;
-  Ninteracting = ysec *1e-38 * NT * y/surface * hfluxnu->GetBinWidth(n+1);
-  hspectrum_int->SetBinContent(n+1,Ninteracting); //riempo un istogramma
+  Ninteracting = ysec *1e-38 * NT * y/surface * hfluxnu->GetBinWidth(n+1);  
+  htest->SetBinContent(n+1,hfluxnu->GetBinWidth(n+1)*y);
+  hspectrum_int->SetBinContent(n+1,Ninteracting);
 
   }
+  Double_t counting = hfluxnu->Integral();
 
-  Double_t yield =  hspectrum_int->Integral();
+  Double_t yield =  hspectrum_int->Integral(0,400);
   //cout<<Form("numero neutrini %s per spill interagenti in mode %s%s",nu,intmode,charmmode)<<" "<<hspectrum_int->Integral()<<endl;
   hspectrum_int->Draw();
   hspectrum_int->GetXaxis()->SetTitle("GeV/c");
@@ -328,6 +273,9 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   outputfile->Write();
   hxsec_total->Write("xsec");
   outputfile->Close();
+  //cout<<"TEST "<<htest->GetEntries()<<endl;
+  //Double_t countingtest = htest->Integral();
+  //cout<<"Test conteggio "<<counting<<"integrale manuale "<<countingtest<<endl;
   return yield;
 }
 
