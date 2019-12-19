@@ -104,15 +104,24 @@ def drawtracks(vertextracks,othertracks):
    ds.TrackDraw(track,isolatedtrackcolors[itrk])
 
 ROOT.gStyle.SetPalette(1);
+
 dsname="Charm simulation FEDRA display"
 ds = ROOT.EdbDisplay.EdbDisplayExist(dsname);
 if not ds:  
   ds=ROOT.EdbDisplay(dsname,-50000.,50000.,-50000.,50000.,-4000.,80000.)
+
+
 drawtracks(drawntracksfromvertex,tracks)
 
 #get vertex file and vertex tree
 vertexfile = ROOT.TFile.Open(vertexfilename,"read")
 vertextree = vertexfile.Get("vtx")
+
+def close():
+  '''Close canvas, allowing program to exit without crashing ROOT'''
+  global ds
+  ds = 0
+
 def drawnearvertices(x,y,z,radius,minmolt):
   '''draw vertices near a given point'''
   nearvertices = vertextree.CopyTree("TMath::Sqrt(pow(vx-{},2)+pow(vy-{},2)+pow(vz-{},2))<{} && n >= {}".format(x,y,z,radius,minmolt))
