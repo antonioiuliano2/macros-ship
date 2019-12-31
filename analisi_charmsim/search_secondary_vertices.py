@@ -59,17 +59,30 @@ for ivtx,vtx in enumerate(vtxtree):
     vx = vtx.vx
     vy = vtx.vy
     vz = vtx.vz
+
+    segments = vtx.s
     incominglist = vtx.incoming # 1 if track starts from there
     #loop on vertices associated to track
-    for (MCEventID,MCTrackID,MCMotherID,TrackID,incomingtrack) in zip(vtx.MCEventID,vtx.MCTrackID,vtx.MCMotherID,vtx.TrackID,incominglist):
-        #getting list of IDs for charm daughters from that event
+    nprevioussegments = 0
+    for (MCEventID,MCTrackID,MCMotherID,TrackID,nseg,incomingtrack) in zip(vtx.MCEventID,vtx.MCTrackID,vtx.MCMotherID,vtx.TrackID,vtx.nseg,incominglist):
+        #first and last segment
+        firstsegment = segments[0+nprevioussegments]
+        lastsegment = segments[nseg-1+nprevioussegments]
+        nprevioussegments = nprevioussegments + nseg
+                
+        charmIDs = charmlist[MCEventID]
         daughterIDs = daughterlist[MCEventID]
         ndaughters = ndaughterslist[MCEventID]
-        decaylengths = decaylengthlist[MCEventID]  # in cm, needs to be multiplied for 1E+4 to micron conversion     
+        decaylengths = decaylengthlist[MCEventID]  # in cm, needs to be multiplied for 1E+4 to micron conversion   
+        if ((firstsegment.MCTrack() in charmIDs) and (lastsegment.MCTrack() in daughterIDs)):
+        # Topology 3: track connected to parent
+         outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7:.0f},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".\
+                    format(ntracks, vID, TrackID, lastsegment.MCEvt(), lastsegment.MCTrack(),lastsegment.Aid(0),ndaughters[lastsegment.Aid(0)],decaylengths[lastsegment.Aid(0)] *1E+4,1, vx,vy,vz,3))
+        #getting list of IDs for charm daughters from that event  
         #if MCMotherID == -1 and incomingtrack == 1:
         #        outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8:.0f},{9:.0f},{10:.0f},{11}\n".format(ntracks, vID, TrackID, MCEventID, MCTrackID,MCMotherID,0,1,vx,vy,vz,1))
         if MCTrackID in daughterIDs and incomingtrack == 1:
-                outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7:.0f},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".
+                outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7:.0f},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".\
                     format(ntracks, vID, TrackID, MCEventID, MCTrackID,MCMotherID,ndaughters[MCMotherID],decaylengths[MCMotherID] *1E+4,1, vx,vy,vz,2))
 
 def lookforcharm(df,ievent,charmID):
