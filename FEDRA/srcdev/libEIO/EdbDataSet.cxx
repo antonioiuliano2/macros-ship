@@ -2549,6 +2549,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
   //MC information
   Int_t MCEventID[maxdim];
   Int_t MCTrackID[maxdim];
+  Int_t MCTrackPdgCode[maxdim];
   Int_t MCMotherID[maxdim];
 
   //list of branches
@@ -2576,6 +2577,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
   //inserting MCtrue information
   vtx->Branch("MCEventID", &MCEventID, "MCEventID[n]/I");
   vtx->Branch("MCTrackID",&MCTrackID,"MCTrackID[n]/I");
+  vtx->Branch("MCTrackPdgCode",&MCTrackPdgCode,"MCTrackPdgCode[n]/I");
   vtx->Branch("MCMotherID",&MCMotherID,"MCMotherID[n]/I");
 
   int nvtx = vtxarr.GetEntriesFast();
@@ -2615,6 +2617,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
      //Storing MCTrue information (of course for real data these values have no sense)
      MCEventID[itrk] = track->MCEvt();
      MCTrackID[itrk] = track->MCTrack();
+     MCTrackPdgCode[itrk] = track->Vid(0);
      MCMotherID[itrk] = track->Aid(0); //used to store MotherID information
     //w    = track->Wgrains();
      EdbSegP *s=0,*sf=0;
