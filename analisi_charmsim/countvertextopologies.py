@@ -55,16 +55,14 @@ dfvertices = dfcharm[dfcharm['topology']==2]
 
 topologymatrix = np.zeros([5,5])
 
-for ientry in range(1000): #old style loop
+nevents = 9000
+for ientry in range(0,nevents): #old style loop
     # need to know for each event how many instances of different topologies
     nbadevent = 0
     ngoodevent = 0
     nconnectedevent = 0
     nextraevent = 0
     dfprimaryvertex = dfprimaryvertices.query("MCEventID=={}".format(ientry)) #vertex for that ID
-    if len(dfprimaryvertex)==1:
-        asprimary = dfall["ivtx"]==dfprimaryvertex["ivtx"].iloc[0] #matching ivtx, they are not charm but primary vertices
-        dfall.loc[asprimary,'topology']=1
     if dfvertices.index.contains(ientry):       
         dfprimaryvertex = dfprimaryvertices.query("MCEventID=={}".format(ientry)) #vertex for that ID
         if len(dfprimaryvertex)==1:
@@ -160,19 +158,25 @@ hextralength.Scale(1./hextralength.Integral())
 htoprimarylength.Scale(1./htoprimarylength.Integral())
 htosecondarylength.Scale(1./htosecondarylength.Integral())
 #setting colors
-#hconnectedlength.SetFillColorAlpha(ROOT.kBlue,0.5)
+hconnectedlength.SetFillColor(ROOT.kBlue)
 hextralength.SetLineColor(ROOT.kRed)
-#hextralength.SetFillColorAlpha(ROOT.kRed,0.5)
+hextralength.SetFillColor(ROOT.kRed)
 htoprimarylength.SetLineColor(ROOT.kYellow)
-#htoprimarylength.SetFillColorAlpha(ROOT.kYellow,0.5)
+htoprimarylength.SetFillColor(ROOT.kYellow)
 htosecondarylength.SetLineColor(ROOT.kMagenta)
-#htosecondarylength.SetFillColorAlpha(ROOT.kMagenta,0.5)
+htosecondarylength.SetFillColor(ROOT.kMagenta)
+hlength = ROOT.THStack("hlength","Charm hadron decay length from true MC")
+hlength.Add(htoprimarylength)
+hlength.Add(htosecondarylength)
+hlength.Add(hconnectedlength)
+hlength.Add(hextralength)
 #finally drawing
 canvas = ROOT.TCanvas()
-htoprimarylength.Draw("histo")
-htosecondarylength.Draw("histo && SAMES")
-hconnectedlength.Draw("histo && SAMES")
-hextralength.Draw("histo && SAMES")
+#htoprimarylength.Draw("histo")
+#htosecondarylength.Draw("histo && SAMES")
+#hconnectedlength.Draw("histo && SAMES")
+#hextralength.Draw("histo && SAMES")
+hlength.Draw("histo")
 canvas.BuildLegend()
 
 #drawing histograms
@@ -186,19 +190,25 @@ hextramolt.Scale(1./hextramolt.Integral())
 htoprimarymolt.Scale(1./htoprimarymolt.Integral())
 htosecondarymolt.Scale(1./htosecondarymolt.Integral())
 #setting colors
-#hconnectedmolt.SetFillColorAlpha(ROOT.kBlue,0.5)
+hconnectedmolt.SetFillColor(ROOT.kBlue)
 hextramolt.SetLineColor(ROOT.kRed)
-#hextramolt.SetFillColorAlpha(ROOT.kRed,0.5)
+hextramolt.SetFillColor(ROOT.kRed)
 htoprimarymolt.SetLineColor(ROOT.kYellow)
-#htoprimarymolt.SetFillColorAlpha(ROOT.kYellow,0.5)
+htoprimarymolt.SetFillColor(ROOT.kYellow)
 htosecondarymolt.SetLineColor(ROOT.kMagenta)
-#htosecondarymolt.SetFillColorAlpha(ROOT.kMagenta,0.5)
+htosecondarymolt.SetFillColor(ROOT.kMagenta)
+hmolteplicity = ROOT.THStack("hmolteplicity","Expected molteplicity of charm decay")
+hmolteplicity.Add(htoprimarymolt)
+hmolteplicity.Add(htosecondarymolt)
+hmolteplicity.Add(hconnectedmolt)
+hmolteplicity.Add(hextramolt)
 #finally drawing
 canvas1 = ROOT.TCanvas()
-hextramolt.Draw("histo")
-htoprimarymolt.Draw("histo&&SAMES")
-htosecondarymolt.Draw("histo && SAMES")
-hconnectedmolt.Draw("histo && SAMES")
+#hextramolt.Draw("histo")
+#htoprimarymolt.Draw("histo&&SAMES")
+#htosecondarymolt.Draw("histo && SAMES")
+#hconnectedmolt.Draw("histo && SAMES")
+hmolteplicity.Draw("histo")
 canvas1.BuildLegend()
 
 #import matplotlib.pyplot as plt #using matplotlib instead of ROOT for faster drawings
@@ -237,10 +247,6 @@ def inspectevent(eventID):
 #dfvertices.groupby(['MCEventID','ivtx']).sum()
 # Double Signal: topology 1, 2 ,2 total 5
 # Single Signal: topology 1,2 or 2,2: total less than 5
-
-#saving edited dfall
-dfall.sort_values("ivtx")
-dfall.to_csv("edited_vtx_list.csv",index=False)
 
 def rawcheck():
  '''Quick check, molteplicity (now replaced with topology)'''
