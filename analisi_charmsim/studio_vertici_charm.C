@@ -10,7 +10,7 @@ void studio_vertici_charm(){
 
 void dafile(){
   //TFile *inputfile = TFile::Open("~/Lavoro/Analisi/Archivio_cronologico/Marzo_2018/cascade_vs_primary.root");
-  TFile *inputfile = TFile::Open("~/Simulations/sim_charmdet/charm_events/bigtarget_v2/ship.conical.Pythia8CharmOnly-TGeant4.root");
+  TFile *inputfile = TFile::Open("/eos/user/a/aiuliano/public/sims_FairShip/sim_charm/bigtarget_v2/ship.conical.Pythia8CharmOnly-TGeant4.root");
  // TCanvas *c1 = (TCanvas*) inputfile->Get("c1");
   //TH1D* hprimary =  (TH1D*) c1->GetPrimitive("hprimary");
   //TH1D* hsecondary = (TH1D*) c1->GetPrimitive("hsecondary");

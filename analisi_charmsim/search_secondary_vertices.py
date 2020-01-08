@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument("-f", "--fedra", dest="vertexfilename", help="file with reconstructed fedra vertices",
                     required=True)
+parser.add_argument("-s", "--simulationfile", dest="simfilename", help="file with original MCtrue simulation")
 parser.add_argument("-c", "--charmlist", dest="charmlistfilename", help="charm list file",
                     required=True)
 parser.add_argument("-o", "--output", dest="vertexcsv", help="output csv file",
@@ -46,6 +47,9 @@ def most_frequent(List):
   
     return num,counter
 
+simfile = r.TFile.Open(options.simfilename,"READ")
+simtree = simfile.Get("cbmsim")
+
 inputfile = r.TFile.Open(options.vertexfilename,"READ")
 vtxtree = inputfile.Get("vtx")
 
@@ -74,16 +78,21 @@ for ivtx,vtx in enumerate(vtxtree):
         daughterIDs = daughterlist[MCEventID]
         ndaughters = ndaughterslist[MCEventID]
         decaylengths = decaylengthlist[MCEventID]  # in cm, needs to be multiplied for 1E+4 to micron conversion   
-        if ((firstsegment.MCTrack() in charmIDs) and (lastsegment.MCTrack() in daughterIDs)):
+        if ((firstsegment.MCTrack() in charmIDs) and (lastsegment.MCTrack() in daughterIDs) and (incomingtrack == 1)):
+         simtree.GetEntry( lastsegment.MCEvt())
+         simtracks = simtree.MCTrack #track 0 is always mother of charm
         # Topology 3: track connected to parent
-         outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7:.0f},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".\
-                    format(ntracks, vID, TrackID, lastsegment.MCEvt(), lastsegment.MCTrack(),lastsegment.Aid(0),ndaughters[lastsegment.Aid(0)],decaylengths[lastsegment.Aid(0)] *1E+4,1, vx,vy,vz,3))
+         outputfile.write("{0},{1},{2},{3},{4},{5},{6:.0f},{7:.0f},{8:.0f},{9},{10},{11:.0f},{12},{13:.0f},{14:.0f},{15:.0f},{16}\n".\
+                    format(ntracks, vID, TrackID, lastsegment.MCEvt(), lastsegment.MCTrack(),simtracks[0].GetPdgCode(),simtracks[0].GetPx(),simtracks[0].GetPy(),simtracks[0].GetPz(),lastsegment.Aid(0),ndaughters[lastsegment.Aid(0)],decaylengths[lastsegment.Aid(0)] *1E+4,1, vx,vy,vz,3))
         #getting list of IDs for charm daughters from that event  
         #if MCMotherID == -1 and incomingtrack == 1:
         #        outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8:.0f},{9:.0f},{10:.0f},{11}\n".format(ntracks, vID, TrackID, MCEventID, MCTrackID,MCMotherID,0,1,vx,vy,vz,1))
         if MCTrackID in daughterIDs and incomingtrack == 1:
-                outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7:.0f},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".\
-                    format(ntracks, vID, TrackID, MCEventID, MCTrackID,MCMotherID,ndaughters[MCMotherID],decaylengths[MCMotherID] *1E+4,1, vx,vy,vz,2))
+                #adding information about start of cascade
+                simtree.GetEntry(MCEventID)
+                simtracks = simtree.MCTrack #track 0 is always mother of charm
+                outputfile.write("{0},{1},{2},{3},{4},{5},{6:.0f},{7:.0f},{8:.0f},{9},{10},{11:.0f},{12},{13:.0f},{14:.0f},{15:.0f},{16}\n".
+                    format(ntracks, vID, TrackID, MCEventID, MCTrackID,simtracks[0].GetPdgCode(),simtracks[0].GetPx(),simtracks[0].GetPy(),simtracks[0].GetPz(),MCMotherID,ndaughters[MCMotherID],decaylengths[MCMotherID] *1E+4,1, vx,vy,vz,2))
 
 def lookforcharm(df,ievent,charmID):
     ''' handling the case where no charm daughter was reconstructed, missing entry in dataframe'''

@@ -14,6 +14,7 @@ except ImportError:  # python 3.x
 parser = ArgumentParser()
 parser.add_argument("-f", "--fedra", dest="vertexfilename", help="file with reconstructed fedra vertices",
                     required=True)
+parser.add_argument("-s", "--simulationfile", dest="simfilename", help="file with original MCtrue simulation")
 parser.add_argument("-t", "--tracks", dest="tracksfilename", help="file with reconstructed fedra tracks",
                     required=True)                    
 parser.add_argument("-c", "--charmlist", dest="charmlistfilename", help="charm list file",
@@ -28,6 +29,9 @@ with open(options.charmlistfilename, 'rb') as fp:
     daughterlist = pickle.load(fp)
     ndaughterslist = pickle.load(fp)
     decaylengthslist = pickle.load(fp)
+
+simfile = r.TFile.Open(options.simfilename,"READ")
+simtree = simfile.Get("cbmsim")
 
 dproc = r.EdbDataProc()
 gAli = dproc.PVR()
@@ -51,14 +55,11 @@ for itrk,track in enumerate(tracklist):
 
     # getting first and last segment of the track
     slast = track.GetSegmentLast()
-    #rmax = r.ShipCharmDecaySearch.FedraTrackKink(track)
-    # if the first segment matches a charm and the last a charm daughter, that means the tracking has treated them as 1 track
-    if ((sfirst.MCTrack() in charmIDs) and (slast.MCTrack() in daughterIDs)):
-        # Topology 3: track connected to parent
-        outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7:.0f},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".
-                    format(0, 0, itrk, slast.MCEvt(), slast.MCTrack(),slast.Aid(0),ndaughters[slast.Aid(0)],decaylengths[slast.Aid(0)] *1E+4,1, 0.,0.,0.,3))
-    elif ((sfirst.MCTrack() in daughterIDs) and (vtxtree.GetEntries("TrackID=={}".format(itrk)) == 0)):
+    #rmax = r.ShipCharmDecaySearch.FedraTrackKink(track)   
+    if ((sfirst.MCTrack() in daughterIDs) and (vtxtree.GetEntries("TrackID=={}&&incoming==1".format(itrk)) == 0)):
+        simtree.GetEntry(sfirst.MCEvt())
+        simtracks = simtree.MCTrack #track 0 is always mother of charm
         # Topology 4: track not associated to any vertex
-        outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7:.0f},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".
-                    format(0, 0, itrk, sfirst.MCEvt(), sfirst.MCTrack(),sfirst.Aid(0),ndaughters[sfirst.Aid(0)],decaylengths[sfirst.Aid(0)] *1E+4,1, 0.,0.,0.,4))
+        outputfile.write("{0},{1},{2},{3},{4},{5},{6:.0f},{7:.0f},{8:.0f},{9},{10},{11:.0f},{12},{13:.0f},{14:.0f},{15:.0f},{16}\n".
+                    format(0, 0, itrk, sfirst.MCEvt(), sfirst.MCTrack(),simtracks[0].GetPdgCode(),simtracks[0].GetPx(),simtracks[0].GetPy(),simtracks[0].GetPz(),sfirst.Aid(0),ndaughters[sfirst.Aid(0)],decaylengths[sfirst.Aid(0)] *1E+4,1, 0.,0.,0.,4))
 outputfile.close()
