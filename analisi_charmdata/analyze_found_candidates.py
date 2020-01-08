@@ -103,9 +103,9 @@ def event(ievent,firstevent = False):
    for ivtx in vertices: #adding a {} for each secondary vertex to draw
     vertexids= vertexids +" {}"
    if oneprongs.size() > 0.: 
-    tracksids=tracksids+"-nt {}"
-   # for trackid in oneprongs:
-    # tracksids=tracksids+" {}"
+    tracksids=tracksids+"-nt"
+    for trackid in oneprongs:
+     tracksids=tracksids+" {}"
   
     vertices.insert(vertices.end(), oneprongs.begin(), oneprongs.end() );   
     ipython.magic(("run -i "+macrospath+\
