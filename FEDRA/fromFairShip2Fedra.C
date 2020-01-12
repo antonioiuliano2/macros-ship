@@ -69,7 +69,8 @@ void fromFairShip2Fedra(TString filename){
  
  //TTree* cbmsim = (TTree*)inputfile->Get("cbmsim");
  Float_t tx = 0, ty=0, xem= 0, yem = 0;
- const Int_t nevents = reader.GetTree()->GetEntries();
+ const Int_t nevents = 10000;
+ //const Int_t nevents = reader.GetTree()->GetEntries();
  int ihit = 0, ievent = 0;
  int nfilmhit = 0;
  float tantheta, momentum;
@@ -87,7 +88,7 @@ void fromFairShip2Fedra(TString filename){
  // ************************STARTING LOOP ON SIMULATION******************  
 // while (reader.Next()){
  for (int i = 0; i < nevents; i++){
-  if (ievent%1000==0) cout<<"processing event "<<ievent<<" out of "<<nevents<<endl;
+  if (i%1000==0) cout<<"processing event "<<i<<" out of "<<nevents<<endl;
   reader.Next();
    for (const BoxPoint& emupoint:emulsionhits){   
      bool savehit = true; //by default I save all hits

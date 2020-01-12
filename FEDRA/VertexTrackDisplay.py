@@ -12,7 +12,7 @@ gAli = dproc.PVR()
 fedratrackslist = []
 #vertexnumberlist = [10, 20]
 isolatedtrackcolors = [ROOT.kMagenta, ROOT.kBlue, ROOT.kRed, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta] #so we can set different colors for different tracks
-vertextrackcolors = [ROOT.kYellow,ROOT.kBlue,ROOT.kRed] #so we can set different colors for different tracks
+vertextrackcolors = [ROOT.kYellow,ROOT.kBlue,ROOT.kRed, ROOT.kGreen, ROOT.kCyan, ROOT.kGray] #so we can set different colors for different tracks
 #list of possible options
 parser = ArgumentParser()
 parser.add_argument("-f", "--fedra", dest="vertexfilename", help="file with fedra vertices",
@@ -98,7 +98,11 @@ def drawtracks(vertextracks,othertracks):
  for ivtx, vertex in enumerate(drawnvertices):
   for itrk in range(vertex.N()):#tracks associated to that vertex
    track = vertex.GetTrack(itrk)
-   ds.TrackDraw(track, vertextrackcolors[ivtx])
+   if (ivtx < len(vertextrackcolors)):
+     vertexcolor =  vertextrackcolors[ivtx]
+   else:
+     vertexcolor = ROOT.kWhite
+   ds.TrackDraw(track,vertexcolor)
  print (len(othertracks),"other tracks to display\n")
  for itrk, track in enumerate(othertracks):
    ds.TrackDraw(track,isolatedtrackcolors[itrk])
