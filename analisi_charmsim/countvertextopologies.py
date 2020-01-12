@@ -55,7 +55,7 @@ dfvertices = dfcharm[dfcharm['topology']==2]
 
 topologymatrix = np.zeros([5,5])
 
-nevents = 9000
+nevents = 10000
 for ientry in range(0,nevents): #old style loop
     # need to know for each event how many instances of different topologies
     nbadevent = 0
@@ -221,28 +221,25 @@ canvas1.BuildLegend()
 #plt.legend()
 #plt.show()
 
-def inspectevent(eventID):
+outputlogfile = open("vertices.log","w")
+def inspectevent(eventID,outputlogfile):
     '''inspecting the two decay topologies in the event: a vertex takes priority over connected tracks and extra tracks'''
     topologies = [-1,-1]
+    outputlogfile.write("MCEvent numer {}\n".format(eventID))
     if (eventID in dfprimaryvertices.index):
-            print ("Primary vertex")
-            print (dfprimaryvertices.loc[[eventID],["ivtx"]])
+            outputlogfile.write ("Found primary vertex, \n {}\n".format(dfprimaryvertices.loc[[eventID],["ivtx"]]))
     else:
-        print ("No Primary vertex identified as such in event ",eventID)
+        outputlogfile.write("No Primary vertex identified as such in event {}\n ".format(eventID))
     if (eventID in dftoprimary.index):        
-      print ("Charm daughter associated to primary")
-      print (dftoprimary.loc[[eventID],["ivtx"]])
+      outputlogfile.write("Found charm daughter associated to primary,\n {}\n".format(dftoprimary.loc[[eventID],["ivtx"]]))
     if (eventID in dftosecondary.index):          
-      print ("Charm daughter associated to secondary")
-      print (dftosecondary.loc[[eventID],["ivtx"]])
+      outputlogfile.write("Charm daughter associated to secondary,\n {}\n".format(dftosecondary.loc[[eventID],["ivtx"]]))    
      # for single in dfvertices.loc[eventID]:
        # help(single)
     if (eventID in dfconnected.index):
-      print ("Track Connected to parent")
-      print (dfconnected.loc[[eventID],["itrk"]])
+      outputlogfile.write("Track Connected to parent, \n {}\n".format(dfconnected.loc[[eventID],["itrk"]]))
     if (eventID in dfextra.index):
-      print ("Extra track")
-      print (dfextra.loc[[eventID],["itrk"]])
+      outputlogfile.write("Extra track, \n {}\n".format(dfextra.loc[[eventID],["itrk"]]))
 
 #dfvertices.groupby(['MCEventID','ivtx']).sum()
 # Double Signal: topology 1, 2 ,2 total 5
