@@ -85,6 +85,38 @@ if options.histofile is not None:
  hz.Write()
 
 macrospath=os.getenv("MACROSSHIP")
+
+def analyze_candidates():
+  '''produce distributions plots'''
+  
+  for event in candidatesentries:
+   dstree.GetEntry(ievent)
+   vertices = dstree.vtx2id
+   if len(vertices)<2: 
+    continue #I need at least two secondary vertices
+   primaryvid = dstree.vid  
+   #get primary vertex information
+   vtxtree.SetAlias("tracks","t.")
+   vtxtree.GetEntry(primaryvid)
+
+   prim_vx = vtxtree.vx
+   prim_vy = vtxtree.vy
+   prim_vz = vtxtree.vz
+
+   for secondaryid in vertices:
+    vtxtree.GetEntry(secondaryid)
+    second_vx = vtxtree.vx
+    second_vy = vtxtree.vy
+    second_vz = vtxtree.vz  
+    #estimated charm angles from vertex positions
+    estimated_TX = (second_vx - prim_vx)/(second_vz - prim_vz)
+    estimated_TY = (second_vy - prim_vy)/(second_vz - prim_vz)
+    #angles from daughters
+    vertextracks = vtxtree.tracks
+    for track in vertextracks:
+     daughterTX.append(track.GetTX())
+     daughterTY.append(track.GetTY())
+
 def event(ievent,firstevent = False):
   if not firstevent:
    close() #close previous event

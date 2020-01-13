@@ -13,6 +13,7 @@ hdecaylen= r.TH1D("hdecaylen","Decay length charmed hadrons",1000,0,10000)
 hxytovertex = r.TH2D("hxytovertex", "Distance between charmed daughters and vertex", 2000, -1000, 1000, 2000, -1000, 1000)
 hztovertex = r.TH1D("hztovertex","Distance between z of charmed daughters and vertex",200,0,20000)
 hkink= r.TH1D("hkink","Kink angle charm and daughters",100,0,1)
+hmeanlife = r.TH1D("hmeanlife","Approximated charm hadron meanlife;#tau[s]", 1000,0,10e-12)
 hkink2D= r.TH2D("hkink2D","Kink angle ty vs tx charm and daughters",400,0,0.4,400,0,0.4)
 hkinkprong = []
 maxnprongs = 7
@@ -244,16 +245,20 @@ def getdaughtertracks(inputtree,eventnumber):
 
 
    averagekinkangle, averagekinkx, averagekinky = Kinkangle(charmhadrons[i],charmdaughterslist)
+   charmdecaylength = decaylen(charmhadrons[i],firstcharmdaughter)
+   c = 3 * 1e+10 # cm /s
+   charmtau = averagekinkangle * charmdecaylength/c 
 
    hkink.Fill(averagekinkangle)
    hkink2D.Fill(averagekinkx, averagekinky)
 
    hxytovertex.Fill((firstcharmdaughter.GetStartX() - vertex(0))*cmtomicron,(firstcharmdaughter.GetStartY() - vertex(1))*cmtomicron)
    hztovertex.Fill((firstcharmdaughter.GetStartZ() - vertex(2))*cmtomicron)
-   hdecaylen.Fill(decaylen(charmhadrons[i],firstcharmdaughter)*cmtomicron)	
+   hdecaylen.Fill(charmdecaylength*cmtomicron)	
    mass = pdgdatabase.GetParticle(charmpdgcode[i]).Mass()
    gamma[i] = charmhadrons[i].GetEnergy()/mass
-        
+   
+   hmeanlife.Fill(charmtau)     
          
    longdecay[i] = 1 #True
    primaryvertexplate = findplateID(vertex(2))
@@ -275,7 +280,7 @@ def getdaughtertracks(inputtree,eventnumber):
  charmlongntuple.Fill()
  return tracksID
 
-fileinput = r.TFile.Open("ship.conical.Pythia8CharmOnly-TGeant4.root")
+fileinput = r.TFile.Open("ship.conical.Pythia8CharmOnly-TGeant4_dig.root")
 inputtree = fileinput.Get("cbmsim")
 
 nevents = inputtree.GetEntries()
@@ -408,6 +413,10 @@ hkink.Write()
 hkink2D.GetXaxis().SetTitle("KinkX[rad]")
 hkink2D.GetYaxis().SetTitle("KinkY[rad]")
 hkink2D.Write()
+
+cmeanlife = r.TCanvas()
+hmeanlife.Draw()
+hmeanlife.Write()
 
 c3 = r.TCanvas()
 c3.Divide(3,3)

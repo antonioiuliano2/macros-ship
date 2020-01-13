@@ -37,7 +37,7 @@ gAli = dproc.PVR()
 
 outputfile = open(options.vertexcsv,'w') 
 
-outputfile.write("ntracks,ivtx,itrk,MCEventID,MCTrackID,MCMotherID,predmolt,preddecaylength,quantity,vx,vy,vz,topology\n") #quantity means 1 for reconstructed vertices daughter, 0 for primary or not reconstructed
+outputfile.write("ntracks,ivtx,itrk,MCEventID,MCTrackID,CharmMotherPdg,CharmMotherPx,CharmMotherPy,CharmMotherPz,MCMotherID,predmolt,preddecaylength,quantity,vx,vy,vz,topology\n") #quantity means 1 for reconstructed vertices daughter, 0 for primary or not reconstructed
 
 for ivtx, vtx in enumerate(vtxtree):
     ntracks=vtx.n
@@ -55,7 +55,7 @@ for ivtx, vtx in enumerate(vtxtree):
     if (most_frequent(MCMotherIDs)[0] == -1 and incomingtrack == 1):
         #loop on tracks, to save all of them
         for itrk in range(ntracks):         
-         outputfile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9:.0f},{10:.0f},{11:.0f},{12}\n".format(ntracks, vID, vtx.TrackID[itrk],most_frequent(MCEventIDs)[0], vtx.MCTrackID[itrk],-1,0,0,0,vx,vy,vz,1))
+         outputfile.write("{0},{1},{2},{3},{4},{5},{6:.0f},{7:.0f},{8:.0f},{9},{10},{11:.0f},{12},{13:.0f},{14:.0f},{15:.0f},{16}\n".format(ntracks, vID, vtx.TrackID[itrk],most_frequent(MCEventIDs)[0], vtx.MCTrackID[itrk],0,0.,0.,0.,-1,0,0,0,vx,vy,vz,1))
         
 outputfile.close()
 # opening the file to keep only one entry for primary vertex -> the one with most tracks

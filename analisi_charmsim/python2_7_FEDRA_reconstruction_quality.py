@@ -1,6 +1,7 @@
 #test tracking and reconstruction with MC information
 
 import ROOT as r
+import sys
 import fedrarootlogon
 from collections import Counter #to find most common iterations in a list
 
@@ -37,30 +38,31 @@ def vertexquality(vertexfilepath):
   inputtree = inputfile.Get("vtx")
   nentries = inputtree.GetEntries()
   for event in inputtree: #loop on the events
+    ntracks = event.n
     eventlist = event.MCEventID
     trackIDlist = event.MCTrackID
     mothertrackIDlist = event.MCMotherID
-
+    #how many tracks are from the same event?
     eventcounter = Counter(eventlist)
     mostcommonevent = eventcounter.most_common(1)[0][0]
     eventfrequency = eventcounter.most_common(1)[0][1]
     eventfrequency =  float(eventfrequency)/len(eventlist)
-
+    #how many tracks are from the same mother?
     mothercounter = Counter(mothertrackIDlist)
     mostcommonmother = mothercounter.most_common(1)[0][0]
     motherfrequency = mothercounter.most_common(1)[0][1]
     motherfrequency =  float(motherfrequency)/len(mothertrackIDlist)
     
-    hevent.Fill(eventfrequency)
-    hmothertrack.Fill(motherfrequency)
+    hevent.Fill(ntracks,eventfrequency)
+    hmothertrack.Fill(ntracks,motherfrequency)
 
-hevent = r.TH1F("hevent","Most common Event frequency in vertices",110,0,1.1)
-hmothertrack = r.TH1F("hmothertrack","Most common mother track ID frequency in vertices",110,0,1.1)
+hevent = r.TH2F("hevent","Most common Event frequency in vertices",40,0,40,110,0,1.1)
+hmothertrack = r.TH2F("hmothertrack","Most common mother track ID frequency in vertices",40,0,40,110,0,1.1)
 
-vertexquality("/home/antonio/Lavoro/Analisi/test_fedra_sim/vertices_MC_modified.root")
+vertexquality(sys.argv[1])
 cvertexquality = r.TCanvas()
 cvertexquality.Divide(1,2)
 cvertexquality.cd(1)
-hevent.Draw()
+hevent.Draw("COLZ")
 cvertexquality.cd(2)
-hmothertrack.Draw()
+hmothertrack.Draw("COLZ")

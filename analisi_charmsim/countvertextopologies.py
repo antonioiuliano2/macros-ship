@@ -142,6 +142,14 @@ print(np.sum(topologymatrix))
 #obtaining a symmetric matrix
 #topologymatrix = (topologymatrix + topologymatrix.T)/2.
 print(topologymatrix)
+print("Printing efficiencies ")
+topologyefficiency = topologymatrix/nevents
+print(topologyefficiency)
+
+topologyerrors = np.sqrt(topologymatrix*(1-topologymatrix)/nevents) #(approximated) efficiency error formula
+
+print("Printing errors")
+print(topologyerrors)
 dfprimaryvertices = dfprimaryvertices.groupby("MCEventID").first()
 
 dftosecondary = dfvertices.query("topology==22")
