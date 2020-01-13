@@ -1,7 +1,7 @@
 using namespace ROOT;
 //using namespace ROOT::RVec;
 //dz selection
-RVec<float> dzselection(vector<float> vtx2_dz){
+RVec<int> dzselection(vector<float> vtx2_dz){
   //converting to RVec, avoid doing loop later
   RVec<float> rvtx2_dz(vtx2_dz.data(),vtx2_dz.size());
   //applying condition
@@ -10,18 +10,14 @@ RVec<float> dzselection(vector<float> vtx2_dz){
 }
 //compuation of decay length
 RVec<float> decaylength(RVec<float> vtx2_vx, RVec<float> vtx2_vy, RVec<float> vtx2_vz, float vx, float vy, float vz){
-  //converting to RVec, avoid doing loop later
-  //RVec<float> rvtx2_vx(vtx2_vx.data(),vtx2_vx.size());
- // RVec<float> rvtx2_vy(vtx2_vy.data(),vtx2_vy.size());
- // RVec<float> rvtx2_vz(vtx2_vz.data(),vtx2_vz.size());
   //computing directly, no need for loop
   RVec<float> rvtx2_dl = pow(pow(vtx2_vx - vx,2)+ pow(vtx2_vy-vy,2)+pow(vtx2_vz-vz,2),0.5);
 
   return rvtx2_dl;
 }
 
-vector<bool> MCsamevent(vector<int>vtx2_ntracks, int vtx_mc_event, vector<int> vtx2_mc_event,  vector<int> vtx2_mcparentid){
-  vector <bool> vtx2_goodIDs;
+RVec<int> MCsamevent(vector<int>vtx2_ntracks, int vtx_mc_event, vector<int> vtx2_mc_event,  vector<int> vtx2_mcparentid){
+  RVec <int> vtx2_goodIDs;
    int nvertices = vtx2_ntracks.size();
    int nprevioustracks = 0;
    //loop on secondary vertices
@@ -40,8 +36,8 @@ vector<bool> MCsamevent(vector<int>vtx2_ntracks, int vtx_mc_event, vector<int> v
    return vtx2_goodIDs;
 }
 
-vector<bool> MCcharmdaughter(vector<int>vtx2_ntracks, vector<int> vtx2_mcparentid){
-   vector <bool> vtx2_goodIDs;
+RVec<int> MCcharmdaughter(vector<int>vtx2_ntracks, vector<int> vtx2_mcparentid){
+   RVec<int> vtx2_goodIDs;
    int nvertices = vtx2_ntracks.size();
    int nprevioustracks = 0;
    //loop on secondary vertices
@@ -60,9 +56,11 @@ vector<bool> MCcharmdaughter(vector<int>vtx2_ntracks, vector<int> vtx2_mcparenti
    return vtx2_goodIDs;
 }
 
-vector<bool> MCcharmdaughtertrack(vector<int>vtx2_ntracks, vector<int>vtx2_mcparentid){
+//Track selection
+
+RVec<int> MCcharmdaughtertrack(vector<int>vtx2_ntracks, vector<int>vtx2_mcparentid){
   int nvertices = vtx2_ntracks.size();
-  vector<bool> charmdaughter_track;
+  RVec<int> charmdaughter_track;
   int nprevioustracks = 0;
   //loop into vertices
   for (int ivtx = 0; ivtx < nvertices; ivtx++){
@@ -83,14 +81,15 @@ int mostscommonidvertex(vector<int> trk_mc_id){
     if (trk_mc_id.size() > 0) return Max(rtrk_mc_id);
     else return -1;
 }
-/*
-RVec<bool> selectedvertices(vector<bool> selection){
-    RVec <bool> rselection = new RVec<
-}
-RVec<bool> selectedvertices(RVec<bool> rselection){
-    return rselection;
-}*/
 
+RVec<float> selecteddistribution(RVec<float> originaldistribution, RVec<int> selection){
+  //fill a RVec only with accepted values of the RVec
+    return originaldistribution[selection];
+}
+//selection counters
+int howmanyvertices(RVec<int> selection){
+  return selection[selection>0].size();
+}
 //start of script
 void selection_decaysearch_sim(){
     TFile *inputfile = TFile::Open("01_13_ds_data_result.root");
@@ -105,20 +104,25 @@ void selection_decaysearch_sim(){
     auto dfcheck2_trk = dfcheck2.Define("dsvtx_vtx2_trk_charmdaughter",MCcharmdaughtertrack,{"dsvtx.vtx2_ntrk","dsvtx.vtx2_mc_pid"});
 
     auto dfcheck3 = dfcheck2_trk.Define("dsvtx_vtx2_samevent", MCsamevent,{"dsvtx.vtx2_ntrk","vtx_mc_ev","dsvtx.vtx2_mc_ev","dsvtx.vtx2_mc_pid"});
-    
-    
+
+    auto hsameevent =  dfcheck3.Define("compositecondition","dsvtx_vtx2_samevent*dsvtx_vtx2_positivedz").Define("nsamevent", howmanyvertices,{"compositecondition"}).Fill<int>(TH1I("hgood", "good vertex", 10, 0, 10), {"nsamevent"});
+    TCanvas *csame = new TCanvas();
+    hsameevent->DrawClone();
+    //reporting values
+    int ngood_prodvertices=hsameevent->Integral(2,10);
+    cout<<"N primary vertices with at least one good production vertex: "<<ngood_prodvertices<<endl;
+    int ngood_secondaries = 0;
+    for (int ibin = 1; ibin<=hsameevent->GetNbinsX();ibin++){
+      ngood_secondaries+= hsameevent->GetBinContent(ibin) * hsameevent->GetXaxis()->GetBinLowEdge(ibin);
+    }
+    cout<<"N good secondary vertices: "<<ngood_secondaries<<endl;
+
+    //show how to plot a cut distribution here
+    auto hgooddl = dfcheck3.Define("dsvtx_vtx2_gooddl",selecteddistribution,{"dsvtx_vtx2_dl","dsvtx_vtx2_positivedz"}).Histo1D("dsvtx_vtx2_gooddl");
+    TCanvas *c = new TCanvas();
+    hgooddl->DrawClone();
     //printout
     dfcheck3.Snapshot("ds","annotated_ds_data_result.root");
-
-    //drawing histograms
-    TFile *newfile = TFile::Open("annotated_ds_data_result.root");
-    TTree *tree = (TTree*) newfile->Get("ds");
-
-    TString cutdefault = TString("dsvtx_vtx2_positivedz");
-    TString cut00 = TString("dsvtx_vtx2_positivedz&&!dsvtx_vtx2_samevent&&!dsvtx_vtx2_charmdaughter");
-    TString cut10 = TString("dsvtx_vtx2_positivedz&&!dsvtx_vtx2_samevent&&dsvtx_vtx2_charmdaughter");
-
-    tree->Draw("dsvtx_vtx2_dz",cutdefault.Data());
 
     //old size computation, for now useless
        // auto df1 = dsdataframe.Define("size",[](vector<int>myvec){return myvec.size();},{"dsvtx.vtx2_vid"});
