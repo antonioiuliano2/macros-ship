@@ -23,8 +23,8 @@ float ShipCharmDecaySearch::KinkAngle(float parenttx, float parentty, float daug
 
 }
 
-float ShipCharmDecaySearch::FedraTrackKink(EdbTrackP* mytrack){
- 
+std::vector<float> ShipCharmDecaySearch::FedraTrackKink(EdbTrackP* mytrack){
+ std::vector<float> kinksearchresult; //first is index, second maximum kink, third rmax
  int nseg = mytrack->N();
  float kinkangles[nseg-1];
  //loop on subsequent segment pairs of the tracks
@@ -36,11 +36,23 @@ float ShipCharmDecaySearch::FedraTrackKink(EdbTrackP* mytrack){
  }
  //getting maximum and rms
  float deltathetamax = TMath::MaxElement(nseg-1, kinkangles);
+ int locmax = TMath::LocMax(nseg-1,kinkangles);
  float deltathetarms = TMath::RMS(nseg-1, kinkangles);
  float rmax = deltathetamax/deltathetarms;
 
- return rmax;
-
+ float kinkrmin = 3.;
+ if (rmax > kinkrmin){ //kink found, return kink location
+     kinksearchresult.push_back(locmax);
+     kinksearchresult.push_back(deltathetamax);
+     kinksearchresult.push_back(rmax);
+     return kinksearchresult;
+ }
+ else{ //kink not found, loc is -1
+     kinksearchresult.push_back(-1);
+     kinksearchresult.push_back(deltathetamax);
+     kinksearchresult.push_back(rmax);
+     return kinksearchresult;
+ }
 }
 
 float ShipCharmDecaySearch::IPtoVertex(TVector3 vertexpos, TVector3 trackstartpos, float tracktx, float trackty){
