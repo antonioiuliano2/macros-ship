@@ -9,13 +9,13 @@ RVec<float> dzselection(vector<float> vtx2_dz){
   return rvtx2_goodIDs;
 }
 //compuation of decay length
-RVec<float> decaylength(vector<float> vtx2_vx, vector<float> vtx2_vy, vector<float> vtx2_vz, float vx, float vy, float vz){
+RVec<float> decaylength(RVec<float> vtx2_vx, RVec<float> vtx2_vy, RVec<float> vtx2_vz, float vx, float vy, float vz){
   //converting to RVec, avoid doing loop later
-  RVec<float> rvtx2_vx(vtx2_vx.data(),vtx2_vx.size());
-  RVec<float> rvtx2_vy(vtx2_vy.data(),vtx2_vy.size());
-  RVec<float> rvtx2_vz(vtx2_vz.data(),vtx2_vz.size());
+  //RVec<float> rvtx2_vx(vtx2_vx.data(),vtx2_vx.size());
+ // RVec<float> rvtx2_vy(vtx2_vy.data(),vtx2_vy.size());
+ // RVec<float> rvtx2_vz(vtx2_vz.data(),vtx2_vz.size());
   //computing directly, no need for loop
-  RVec<float> rvtx2_dl = pow(pow(rvtx2_vx - vx,2)+ pow(rvtx2_vy-vy,2)+pow(rvtx2_vz-vz,2),0.5);
+  RVec<float> rvtx2_dl = pow(pow(vtx2_vx - vx,2)+ pow(vtx2_vy-vy,2)+pow(vtx2_vz-vz,2),0.5);
 
   return rvtx2_dl;
 }
@@ -60,6 +60,24 @@ vector<bool> MCcharmdaughter(vector<int>vtx2_ntracks, vector<int> vtx2_mcparenti
    return vtx2_goodIDs;
 }
 
+vector<bool> MCcharmdaughtertrack(vector<int>vtx2_ntracks, vector<int>vtx2_mcparentid){
+  int nvertices = vtx2_ntracks.size();
+  vector<bool> charmdaughter_track;
+  int nprevioustracks = 0;
+  //loop into vertices
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+   //loop into tracks
+    int ntracks = vtx2_ntracks[ivtx];
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      //adding track bool information
+      if (vtx2_mcparentid[itrk+nprevioustracks] == 1 || vtx2_mcparentid[itrk+nprevioustracks] == 2) charmdaughter_track.push_back(true);    
+      else charmdaughter_track.push_back(false);
+    }//close track loop
+   nprevioustracks += ntracks;
+  }//close vertex loop
+  return charmdaughter_track;
+}
+
 int mostscommonidvertex(vector<int> trk_mc_id){
     RVec<int> rtrk_mc_id(trk_mc_id.data(),trk_mc_id.size());
     if (trk_mc_id.size() > 0) return Max(rtrk_mc_id);
@@ -75,15 +93,19 @@ RVec<bool> selectedvertices(RVec<bool> rselection){
 
 //start of script
 void selection_decaysearch_sim(){
-    TFile *inputfile = TFile::Open("new_bdt2_ds_data_result.root");
+    TFile *inputfile = TFile::Open("01_13_ds_data_result.root");
     RDataFrame dsdataframe = RDataFrame("ds",inputfile);
     //computing additional variables
     auto dflength = dsdataframe.Define("dsvtx_vtx2_dl",decaylength,{"dsvtx.vtx2_vx", "dsvtx.vtx2_vy", "dsvtx.vtx2_vz","vtx.x","vtx.y","vtx.z"});
     auto df_primmcid = dflength.Define("vtx_mc_ev",mostscommonidvertex,{"trk.mc_ev"});
     //checking conditions for selections
     auto dfcheck = df_primmcid.Define("dsvtx_vtx2_positivedz",dzselection,{"dsvtx.vtx2_dz"});
+    
     auto dfcheck2 = dfcheck.Define("dsvtx_vtx2_charmdaughter", MCcharmdaughter,{"dsvtx.vtx2_ntrk","dsvtx.vtx2_mc_pid"});
-    auto dfcheck3 = dfcheck2.Define("dsvtx_vtx2_samevent", MCsamevent,{"dsvtx.vtx2_ntrk","vtx_mc_ev","dsvtx.vtx2_mc_ev","dsvtx.vtx2_mc_pid"});
+    auto dfcheck2_trk = dfcheck2.Define("dsvtx_vtx2_trk_charmdaughter",MCcharmdaughtertrack,{"dsvtx.vtx2_ntrk","dsvtx.vtx2_mc_pid"});
+
+    auto dfcheck3 = dfcheck2_trk.Define("dsvtx_vtx2_samevent", MCsamevent,{"dsvtx.vtx2_ntrk","vtx_mc_ev","dsvtx.vtx2_mc_ev","dsvtx.vtx2_mc_pid"});
+    
     
     //printout
     dfcheck3.Snapshot("ds","annotated_ds_data_result.root");
