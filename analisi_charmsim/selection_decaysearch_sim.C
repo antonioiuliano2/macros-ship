@@ -44,9 +44,9 @@ RVec<int> MCcharmdaughtertrack(RVec<int>vtx2_ntracks, RVec<int>vtx2_mcparentid){
    //loop into tracks
     int ntracks = vtx2_ntracks[ivtx];
     for (int itrk = 0; itrk < ntracks; itrk++){
-      //adding track bool information
-      if (vtx2_mcparentid[itrk+nprevioustracks] == 1 || vtx2_mcparentid[itrk+nprevioustracks] == 2) charmdaughter_track.push_back(true);    
-      else charmdaughter_track.push_back(false);
+      //adding track information (using properties that in boolean 0 means false, and > 0 means true. We can use it as check and store the info about which parent is)
+      if (vtx2_mcparentid[itrk+nprevioustracks] == 1 || vtx2_mcparentid[itrk+nprevioustracks] == 2) charmdaughter_track.push_back(vtx2_mcparentid[itrk+nprevioustracks]);    
+      else charmdaughter_track.push_back(0);
     }//close track loop
    nprevioustracks += ntracks;
   }//close vertex loop
@@ -94,12 +94,12 @@ RVec<int> MCvertex_charmdaughter_samevent(RVec<int>vtx2_ntracks,RVec<int>MCcharm
   RVec<int> with_gooddaughter;
   int nprevioustracks = 0;
   for (int ivtx = 0; ivtx < nvertices; ivtx++){
-   bool goodvertex = false;
+   int goodvertex = 0;
    //loop into tracks
     int ntracks = vtx2_ntracks[ivtx];
     for (int itrk = 0; itrk < ntracks; itrk++){
       //adding track bool information
-      if (MCcharmdaughtertrack[itrk+nprevioustracks] && MCsameventtrack[itrk+nprevioustracks]) goodvertex = true;         
+      if (MCcharmdaughtertrack[itrk+nprevioustracks] && MCsameventtrack[itrk+nprevioustracks]) goodvertex = MCcharmdaughtertrack[itrk+nprevioustracks];         
     }//close track loop
    nprevioustracks += ntracks;
    with_gooddaughter.push_back(goodvertex);
@@ -123,6 +123,16 @@ RVec<int> dzselection_trk(vector<int>vtx2_ntracks, vector<float> vtx2_dz){
    nprevioustracks += ntracks;
   }//close vertex loop
   return dz_track;
+}
+
+int event_topology(RVec<int> MCvertexcharmdaughter_samevent, RVec<int> positivedz){
+  RVec<int> goodcharmdaughters = MCvertexcharmdaughter_samevent * positivedz; //without a positive dz it has no sense to define it as a 'good event'
+
+  int nfirstcharm = goodcharmdaughters[goodcharmdaughters==1].size();
+  int nsecondcharm = goodcharmdaughters[goodcharmdaughters==2].size();
+  if (nfirstcharm > 0 && nsecondcharm > 0 ) return 2; //"golden", double charm
+  else if (nfirstcharm > 0 || nsecondcharm > 0) return 1; //"silver", single charm
+  else return 0; //no good event
 }
 
 //
@@ -154,6 +164,7 @@ void selection_decaysearch_sim(){
     //newbranches
     //primary, vertex variables
     string vtx_mc_ev = "vtx_mc_ev";
+    string vtx_topology = "vtx_topology";
     //secondary, track variables
     string vtx2_track_charmdaugther = "dsvtx_vtx2_trk_charmdaughter";
     string vtx2_track_samevent = "dsvtx_vtx2_trk_samevent";
@@ -189,12 +200,21 @@ void selection_decaysearch_sim(){
     
     //both charmdaughter and samevent for the same track
     auto dfcheck_charmdaughtersamevent = dfcheck_samevent.Define(vtx2_charmdaugthersamevent, MCvertex_charmdaughter_samevent,{vtx2_ntrk,vtx2_track_charmdaugther,vtx2_track_samevent});
+    
+    //event topology
+    auto dfcheck_topology = dfcheck_charmdaughtersamevent.Define(vtx_topology,event_topology,{vtx2_charmdaugthersamevent,vtx2_positivedz});
 
+    //counting topologies
+    auto ntotal = dfcheck_topology.Filter("vtx_topology>0").Count();
+    auto nsilver = dfcheck_topology.Filter("vtx_topology==1").Count();
+    auto ngolden = dfcheck_topology.Filter("vtx_topology==2").Count();
+
+    cout<<"Found: "<<*ntotal<< " primaries with good MC decay vertices: "<<*nsilver<<" single charm and "<<*ngolden<<" double charm"<<endl;
     //Saving output to file
-    dfcheck_charmdaughtersamevent.Snapshot("ds","annotated_ds_data_result.root");
+     dfcheck_topology.Snapshot("ds","annotated_ds_data_result.root");
 
     //applying condition and report
-    auto hgoodevent =  dfcheck_charmdaughtersamevent.Define("goodevent",condition).Define("ngoodevent", howmanyvertices,{"goodevent"}).Fill<int>(TH1I("hgood", "good vertex", 10, 0, 10), {"ngoodevent"});
+    auto hgoodevent =   dfcheck_topology.Define("goodevent",condition).Define("ngoodevent", howmanyvertices,{"goodevent"}).Fill<int>(TH1I("hgood", "good vertex", 10, 0, 10), {"ngoodevent"});
     TCanvas *csame = new TCanvas();
     hgoodevent->DrawClone();
     //reporting values
@@ -207,7 +227,7 @@ void selection_decaysearch_sim(){
     cout<<"N good secondary vertices: "<<ngood_secondaries<<endl;
 
     //show how to plot a cut distribution here
-    auto hgooddl = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_gooddl",selecteddistribution,{"dsvtx_vtx2_dl","dsvtx_vtx2_positivedz"}).Histo1D("dsvtx_vtx2_gooddl");
+    auto hgooddl =  dfcheck_topology.Define("dsvtx_vtx2_gooddl",selecteddistribution,{"dsvtx_vtx2_dl","dsvtx_vtx2_positivedz"}).Histo1D("dsvtx_vtx2_gooddl");
     TCanvas *c = new TCanvas();
     hgooddl->DrawClone();
 }
