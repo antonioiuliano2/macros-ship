@@ -16,49 +16,26 @@ RVec<float> decaylength(RVec<float> vtx2_vx, RVec<float> vtx2_vy, RVec<float> vt
   return rvtx2_dl;
 }
 
-RVec<int> MCsamevent(vector<int>vtx2_ntracks, int vtx_mc_event, vector<int> vtx2_mc_event,  vector<int> vtx2_mcparentid){
-  RVec <int> vtx2_goodIDs;
-   int nvertices = vtx2_ntracks.size();
-   int nprevioustracks = 0;
-   //loop on secondary vertices
-   for (int ivtx = 0; ivtx< nvertices;ivtx++){
-     int ntracks = vtx2_ntracks[ivtx];
-     //loop on tracks
-     bool atleastonedaughter = false;
-     for (int itrk = 0; itrk < ntracks; itrk++){
-         if ((vtx2_mcparentid[itrk+nprevioustracks] == 1 || vtx2_mcparentid[itrk+nprevioustracks] == 2)&& (vtx2_mc_event[itrk+nprevioustracks] == vtx_mc_event)) atleastonedaughter = true;        
-     }
-     if (atleastonedaughter) vtx2_goodIDs.push_back(true);
-     else vtx2_goodIDs.push_back(false);
-     //increasing the counter
-     nprevioustracks += ntracks;
-   }
-   return vtx2_goodIDs;
+RVec<int> MCsameeventtrack(RVec<int>vtx2_ntracks, int vtx_mc_event, RVec<int>vtx2_mc_event,  RVec<int> vtx2_mcparentid){
+  int nvertices = vtx2_ntracks.size();
+  RVec<int> samevent_track;
+  int nprevioustracks = 0;
+  //loop into vertices
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+   //loop into tracks
+    int ntracks = vtx2_ntracks[ivtx];
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      //adding track bool information
+      if (vtx2_mc_event[itrk+nprevioustracks] == vtx_mc_event) samevent_track.push_back(true);    
+      else samevent_track.push_back(false);
+    }//close track loop
+   nprevioustracks += ntracks;
+  }//close vertex loop
+  return samevent_track;
 }
-
-RVec<int> MCcharmdaughter(vector<int>vtx2_ntracks, vector<int> vtx2_mcparentid){
-   RVec<int> vtx2_goodIDs;
-   int nvertices = vtx2_ntracks.size();
-   int nprevioustracks = 0;
-   //loop on secondary vertices
-   for (int ivtx = 0; ivtx< nvertices;ivtx++){
-     int ntracks = vtx2_ntracks[ivtx];
-     //loop on tracks
-     bool atleastonedaughter = false;
-     for (int itrk = 0; itrk < ntracks; itrk++){
-         if (vtx2_mcparentid[itrk+nprevioustracks] == 1 || vtx2_mcparentid[itrk+nprevioustracks] == 2) atleastonedaughter = true;        
-     }
-     if (atleastonedaughter) vtx2_goodIDs.push_back(true);
-     else vtx2_goodIDs.push_back(false);
-     //increasing the counter
-     nprevioustracks += ntracks;
-   }
-   return vtx2_goodIDs;
-}
-
 //Track selection
 
-RVec<int> MCcharmdaughtertrack(vector<int>vtx2_ntracks, vector<int>vtx2_mcparentid){
+RVec<int> MCcharmdaughtertrack(RVec<int>vtx2_ntracks, RVec<int>vtx2_mcparentid){
   int nvertices = vtx2_ntracks.size();
   RVec<int> charmdaughter_track;
   int nprevioustracks = 0;
@@ -76,6 +53,80 @@ RVec<int> MCcharmdaughtertrack(vector<int>vtx2_ntracks, vector<int>vtx2_mcparent
   return charmdaughter_track;
 }
 
+RVec<int> MCvertex_samevent(RVec<int>vtx2_ntracks,RVec<int>MCsameventtrack){
+  int nvertices = vtx2_ntracks.size();
+  RVec<int> goodvertices;
+  int nprevioustracks = 0;
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+   bool goodvertex = false;
+   //loop into tracks
+    int ntracks = vtx2_ntracks[ivtx];
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      //adding track bool information
+      if (MCsameventtrack[itrk+nprevioustracks]) goodvertex = true;         
+    }//close track loop
+   nprevioustracks += ntracks;
+   goodvertices.push_back(goodvertex);
+  }//close vertex loop
+  return goodvertices;
+}
+
+RVec<int> MCvertex_charmdaughter(RVec<int>vtx2_ntracks,RVec<int>MCcharmdaughter){
+  int nvertices = vtx2_ntracks.size();
+  RVec<int> goodvertices;
+  int nprevioustracks = 0;
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+   bool goodvertex = false;
+   //loop into tracks
+    int ntracks = vtx2_ntracks[ivtx];
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      //adding track bool information
+      if (MCcharmdaughter[itrk+nprevioustracks]) goodvertex = true;         
+    }//close track loop
+   nprevioustracks += ntracks;
+   goodvertices.push_back(goodvertex);
+  }//close vertex loop
+  return goodvertices;
+}
+
+RVec<int> MCvertex_charmdaughter_samevent(RVec<int>vtx2_ntracks,RVec<int>MCcharmdaughtertrack,RVec<int> MCsameventtrack){
+  int nvertices = vtx2_ntracks.size();
+  RVec<int> with_gooddaughter;
+  int nprevioustracks = 0;
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+   bool goodvertex = false;
+   //loop into tracks
+    int ntracks = vtx2_ntracks[ivtx];
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      //adding track bool information
+      if (MCcharmdaughtertrack[itrk+nprevioustracks] && MCsameventtrack[itrk+nprevioustracks]) goodvertex = true;         
+    }//close track loop
+   nprevioustracks += ntracks;
+   with_gooddaughter.push_back(goodvertex);
+  }//close vertex loop
+  return with_gooddaughter;
+}
+
+RVec<int> dzselection_trk(vector<int>vtx2_ntracks, vector<float> vtx2_dz){
+  int nvertices = vtx2_ntracks.size();
+  RVec<int> dz_track;
+  int nprevioustracks = 0;
+  //loop into vertices
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+   //loop into tracks
+    int ntracks = vtx2_ntracks[ivtx];
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      //adding track bool information
+      if (vtx2_dz[ivtx]>0) dz_track.push_back(true);    
+      else dz_track.push_back(false);
+    }//close track loop
+   nprevioustracks += ntracks;
+  }//close vertex loop
+  return dz_track;
+}
+
+//
+
 int mostscommonidvertex(vector<int> trk_mc_id){
     RVec<int> rtrk_mc_id(trk_mc_id.data(),trk_mc_id.size());
     if (trk_mc_id.size() > 0) return Max(rtrk_mc_id);
@@ -92,45 +143,71 @@ int howmanyvertices(RVec<int> selection){
 }
 //start of script
 void selection_decaysearch_sim(){
+    //input branches
+    string vtx2_mc_pid = "dsvtx.vtx2_mc_pid";
+
+    //secondary, vertex variables
+    string vtx2_ntrk = "dsvtx.vtx2_ntrk";
+    string vtx2_dz = "dsvtx.vtx2_dz";
+    string vtx2_mc_ev = "dsvtx.vtx2_mc_ev";
+
+    //newbranches
+    //primary, vertex variables
+    string vtx_mc_ev = "vtx_mc_ev";
+    //secondary, track variables
+    string vtx2_track_charmdaugther = "dsvtx_vtx2_trk_charmdaughter";
+    string vtx2_track_samevent = "dsvtx_vtx2_trk_samevent";
+    string vtx2_track_positivedz = "dsvtx_vtx2_trk_positivedz";
+
+    //secondary, vertex variables
+    string vtx2_positivedz = "dsvtx_vtx2_positivedz";
+    string vtx2_samevent = "dsvtx_vtx2_samevent";
+    string vtx2_charmdaugther = "dsvtx_vtx2_charmdaughter";
+    string vtx2_charmdaugthersamevent = "dsvtx_vtx2_charmdaughtersamevent"; 
+
+    //condition for good charm decay vertices
+    string condition = "dsvtx_vtx2_charmdaughtersamevent*dsvtx_vtx2_positivedz";
+
+    //******************START OF MAIN SCRIPT*************************//
+
     TFile *inputfile = TFile::Open("01_13_ds_data_result.root");
     RDataFrame dsdataframe = RDataFrame("ds",inputfile);
     //computing additional variables
     auto dflength = dsdataframe.Define("dsvtx_vtx2_dl",decaylength,{"dsvtx.vtx2_vx", "dsvtx.vtx2_vy", "dsvtx.vtx2_vz","vtx.x","vtx.y","vtx.z"});
-    auto df_primmcid = dflength.Define("vtx_mc_ev",mostscommonidvertex,{"trk.mc_ev"});
+    auto df_primmcid = dflength.Define(vtx_mc_ev,mostscommonidvertex,{"trk.mc_ev"}); //mc event of vertex
     //checking conditions for selections
-    auto dfcheck = df_primmcid.Define("dsvtx_vtx2_positivedz",dzselection,{"dsvtx.vtx2_dz"});
+    //positive dz
+    auto dfcheck_posdz_trk = df_primmcid.Define(vtx2_track_positivedz,dzselection_trk,{vtx2_ntrk,vtx2_dz});
+    auto dfcheck_posdz = dfcheck_posdz_trk.Define(vtx2_positivedz,dzselection,{vtx2_dz});     
+
+    //recognize charm daughter
+    auto dfcheck_charmdaughter_trk = dfcheck_posdz.Define(vtx2_track_charmdaugther,MCcharmdaughtertrack,{vtx2_ntrk,vtx2_mc_pid });
+    auto dfcheck_charmdaughter = dfcheck_charmdaughter_trk.Define(vtx2_charmdaugther, MCvertex_charmdaughter,{vtx2_ntrk,vtx2_track_charmdaugther});
+    //same event condition
+    auto dfcheck_samevent_trk = dfcheck_charmdaughter.Define(vtx2_track_samevent,MCsameeventtrack,{vtx2_ntrk,vtx_mc_ev,vtx2_mc_ev,vtx2_mc_pid});
+    auto dfcheck_samevent = dfcheck_samevent_trk.Define(vtx2_samevent, MCvertex_samevent,{vtx2_ntrk,vtx2_track_samevent});
     
-    auto dfcheck2 = dfcheck.Define("dsvtx_vtx2_charmdaughter", MCcharmdaughter,{"dsvtx.vtx2_ntrk","dsvtx.vtx2_mc_pid"});
-    auto dfcheck2_trk = dfcheck2.Define("dsvtx_vtx2_trk_charmdaughter",MCcharmdaughtertrack,{"dsvtx.vtx2_ntrk","dsvtx.vtx2_mc_pid"});
+    //both charmdaughter and samevent for the same track
+    auto dfcheck_charmdaughtersamevent = dfcheck_samevent.Define(vtx2_charmdaugthersamevent, MCvertex_charmdaughter_samevent,{vtx2_ntrk,vtx2_track_charmdaugther,vtx2_track_samevent});
 
-    auto dfcheck3 = dfcheck2_trk.Define("dsvtx_vtx2_samevent", MCsamevent,{"dsvtx.vtx2_ntrk","vtx_mc_ev","dsvtx.vtx2_mc_ev","dsvtx.vtx2_mc_pid"});
+    //Saving output to file
+    dfcheck_charmdaughtersamevent.Snapshot("ds","annotated_ds_data_result.root");
 
-    auto hsameevent =  dfcheck3.Define("compositecondition","dsvtx_vtx2_samevent*dsvtx_vtx2_positivedz").Define("nsamevent", howmanyvertices,{"compositecondition"}).Fill<int>(TH1I("hgood", "good vertex", 10, 0, 10), {"nsamevent"});
+    //applying condition and report
+    auto hgoodevent =  dfcheck_charmdaughtersamevent.Define("goodevent",condition).Define("ngoodevent", howmanyvertices,{"goodevent"}).Fill<int>(TH1I("hgood", "good vertex", 10, 0, 10), {"ngoodevent"});
     TCanvas *csame = new TCanvas();
-    hsameevent->DrawClone();
+    hgoodevent->DrawClone();
     //reporting values
-    int ngood_prodvertices=hsameevent->Integral(2,10);
+    int ngood_prodvertices=hgoodevent->Integral(2,10);
     cout<<"N primary vertices with at least one good production vertex: "<<ngood_prodvertices<<endl;
     int ngood_secondaries = 0;
-    for (int ibin = 1; ibin<=hsameevent->GetNbinsX();ibin++){
-      ngood_secondaries+= hsameevent->GetBinContent(ibin) * hsameevent->GetXaxis()->GetBinLowEdge(ibin);
+    for (int ibin = 1; ibin<=hgoodevent->GetNbinsX();ibin++){
+      ngood_secondaries+= hgoodevent->GetBinContent(ibin) * hgoodevent->GetXaxis()->GetBinLowEdge(ibin);
     }
     cout<<"N good secondary vertices: "<<ngood_secondaries<<endl;
 
     //show how to plot a cut distribution here
-    auto hgooddl = dfcheck3.Define("dsvtx_vtx2_gooddl",selecteddistribution,{"dsvtx_vtx2_dl","dsvtx_vtx2_positivedz"}).Histo1D("dsvtx_vtx2_gooddl");
+    auto hgooddl = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_gooddl",selecteddistribution,{"dsvtx_vtx2_dl","dsvtx_vtx2_positivedz"}).Histo1D("dsvtx_vtx2_gooddl");
     TCanvas *c = new TCanvas();
     hgooddl->DrawClone();
-    //printout
-    dfcheck3.Snapshot("ds","annotated_ds_data_result.root");
-
-    //old size computation, for now useless
-       // auto df1 = dsdataframe.Define("size",[](vector<int>myvec){return myvec.size();},{"dsvtx.vtx2_vid"});
-    //auto hsize = df1.Histo1D({"hsize","size of histogram",10,0,10},"size");
-    //how many surpass a selection?
-   // auto entries1 = df1.Filter([](vector<int>myvec){return myvec.size()>=1;},{"dsvtx.vtx2_vid"}).Count();  
-    //end of 'lazy' part, give me results
-    //cout<<*entries1<<endl; 
-    //TCanvas *csize = new TCanvas();
-    //hsize->DrawClone();
 }
