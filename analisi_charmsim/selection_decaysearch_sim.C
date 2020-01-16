@@ -16,6 +16,42 @@ RVec<float> decaylength(RVec<float> vtx2_vx, RVec<float> vtx2_vy, RVec<float> vt
   return rvtx2_dl;
 }
 
+RVec<int> atleast2goodtrks(RVec<int> vtx2_ntracks, RVec<int>vtx2_nseg){
+  RVec<int> goodvertices;
+  const int nvertices = vtx2_ntracks.size();
+  int nprevioustracks = 0;
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+    int ntracks = vtx2_ntracks[ivtx];
+    int ngoodtrks = 0;
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      if (vtx2_nseg[itrk+nprevioustracks] > 2) ngoodtrks++;
+    }
+    //at least 2 good tracks
+    if (ngoodtrks >= 2) goodvertices.push_back(true);
+    else goodvertices.push_back(false);
+    nprevioustracks += ntracks;
+  }
+  return goodvertices;
+}
+
+RVec<float> meanlife(RVec<int>vtx2_ntracks, RVec<float> vtx2_vka, RVec<float> vtx2_dl){
+  float lightspeed = 3 * 1e+10; // cm /s
+  float micron2cm = 1e-4 ;
+  unsigned int nprevioustracks = 0;
+  const int nvertices = vtx2_ntracks.size();
+  RVec<float> vtx2_tau;
+  //loop on vertices;
+  //RVec<float> split_vtx2_vka = vtx2_vka; //removing tracks from each vertex
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+    int ntracks = vtx2_ntracks[ivtx];
+    //computing mean kink of tracks from that vertex
+    float meankink = Mean(RVec<float>(&vtx2_vka[nprevioustracks],&vtx2_vka[nprevioustracks+ntracks])); 
+    vtx2_tau.push_back(meankink*vtx2_dl[ivtx]*micron2cm/lightspeed );
+    nprevioustracks += ntracks;
+  }
+  return vtx2_tau;
+}
+
 RVec<int> MCsameeventtrack(RVec<int>vtx2_ntracks, int vtx_mc_event, RVec<int>vtx2_mc_event,  RVec<int> vtx2_mcparentid){
   int nvertices = vtx2_ntracks.size();
   RVec<int> samevent_track;
@@ -177,7 +213,7 @@ void selection_decaysearch_sim(){
     string vtx2_charmdaugthersamevent = "dsvtx_vtx2_charmdaughtersamevent"; 
 
     //condition for good charm decay vertices
-    string condition = "dsvtx_vtx2_charmdaughtersamevent*dsvtx_vtx2_positivedz";
+    string condition = "dsvtx_vtx2_charmdaughtersamevent*dsvtx_vtx2_positivedz*dsvtx_vtx2_2goodtrks";
 
     //******************START OF MAIN SCRIPT*************************//
 
@@ -185,7 +221,8 @@ void selection_decaysearch_sim(){
     RDataFrame dsdataframe = RDataFrame("ds",inputfile);
     //computing additional variables
     auto dflength = dsdataframe.Define("dsvtx_vtx2_dl",decaylength,{"dsvtx.vtx2_vx", "dsvtx.vtx2_vy", "dsvtx.vtx2_vz","vtx.x","vtx.y","vtx.z"});
-    auto df_primmcid = dflength.Define(vtx_mc_ev,mostscommonidvertex,{"trk.mc_ev"}); //mc event of vertex
+    auto dfmeanlife = dflength.Define("dsvtx_vtx2_tau",meanlife,{"dsvtx.vtx2_ntrk","dsvtx.vtx2_vka","dsvtx_vtx2_dl"});
+    auto df_primmcid = dfmeanlife.Define(vtx_mc_ev,mostscommonidvertex,{"trk.mc_ev"}); //mc event of vertex
     //checking conditions for selections
     //positive dz
     auto dfcheck_posdz_trk = df_primmcid.Define(vtx2_track_positivedz,dzselection_trk,{vtx2_ntrk,vtx2_dz});
@@ -201,8 +238,10 @@ void selection_decaysearch_sim(){
     //both charmdaughter and samevent for the same track
     auto dfcheck_charmdaughtersamevent = dfcheck_samevent.Define(vtx2_charmdaugthersamevent, MCvertex_charmdaughter_samevent,{vtx2_ntrk,vtx2_track_charmdaugther,vtx2_track_samevent});
     
+    //two good tracks
+    auto dfcheck_twogoodtracks = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_2goodtrks",atleast2goodtrks,{vtx2_ntrk,"dsvtx.vtx2_tnseg"});
     //event topology
-    auto dfcheck_topology = dfcheck_charmdaughtersamevent.Define(vtx_topology,event_topology,{vtx2_charmdaugthersamevent,vtx2_positivedz});
+    auto dfcheck_topology = dfcheck_twogoodtracks.Define(vtx_topology,event_topology,{vtx2_charmdaugthersamevent,vtx2_positivedz});
 
     //counting topologies
     auto ntotal = dfcheck_topology.Filter("vtx_topology>0").Count();
@@ -214,7 +253,8 @@ void selection_decaysearch_sim(){
      dfcheck_topology.Snapshot("ds","annotated_ds_data_result.root");
 
     //applying condition and report
-    auto hgoodevent =   dfcheck_topology.Define("goodevent",condition).Define("ngoodevent", howmanyvertices,{"goodevent"}).Fill<int>(TH1I("hgood", "good vertex", 10, 0, 10), {"ngoodevent"});
+    dfcheck_topology = dfcheck_topology.Define("goodevent",condition);
+    auto hgoodevent =   dfcheck_topology.Define("ngoodevent", howmanyvertices,{"goodevent"}).Fill<int>(TH1I("hgood", "good vertex", 10, 0, 10), {"ngoodevent"});
     TCanvas *csame = new TCanvas();
     hgoodevent->DrawClone();
     //reporting values
@@ -230,4 +270,9 @@ void selection_decaysearch_sim(){
     auto hgooddl =  dfcheck_topology.Define("dsvtx_vtx2_gooddl",selecteddistribution,{"dsvtx_vtx2_dl","dsvtx_vtx2_positivedz"}).Histo1D("dsvtx_vtx2_gooddl");
     TCanvas *c = new TCanvas();
     hgooddl->DrawClone();
+
+    //meanlife
+    auto htau = dfcheck_topology.Define("dsvtx_vtx2_meanlifecharm",selecteddistribution,{"dsvtx_vtx2_tau","goodevent"}).Histo1D("dsvtx_vtx2_meanlifecharm");
+    TCanvas *ctau = new TCanvas();
+    htau->DrawClone();
 }
