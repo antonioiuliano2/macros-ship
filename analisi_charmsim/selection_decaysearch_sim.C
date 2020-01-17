@@ -40,7 +40,7 @@ RVec<float> phi_medium(RVec<int> vtx2_ntracks, RVec<float> vtx2_track_tx, RVec<f
   RVec<float> phi_medium_vertex;
   for (int ivtx = 0; ivtx < nvertices; ivtx++){
    int ntracks = vtx2_ntracks[ivtx];
-   float vtx2_track_phi = Mean(atan(RVec<float>(&vtx2_track_ty[nprevioustracks], &vtx2_track_ty[nprevioustracks+ntracks])/
+   float vtx2_track_phi = Mean(atan2(RVec<float>(&vtx2_track_ty[nprevioustracks], &vtx2_track_ty[nprevioustracks+ntracks]),
                                      RVec<float>(&vtx2_track_tx[nprevioustracks], &vtx2_track_tx[nprevioustracks+ntracks])));
    phi_medium_vertex.push_back(vtx2_track_phi);
    //increasing ntracks counter
@@ -56,7 +56,7 @@ RVec<float> phi_difference(RVec<float> vtx2_phi_medium, float vx, float vy, floa
    //computing angles
    float tx = (vtx2_vx[ivtx]-vx)/(vtx2_vz[ivtx]-vz); 
    float ty = (vtx2_vy[ivtx]-vy)/(vtx2_vz[ivtx]-vz);
-   float phi = TMath::ATan(ty/tx);
+   float phi = TMath::ATan2(ty,tx);
    phi_difference_vertex.push_back(phi - vtx2_phi_medium[ivtx]);
   }
   return phi_difference_vertex;
@@ -326,8 +326,8 @@ void selection_decaysearch_sim(){
     auto dfcheck_charmdaughtersamevent = dfcheck_samevent.Define(vtx2_charmdaugthersamevent, MCvertex_charmdaughter_samevent,{vtx2_ntrk,vtx2_track_charmdaugther,vtx2_track_samevent});
     
     //two starting tracks
-    auto dfcheck_2starting_trk = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_2starting_trk",atleast2starting,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
-    auto dfcheck_2starting = dfcheck_2starting_trk.Define("dsvtx_vtx2_2starting",atleast2starting_trk,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
+   // auto dfcheck_2starting_trk = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_2starting_trk",atleast2starting,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
+   // auto dfcheck_2starting = dfcheck_2starting_trk.Define("dsvtx_vtx2_2starting",atleast2starting_trk,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
     //two good tracks
     auto dfcheck_twogoodtracks_trk = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_2goodtrks_trk",atleast2goodtrks_trk,{vtx2_ntrk,"dsvtx.vtx2_tnseg"});
     auto dfcheck_twogoodtracks = dfcheck_twogoodtracks_trk.Define("dsvtx_vtx2_2goodtrks",atleast2goodtrks,{vtx2_ntrk,"dsvtx.vtx2_tnseg"});
