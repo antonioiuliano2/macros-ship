@@ -16,6 +16,71 @@ RVec<float> decaylength(RVec<float> vtx2_vx, RVec<float> vtx2_vy, RVec<float> vt
   return rvtx2_dl;
 }
 
+RVec<int> atleast2starting(RVec<int> vtx2_ntracks, RVec<int>vtx2_incoming){
+  RVec<int> goodvertices;
+  const int nvertices = vtx2_ntracks.size();
+  int nprevioustracks = 0;
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+    int ntracks = vtx2_ntracks[ivtx];
+    int ngoodtrks = 0;
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      if (vtx2_incoming[itrk+nprevioustracks] == 1) ngoodtrks++;
+    }
+    //at least 2 good tracks
+    if (ngoodtrks >= 2) goodvertices.push_back(true);
+    else goodvertices.push_back(false);
+    nprevioustracks += ntracks;
+  }
+  return goodvertices;
+}
+//phi medium and difference with vertex phi
+RVec<float> phi_medium(RVec<int> vtx2_ntracks, RVec<float> vtx2_track_tx, RVec<float> vtx2_track_ty){
+  int nprevioustracks = 0;
+  const int nvertices = vtx2_ntracks.size();
+  RVec<float> phi_medium_vertex;
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+   int ntracks = vtx2_ntracks[ivtx];
+   float vtx2_track_phi = Mean(atan(RVec<float>(&vtx2_track_ty[nprevioustracks], &vtx2_track_ty[nprevioustracks+ntracks])/
+                                     RVec<float>(&vtx2_track_tx[nprevioustracks], &vtx2_track_tx[nprevioustracks+ntracks])));
+   phi_medium_vertex.push_back(vtx2_track_phi);
+   //increasing ntracks counter
+   nprevioustracks += ntracks;
+  }
+  return phi_medium_vertex;
+}
+
+RVec<float> phi_difference(RVec<float> vtx2_phi_medium, float vx, float vy, float vz, RVec<float> vtx2_vx, RVec<float> vtx2_vy, RVec<float> vtx2_vz){
+  RVec<float> phi_difference_vertex;
+  const int nvertices = vtx2_vx.size();
+  for(int ivtx = 0; ivtx < nvertices; ivtx++){
+   //computing angles
+   float tx = (vtx2_vx[ivtx]-vx)/(vtx2_vz[ivtx]-vz); 
+   float ty = (vtx2_vy[ivtx]-vy)/(vtx2_vz[ivtx]-vz);
+   float phi = TMath::ATan(ty/tx);
+   phi_difference_vertex.push_back(phi - vtx2_phi_medium[ivtx]);
+  }
+  return phi_difference_vertex;
+}
+
+
+RVec<int> atleast2starting_trk(RVec<int> vtx2_ntracks, RVec<int>vtx2_incoming){
+  RVec<int> tracks_ingoodvertices;
+  const int nvertices = vtx2_ntracks.size();
+  int nprevioustracks = 0;
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+    int ntracks = vtx2_ntracks[ivtx];
+    int ngoodtrks = 0;
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      if (vtx2_incoming[itrk+nprevioustracks] == 1) ngoodtrks++;
+    }
+    //at least 2 good tracks
+    if (ngoodtrks >= 2){for (int itrk = 0; itrk < ntracks; itrk++) tracks_ingoodvertices.push_back(true);}
+    else {for (int itrk = 0; itrk < ntracks; itrk++) tracks_ingoodvertices.push_back(false);}
+    nprevioustracks += ntracks;
+  }
+  return tracks_ingoodvertices;
+}
+
 RVec<int> atleast2goodtrks(RVec<int> vtx2_ntracks, RVec<int>vtx2_nseg){
   RVec<int> goodvertices;
   const int nvertices = vtx2_ntracks.size();
@@ -234,15 +299,20 @@ void selection_decaysearch_sim(){
 
     //******************START OF MAIN SCRIPT*************************//
 
-    TFile *inputfile = TFile::Open("01_13_ds_data_result.root");
+    TFile *inputfile = TFile::Open("01_17_ds_data_result.root");
     RDataFrame dsdataframe = RDataFrame("ds",inputfile);
     //computing additional variables
     auto dflength = dsdataframe.Define("dsvtx_vtx2_dl",decaylength,{"dsvtx.vtx2_vx", "dsvtx.vtx2_vy", "dsvtx.vtx2_vz","vtx.x","vtx.y","vtx.z"});
     auto dfmeanlife = dflength.Define("dsvtx_vtx2_tau",meanlife,{"dsvtx.vtx2_ntrk","dsvtx.vtx2_vka","dsvtx_vtx2_dl"});
     auto df_primmcid = dfmeanlife.Define(vtx_mc_ev,mostscommonidvertex,{"trk.mc_ev"}); //mc event of vertex
+
+    //angular information
+    auto df_meanphi = df_primmcid.Define("dsvtx_vtx2_meanphi",phi_medium,{vtx2_ntrk,"dsvtx.vtx2_tx", "dsvtx.vtx2_ty"});
+    auto df_phidifference = df_meanphi.Define("dsvtx_vtx2_phidifference",phi_difference,{"dsvtx_vtx2_meanphi","vtx.x","vtx.y","vtx.z", "dsvtx.vtx2_vx", "dsvtx.vtx2_vy", "dsvtx.vtx2_vz"});
+
     //checking conditions for selections
     //positive dz
-    auto dfcheck_posdz_trk = df_primmcid.Define(vtx2_track_positivedz,dzselection_trk,{vtx2_ntrk,vtx2_dz});
+    auto dfcheck_posdz_trk = df_phidifference.Define(vtx2_track_positivedz,dzselection_trk,{vtx2_ntrk,vtx2_dz});
     auto dfcheck_posdz = dfcheck_posdz_trk.Define(vtx2_positivedz,dzselection,{vtx2_dz});     
 
     //recognize charm daughter
@@ -255,6 +325,9 @@ void selection_decaysearch_sim(){
     //both charmdaughter and samevent for the same track
     auto dfcheck_charmdaughtersamevent = dfcheck_samevent.Define(vtx2_charmdaugthersamevent, MCvertex_charmdaughter_samevent,{vtx2_ntrk,vtx2_track_charmdaugther,vtx2_track_samevent});
     
+    //two starting tracks
+    auto dfcheck_2starting_trk = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_2starting_trk",atleast2starting,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
+    auto dfcheck_2starting = dfcheck_2starting_trk.Define("dsvtx_vtx2_2starting",atleast2starting_trk,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
     //two good tracks
     auto dfcheck_twogoodtracks_trk = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_2goodtrks_trk",atleast2goodtrks_trk,{vtx2_ntrk,"dsvtx.vtx2_tnseg"});
     auto dfcheck_twogoodtracks = dfcheck_twogoodtracks_trk.Define("dsvtx_vtx2_2goodtrks",atleast2goodtrks,{vtx2_ntrk,"dsvtx.vtx2_tnseg"});
