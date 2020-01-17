@@ -57,6 +57,7 @@ RVec<float> phi_medium(RVec<int> vtx2_ntracks, RVec<float> vtx2_track_tx, RVec<f
    phi_medium_vertex.push_back(track_phi/nforward);
    //increasing ntracks counter
    nprevioustracks += ntracks;
+     cout<<"Prova meanphi "<<track_phi/nforward<<endl;
   }
   return phi_medium_vertex;
 }
@@ -69,7 +70,12 @@ RVec<float> phi_difference(RVec<float> vtx2_phi_medium, float vx, float vy, floa
    float tx = (vtx2_vx[ivtx]-vx)/(vtx2_vz[ivtx]-vz); 
    float ty = (vtx2_vy[ivtx]-vy)/(vtx2_vz[ivtx]-vz);
    float phi = TMath::ATan2(ty,tx);
-   phi_difference_vertex.push_back(TMath::Abs(phi - vtx2_phi_medium[ivtx]));
+   float phidifference = TMath::Abs(phi- vtx2_phi_medium[ivtx]);
+
+   if (phidifference > TMath::Pi()) phidifference = 2*TMath::Pi() - phidifference;
+   
+   phi_difference_vertex.push_back(phidifference);
+   cout<<"Prova phi difference "<<phi<<" "<<vtx2_phi_medium[ivtx]<<endl;
   }
   return phi_difference_vertex;
 }
