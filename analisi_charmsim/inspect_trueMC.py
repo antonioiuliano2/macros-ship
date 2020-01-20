@@ -14,4 +14,20 @@ def inspecttrack(MCEventID, MCTrackID):
 
     selectedtrack = tracks[MCTrackID]
 
-    print("Track PDG: ",selectedtrack.GetPdgCode()," momentum ",selectedtrack.GetP(), " produced by ", selectedtrack.GetProcID())
+    print("Track PDG: ",selectedtrack.GetPdgCode()," momentum ",selectedtrack.GetP(), " produced by ", selectedtrack.GetProcName())
+    if (selectedtrack.GetMotherId() > -1 ):
+     print("Mother PDG: ",tracks[selectedtrack.GetMotherId()].GetPdgCode()," momentum ",tracks[selectedtrack.GetMotherId()].GetP())
+
+def inspectlist(MCEventID, mytracks):
+
+    '''printing information about list of tracks within an event'''
+    simtree.GetEntry(MCEventID)  
+    tracks = simtree.MCTrack
+
+    for MCTrackID in mytracks:
+      selectedtrack = tracks[MCTrackID]
+
+      print("Track PDG: ",selectedtrack.GetPdgCode()," momentum ",selectedtrack.GetP(), " produced by ", selectedtrack.GetProcName())
+      if (selectedtrack.GetMotherId() > -1 ):
+       print("Mother PDG: ",tracks[selectedtrack.GetMotherId()].GetPdgCode()," momentum ",tracks[selectedtrack.GetMotherId()].GetP())
+      print("\n")
