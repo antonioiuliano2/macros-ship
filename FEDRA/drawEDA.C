@@ -1,10 +1,16 @@
 EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int vertexID );
 
+EdbPVRec * dummyrec = new EdbPVRec();
+EdbEDA * eda = new EdbEDA(dummyrec,false); // init DataSet but doesn't read linked_track.root
+//EdbEDA *eda;
+
 void loadcouples(EdbPVRec * ali, float xcenter, float ycenter, float rmax = 2000);
 void showerEDA(const int trackID, bool first = true, TString trackfilename = "linked_tracks.root");
 void showerall(){
  showerEDA(1388);
- showerEDA(99188,false);
+ eda->Reset();
+ showerEDA(99188);
+ //showerEDA(99188,false);
 }
 
 void showerEDA(const int trackID, bool first = true, TString trackfilename = "linked_tracks.root"){
@@ -96,14 +102,10 @@ if (drawtracks){
   } //end loop on tracks
  }
  //test loading couples
- loadcouples(ali, xcenter,ycenter);
- EdbEDA * eda; 
- if (first) eda = new EdbEDA(ali); // init DataSet but doesn't read linked_track.root
- else{
-   eda->Reset();
-   delete gEDA;
-  eda = new EdbEDA(ali); 
- }
+ loadcouples(ali, xcenter,ycenter,5000);
+ eda->SetPVR(ali);
+ eda->GetTrackSet("TS")->AddTracksPVR(ali);
+ //eda = new EdbEDA(ali);
  EdbEDAUtil::FillTracksFromPatterns(ali);
  eda->GetTrackSet("TS")->SetColorMode(kCOLOR_BY_PARTICLE);
  eda->Run();
@@ -138,8 +140,8 @@ if (drawtracks){
 
 
  }
- delete ali;
- delete eda;
+ //delete eda;
+ //delete ali;
 }
 
 void drawEDA(bool newversion = true, TString vertexfilename = " vertextree_test.root", TString trackfilename = "linked_tracks.root"){
