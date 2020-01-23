@@ -33,6 +33,49 @@ RVec<int> atleast2starting(RVec<int> vtx2_ntracks, RVec<int>vtx2_incoming){
   }
   return goodvertices;
 }
+
+RVec<float> phi_charm ( float vx, float vy, float vz, RVec<float> vtx2_vx, RVec<float> vtx2_vy, RVec<float> vtx2_vz){
+  //angle between primary and secondary vertices
+  RVec<float> phi_charm;
+  const int nvertices = vtx2_vx.size();
+  for(int ivtx = 0; ivtx < nvertices; ivtx++){
+   //computing angles
+   float tx = (vtx2_vx[ivtx]-vx)/(vtx2_vz[ivtx]-vz); 
+   float ty = (vtx2_vy[ivtx]-vy)/(vtx2_vz[ivtx]-vz);
+   phi_charm.push_back(TMath::ATan2(ty,tx));
+  }
+  return phi_charm;
+}
+
+RVec<float> endingtrack_angledifference(RVec<int> vtx2_ntracks, RVec<float> vtx2_phi_charm, RVec<float> vtx2_track_tx, RVec<float>vtx2_track_ty, RVec<int> vtx2_track_incoming){
+  int nprevioustracks = 0;
+  const int nvertices = vtx2_ntracks.size();
+  RVec<float> angledifference;
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+    int ntracks = vtx2_ntracks[ivtx];
+    int nbackward = 0; //tracks ending at vertex
+    float trackphi;
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      if (vtx2_track_incoming[itrk+nprevioustracks] == 0){
+       nbackward++;
+       trackphi= TMath::ATan2(vtx2_track_ty[itrk+nprevioustracks],vtx2_track_tx[itrk+nprevioustracks]);
+      } 
+    }
+    if (nbackward == 1){
+      float phidifference = TMath::Abs(vtx2_phi_charm[ivtx]- trackphi);
+      if (phidifference > TMath::Pi()) phidifference = 2*TMath::Pi() - phidifference;
+      angledifference.push_back(phidifference);
+    } 
+    else if (nbackward > 1) angledifference.push_back(10); //more than one track ending at vertex
+    else if (nbackward < 1) angledifference.push_back(-10); //no tracks ending at vertex
+    
+
+   //increasing ntracks counter
+    nprevioustracks += ntracks;
+  }//end loop on vertices
+  return angledifference;
+}
+
 //phi medium and difference with vertex phi
 RVec<float> phi_medium(RVec<int> vtx2_ntracks, RVec<float> vtx2_track_tx, RVec<float> vtx2_track_ty, RVec<int> vtx2_track_incoming){
   int nprevioustracks = 0;
@@ -61,6 +104,7 @@ RVec<float> phi_medium(RVec<int> vtx2_ntracks, RVec<float> vtx2_track_tx, RVec<f
   }
   return phi_medium_vertex;
 }
+
 
 RVec<float> phi_difference(RVec<float> vtx2_phi_medium, float vx, float vy, float vz, RVec<float> vtx2_vx, RVec<float> vtx2_vy, RVec<float> vtx2_vz){
   RVec<float> phi_difference_vertex;
@@ -353,8 +397,13 @@ void selection_decaysearch_sim(){
     //both charmdaughter and samevent for the same track
     auto dfcheck_charmdaughtersamevent = dfcheck_samevent.Define(vtx2_charmdaugthersamevent, MCvertex_charmdaughter_samevent,{vtx2_ntrk,vtx2_track_charmdaugther,vtx2_track_samevent});
     
+    //vertex angle
+    auto dfphi_charm = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_phicharm",phi_charm,{"vtx.x","vtx.y","vtx.z","dsvtx.vtx2_vx", "dsvtx.vtx2_vy", "dsvtx.vtx2_vz"});
+
+    auto dfcheck_endingtrackdeltaphi = dfphi_charm.Define("dsvtx_vtx2_endingdeltaphi",endingtrack_angledifference,{vtx2_ntrk,"dsvtx_vtx2_phicharm","dsvtx.vtx2_tx", "dsvtx.vtx2_ty","dsvtx.vtx2_incoming"});
+
     //two starting tracks
-    auto dfcheck_2starting_trk = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_2starting_trk",atleast2starting,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
+    auto dfcheck_2starting_trk = dfcheck_endingtrackdeltaphi.Define("dsvtx_vtx2_2starting_trk",atleast2starting,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
     auto dfcheck_2starting = dfcheck_2starting_trk.Define("dsvtx_vtx2_2starting",atleast2starting_trk,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
     //two good tracks
     auto dfcheck_twogoodtracks_trk = dfcheck_2starting.Define("dsvtx_vtx2_2goodtrks_trk",atleast2goodtrks_trk,{vtx2_ntrk,"dsvtx.vtx2_tnseg"});
