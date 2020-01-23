@@ -56,9 +56,9 @@ RVec<float> endingtrack_angledifference(RVec<int> vtx2_ntracks, RVec<float> vtx2
     int nbackward = 0; //tracks ending at vertex
     float trackphi;
     for (int itrk = 0; itrk < ntracks; itrk++){
-      if (vtx2_track_incoming[itrk] == 0){
+      if (vtx2_track_incoming[itrk+nprevioustracks] == 0){
        nbackward++;
-       trackphi= TMath::ATan2(vtx2_track_ty[itrk],vtx2_track_tx[itrk]);
+       trackphi= TMath::ATan2(vtx2_track_ty[itrk+nprevioustracks],vtx2_track_tx[itrk+nprevioustracks]);
       } 
     }
     if (nbackward == 1){
@@ -70,7 +70,8 @@ RVec<float> endingtrack_angledifference(RVec<int> vtx2_ntracks, RVec<float> vtx2
     else if (nbackward < 1) angledifference.push_back(-10); //no tracks ending at vertex
     
 
-   
+   //increasing ntracks counter
+    nprevioustracks += ntracks;
   }//end loop on vertices
   return angledifference;
 }
