@@ -159,6 +159,7 @@ void SimpleShowerRecInterface::RecoFromTrack(int ntracks, int* tracklist, int* i
       }
      segarray->Add(tr1);
      }
+     /*
      EdbDisplay * ds = EdbDisplay::EdbDisplayExist(dsname);
      if(!ds)  ds=new EdbDisplay(dsname,-100000.,100000.,-100000.,100000.,-100000., 0.);
 
@@ -166,7 +167,7 @@ void SimpleShowerRecInterface::RecoFromTrack(int ntracks, int* tracklist, int* i
      ds->SetVerRec(gEVR);
      ds->SetDrawTracks(6);
      ds->SetArrTr( segarray  );
-     ds->Draw();
+     ds->Draw();*/
      }   
 }
 
@@ -208,6 +209,7 @@ void SimpleShowerRecInterface::DrawShower(int ishower,char * showerfilename){
 //        
     }
      //DISPLAY OF SEGMENTS
+     
     const char *dsname = "Test shower reconstruction";
     EdbDisplay * ds = EdbDisplay::EdbDisplayExist(dsname);
     if(!ds)  ds=new EdbDisplay(dsname,-100000.,100000.,-100000.,100000.,-100000., 0.);
@@ -244,7 +246,7 @@ void SimpleShowerRecInterface::DrawAllShowers(char * showerfilename){
 
     TObjArray *sarr = new TObjArray();
     //filling array with segments
-
+    cout<<"Number of showers "<<showertree->GetEntries()<<endl;
     for (int ishower; ishower < showertree->GetEntries();ishower++){
      showertree->GetEntry(ishower);
      cout<<"Number of found segments "<<sizeb<<endl;

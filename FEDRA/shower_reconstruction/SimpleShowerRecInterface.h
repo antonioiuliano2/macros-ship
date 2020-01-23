@@ -10,7 +10,7 @@ class SimpleShowerRecInterface:public TObject {
    SimpleShowerRecInterface(){eEdbPVRec=0;};
    ~SimpleShowerRecInterface(){};
    
-   void SetAlgoParameter(Double_t paravalue, Int_t paranr) {eEdbPVRec->SetAlgoParameter(Double_t paravalue, Int_t paranr);}; 
+   //void SetAlgoParameter(Double_t paravalue, Int_t paranr) {eEdbPVRec->SetAlgoParameter(Double_t paravalue, Int_t paranr);}; 
    /*setting parameters of EdbShowerRec
    if (paranr==0) eAlgoParameterConeRadius=paravalue;
    else if (paranr==1) eAlgoParameterConeAngle=paravalue;
