@@ -42,7 +42,7 @@ void addshowerinfo(){
     TTreeReaderArray<ShipMCTrack> tracks(simreader,"MCTrack");
 
     //ds tree
-    TFile * inputfile = TFile::Open("annotated_ds_data_result_testshower_v3_noinputtrackduplicates.root","UPDATE");
+    TFile * inputfile = TFile::Open("annotated_ds_data_result.root","READ");
     TTree * dstree = (TTree*) inputfile->Get("ds");
     TTreeReader dsreader("ds",inputfile);
 
@@ -52,6 +52,8 @@ void addshowerinfo(){
     TTreeReaderArray<int> MCEventID(dsreader,"dsvtx_vtx2_mc_ev");
     TTreeReaderArray<int> MCTrackID(dsreader,"dsvtx_vtx2_mc_tid");
 
+
+    TFile *outputfile = new TFile("annotated_ds_data_result_testshower_v3_noinputtrackduplicates.root","RECREATE");
 //    vector<int> trackIDs;
 
     vector<int> nshower;
@@ -67,20 +69,20 @@ void addshowerinfo(){
     dstree->SetBranchStatus("dsvtx_vtx2_mc_ev",1);
     dstree->SetBranchStatus("dsvtx_vtx2_mc_tid",1);
 //    dstree->SetBranchAddress("dsvtx_vtx2_tid",&trackIDs);
+    TTree *dstree2 = dstree->CloneTree(0);
+    TBranch * branchsizeb = dstree2->Branch("dsvtx_vtx2_trk_sizeb",&sizeb);
+    dstree2->SetBranchStatus("dsvtx_vtx2_trk_sizeb",1);
+    TBranch * branchnshower = dstree2->Branch("dsvtx_vtx2_trk_nshower",&nshower);
+    dstree2->SetBranchStatus("dsvtx_vtx2_trk_nshower",1);
+    TBranch * branchoutput15 = dstree2->Branch("dsvtx_vtx2_trk_output15",&output15);
+    dstree2->SetBranchStatus("dsvtx_vtx2_trk_output15",1);
+    TBranch * branchoutput30 = dstree2->Branch("dsvtx_vtx2_trk_output30",&output30);
+    dstree2->SetBranchStatus("dsvtx_vtx2_trk_output30",1);
 
-    TBranch * branchsizeb = dstree->Branch("dsvtx_vtx2_trk_sizeb",&sizeb);
-    dstree->SetBranchStatus("dsvtx_vtx2_trk_sizeb",1);
-    TBranch * branchnshower = dstree->Branch("dsvtx_vtx2_trk_nshower",&nshower);
-    dstree->SetBranchStatus("dsvtx_vtx2_trk_nshower",1);
-    TBranch * branchoutput15 = dstree->Branch("dsvtx_vtx2_trk_output15",&output15);
-    dstree->SetBranchStatus("dsvtx_vtx2_trk_output15",1);
-    TBranch * branchoutput30 = dstree->Branch("dsvtx_vtx2_trk_output30",&output30);
-    dstree->SetBranchStatus("dsvtx_vtx2_trk_output30",1);
-
-    TBranch * branchmomentum = dstree->Branch("dsvtx_vtx2_trk_momentum",&momentum);
-    dstree->SetBranchStatus("dsvtx_vtx2_trk_momentum",1);
-    TBranch * branchpdgcode = dstree->Branch("dsvtx_vtx2_trk_pdgcode",&pdgcode);
-    dstree->SetBranchStatus("dsvtx_vtx2_trk_pdgcode",1);
+    TBranch * branchmomentum = dstree2->Branch("dsvtx_vtx2_trk_momentum",&momentum);
+    dstree2->SetBranchStatus("dsvtx_vtx2_trk_momentum",1);
+    TBranch * branchpdgcode = dstree2->Branch("dsvtx_vtx2_trk_pdgcode",&pdgcode);
+    dstree2->SetBranchStatus("dsvtx_vtx2_trk_pdgcode",1);
  
     
     cout<<"Start loop on Valerio's events "<<endl;
@@ -138,11 +140,12 @@ void addshowerinfo(){
         branchoutput30->SetAddress(&output30);
         branchpdgcode->SetAddress(&pdgcode);
         branchmomentum->SetAddress(&momentum);*/
-        dstree->Fill();
+        dstree2->Fill();
     }
-
-    dstree->Write();
+    outputfile->cd();
+    dstree2->Write();
     inputfile->Close();
+    outputfile->Close();
 }
 //signal selection (electron)
 RVec<int> iselectron(RVec<int> pdgcode){
@@ -151,6 +154,10 @@ RVec<int> iselectron(RVec<int> pdgcode){
 //signal selection (electron)
 RVec<int> isnotelectron(RVec<int> pdgcode){
     return (abs(pdgcode) != 11);
+}
+
+RVec<int> outputabovecut(RVec<float> output15, float cut ){
+    return (output15>cut);
 }
 
 RVec<float> selecteddistribution(RVec<float> originaldistribution, RVec<int> selection){
@@ -222,18 +229,20 @@ void checkshowerefficiency(){
 
     //defining signal branch according to selection
     auto dsdataframe_selection = dsdataframe.Define("dsvtx_vtx2_trk_signal",iselectron,{"dsvtx_vtx2_trk_pdgcode"});
-    auto dsdataframe_selection2 = dsdataframe_selection.Define("dsvtx_vtx2_trk_background",isnotelectron,{"dsvtx_vtx2_trk_pdgcode"});
+    auto dsdataframe_cut = dsdataframe_selection.Define("dsvtx_vtx2_trk_background",isnotelectron,{"dsvtx_vtx2_trk_pdgcode"});
+    //histograms above cut
+    //auto dsdataframe_cut = dsdataframe_selection2.Define("dsvtx_vtx2_trk_outputabovecut",outputabovecut,{"dsvtx_vtx2_trk_output15"});
 
-    plotsignalandbackground(dsdataframe_selection2,"dsvtx_vtx2_trk_output15",{"houtput15","Output 15;output", 200,-15,5}); 
-    plotsignalandbackground(dsdataframe_selection2,"dsvtx_vtx2_trk_output30",{"houtput30", "Output 30;output", 200,-15,5}); 
+    plotsignalandbackground(dsdataframe_cut,"dsvtx_vtx2_trk_output15",{"houtput15","Output 15;output", 200,-15,5}); 
+    plotsignalandbackground(dsdataframe_cut,"dsvtx_vtx2_trk_output30",{"houtput30", "Output 30;output", 200,-15,5}); 
 
-    plotsignalandbackground_int(dsdataframe_selection2,"dsvtx_vtx2_trk_sizeb",{"hsizeb","Dimension of shower",10,0,100});
+    plotsignalandbackground_int(dsdataframe_cut,"dsvtx_vtx2_trk_sizeb",{"hsizeb","Dimension of shower",10,0,100});
 
 
     //prepare definitions for 2d histograms
-    auto selectionsignal = dsdataframe_selection2.Define("output15signal",selecteddistribution,{"dsvtx_vtx2_trk_output15","dsvtx_vtx2_trk_signal"})
+    auto selectionsignal = dsdataframe_cut.Define("output15signal",selecteddistribution,{"dsvtx_vtx2_trk_output15","dsvtx_vtx2_trk_signal"})
                                                  .Define("momentumsignal",selecteddistribution,{"dsvtx_vtx2_trk_momentum","dsvtx_vtx2_trk_signal"});
-    auto selectionbackground = dsdataframe_selection2.Define("output15background",selecteddistribution,{"dsvtx_vtx2_trk_output15","dsvtx_vtx2_trk_background"})
+    auto selectionbackground = dsdataframe_cut.Define("output15background",selecteddistribution,{"dsvtx_vtx2_trk_output15","dsvtx_vtx2_trk_background"})
                                                      .Define("momentumbackground",selecteddistribution,{"dsvtx_vtx2_trk_momentum","dsvtx_vtx2_trk_background"});                                                  
 
     auto hmomoutputsignal=selectionsignal.Profile1D({"hmomoutputsig","Momentum vs output15 signal;output15;P[GeV/c]",20,-15,5,0,400},"output15signal","momentumsignal");
