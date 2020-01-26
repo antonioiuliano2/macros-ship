@@ -71,6 +71,7 @@ void prepare_simlists(int ncell = 1){
   const int npvrecs = 30; //number of built sections
   
   RVec<int> trackscells[npvrecs];
+  map<int,int> tracksmap;
 
   const int nevents = dsreader.GetEntries(); //events in tree
   //int ncell = 4; //which cell to apply reconstruction over
@@ -82,7 +83,10 @@ void prepare_simlists(int ncell = 1){
         int xcode = (xtrack[itrk]-60000)/10000; //second quarter x from 60000 to 120000
         int ycode = (ytrack[itrk])/10000; //second quarter: y from 0 to 50000
         int code = 5*xcode + ycode; //find the right file
-        if (code == ncell) trackscells[code].push_back(trackIDs[itrk]);
+        if (code == ncell && tracksmap.count(trackIDs[itrk])<1){ 
+            trackscells[code].push_back(trackIDs[itrk]);
+            tracksmap[trackIDs[itrk]] = 1;
+        }
       }//end track loop
   }//end event loop
   //checking associations
@@ -104,9 +108,9 @@ void prepare_simlists(int ncell = 1){
   }
 
   //renaming trees and moving them in output folder
-  gSystem->Exec(Form("mv Shower.root Showreco_ds_23_01/Shower_%i_%i.root",startx,starty));
-  gSystem->Exec(Form("mv Shower2.root Showreco_ds_23_01/Shower2_%i_%i.root",startx,starty));
-  gSystem->Exec(Form("mv shower1.root Showreco_ds_23_01/shower1_%i_%i.root",startx,starty));
+  gSystem->Exec(Form("mv Shower.root /home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/Shower_%i_%i.root",startx,starty));
+  gSystem->Exec(Form("mv Shower2.root /home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/Shower2_%i_%i.root",startx,starty));
+  gSystem->Exec(Form("mv shower1.root /home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/shower1_%i_%i.root",startx,starty));
 
 
 
