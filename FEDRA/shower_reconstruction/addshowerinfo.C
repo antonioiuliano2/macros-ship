@@ -14,7 +14,7 @@ void addshowerinfo(){
     int ishower;
     for (int xcode = 6; xcode < 12; xcode++ ){
      for (int ycode = 0; ycode < 5; ycode++ ){
-        ifstream showerlog (Form("/home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_23_01/showerlog_v2_%i_%i.dat",xcode*10000,ycode*10000),ifstream::in);
+        ifstream showerlog (Form("/home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/showerlog_%i_%i.dat",xcode*10000,ycode*10000),ifstream::in);
         string dummystring;
         getline(showerlog,dummystring);
         while (showerlog.good()){
@@ -53,7 +53,7 @@ void addshowerinfo(){
     TTreeReaderArray<int> MCTrackID(dsreader,"dsvtx_vtx2_mc_tid");
 
 
-    TFile *outputfile = new TFile("annotated_ds_data_result_testshower_v3_noinputtrackduplicates.root","RECREATE");
+    TFile *outputfile = new TFile("annotated_ds_data_result_testshower_v4_full.root","UPDATE");
 //    vector<int> trackIDs;
 
     vector<int> nshower;
@@ -64,12 +64,12 @@ void addshowerinfo(){
     vector<int> pdgcode;
     vector<float> momentum;
 
-    dstree->SetBranchStatus("*",0);
+    dstree->SetBranchStatus("*",1);
     dstree->SetBranchStatus("dsvtx_vtx2_tid",1);
     dstree->SetBranchStatus("dsvtx_vtx2_mc_ev",1);
     dstree->SetBranchStatus("dsvtx_vtx2_mc_tid",1);
 //    dstree->SetBranchAddress("dsvtx_vtx2_tid",&trackIDs);
-    TTree *dstree2 = dstree->CloneTree(0);
+    TTree *dstree2 = new TTree("dsshower","Result of shower reconstruction");
     TBranch * branchsizeb = dstree2->Branch("dsvtx_vtx2_trk_sizeb",&sizeb);
     dstree2->SetBranchStatus("dsvtx_vtx2_trk_sizeb",1);
     TBranch * branchnshower = dstree2->Branch("dsvtx_vtx2_trk_nshower",&nshower);
@@ -79,10 +79,10 @@ void addshowerinfo(){
     TBranch * branchoutput30 = dstree2->Branch("dsvtx_vtx2_trk_output30",&output30);
     dstree2->SetBranchStatus("dsvtx_vtx2_trk_output30",1);
 
-    TBranch * branchmomentum = dstree2->Branch("dsvtx_vtx2_trk_momentum",&momentum);
-    dstree2->SetBranchStatus("dsvtx_vtx2_trk_momentum",1);
-    TBranch * branchpdgcode = dstree2->Branch("dsvtx_vtx2_trk_pdgcode",&pdgcode);
-    dstree2->SetBranchStatus("dsvtx_vtx2_trk_pdgcode",1);
+    TBranch * branchmomentum = dstree2->Branch("dsvtx_vtx2_trk_mc_momentum",&momentum);
+    dstree2->SetBranchStatus("dsvtx_vtx2_trk_mc_momentum",1);
+    TBranch * branchpdgcode = dstree2->Branch("dsvtx_vtx2_trk_mc_pdgcode",&pdgcode);
+    dstree2->SetBranchStatus("dsvtx_vtx2_trk_mc_pdgcode",1);
  
     
     cout<<"Start loop on Valerio's events "<<endl;

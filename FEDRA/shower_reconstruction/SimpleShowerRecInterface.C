@@ -171,7 +171,7 @@ void SimpleShowerRecInterface::RecoFromTrack(int ntracks, int* tracklist, int* i
      }   
 }
 
-void SimpleShowerRecInterface::DrawShower(int ishower,char * showerfilename){
+TObjArray* SimpleShowerRecInterface::DrawShower(int ishower,char * showerfilename){
 
     //opening showerfile
     TFile *showerfile = TFile::Open(showerfilename);
@@ -181,9 +181,11 @@ void SimpleShowerRecInterface::DrawShower(int ishower,char * showerfilename){
     const int maxsize = 10000; //as in ShowerRec
     int idb[maxsize]; //IDs of basetracks
     int plateb[maxsize]; //number of plate of base track
+    float zb[maxsize];
     //setting branch addresses
     showertree->SetBranchAddress("sizeb",&sizeb);
     showertree->SetBranchAddress("idb",&idb);
+    showertree->SetBranchAddress("zb",&zb);
     showertree->SetBranchAddress("plateb",&plateb);
 
     TObjArray *sarr = new TObjArray();
@@ -199,18 +201,21 @@ void SimpleShowerRecInterface::DrawShower(int ishower,char * showerfilename){
     for (int iseg = 0; iseg < sizeb; iseg++){
         EdbSegP *myseg = new EdbSegP();
         //loop on segments, find ours
-        for (int i = 0; i < segments[plateb[iseg]]->GetEntriesFast();i++){
-            myseg->Copy(*((EdbSegP*) segments[plateb[iseg]]->At(i)));
+        if (!segments[29-plateb[iseg]])continue;
+        for (int i = 0; i < segments[29-plateb[iseg]]->GetEntriesFast();i++){
+            myseg->Copy(*((EdbSegP*) segments[29-plateb[iseg]]->At(i)));
             myseg->SetDZ(300.);
+            myseg->SetZ(zb[iseg]);
             if (myseg->ID() == idb[iseg]){ 
 		        sarr->Add(new EdbSegP(*myseg));
+                break;
     	    }
         }
 //        
     }
      //DISPLAY OF SEGMENTS
      
-    const char *dsname = "Test shower reconstruction";
+   /* const char *dsname = "Test shower reconstruction";
     EdbDisplay * ds = EdbDisplay::EdbDisplayExist(dsname);
     if(!ds)  ds=new EdbDisplay(dsname,-100000.,100000.,-100000.,100000.,-100000., 0.);
 
@@ -218,7 +223,9 @@ void SimpleShowerRecInterface::DrawShower(int ishower,char * showerfilename){
     ds->SetVerRec(gEVR);
     ds->SetDrawTracks(6);
     ds->SetArrSegP( sarr );
-    ds->Draw();    
+    ds->Draw();    */
+
+    return sarr;
 
 }
 
