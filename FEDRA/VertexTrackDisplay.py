@@ -12,13 +12,14 @@ gAli = dproc.PVR()
 fedratrackslist = []
 #vertexnumberlist = [10, 20]
 isolatedtrackcolors = [ROOT.kMagenta, ROOT.kBlue, ROOT.kRed, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta, ROOT.kMagenta] #so we can set different colors for different tracks
-vertextrackcolors = [ROOT.kYellow,ROOT.kBlue,ROOT.kRed, ROOT.kGreen, ROOT.kCyan, ROOT.kGray] #so we can set different colors for different tracks
+vertextrackcolors = [ROOT.kRed,ROOT.kBlue,ROOT.kRed, ROOT.kGreen, ROOT.kCyan, ROOT.kGray] #so we can set different colors for different tracks
 #list of possible options
 parser = ArgumentParser()
 parser.add_argument("-f", "--fedra", dest="vertexfilename", help="file with fedra vertices",
                     required=True)
 parser.add_argument("-t", "--tracks", dest="tracksfilename", help="file with fedra tracks",
                     required=True)
+parser.add_argument("--shower", action='store_true')
 parser.add_argument("-nv", "--nvertices", nargs='+', dest="vertexnumberlist", help="number of vertices to display", required=True)
 parser.add_argument("-nt", "--ntracks", nargs='*', dest="tracklist", help="number of isolated tracks to display")
 parser.add_argument("-new", action='store_true') #for new file format
@@ -88,9 +89,25 @@ else:
    vertextrack = vertex.GetTrack(i)
    drawntracksfromvertex.Add(vertextrack)
 
+if (options.shower): # draw shower
+  ROOT.gROOT.ProcessLine(".L /home/antonio/Scrivania/macros-ship/FEDRA/shower_reconstruction/SimpleShowerRecInterface.C")
+  showerrecinterface = ROOT.SimpleShowerRecInterface()
+  pvrecfile = ROOT.TFile.Open("pvrecs/pvrec_100000_0.root")
+  showerrecinterface.LoadPVRec(pvrecfile)
+  seglist = showerrecinterface.DrawShower(12,"/home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/Shower_100000_0.root")
+
 def drawtracks(vertextracks,othertracks):
  #ds.SetVerRec(gEVR);
  ds.SetDrawTracks(4)
+ if (options.shower):
+   #print(seglist[2].X(),seglist[2].Y(),seglist[2].Z(),seglist[2].DZ())
+   myseglist = ROOT.TObjArray()
+   for segment in seglist:
+     mysegline = ds.SegLine(segment)
+     mysegline.SetLineColor(ROOT.kBlue)
+     mysegline.SetLineWidth(6)
+     myseglist.Add(mysegline)
+   ds.SetArrSegG(myseglist)
  ds.SetArrTr( vertextracks )
  ds.SetArrV(drawnvertices)
  ds.Draw()
@@ -106,6 +123,9 @@ def drawtracks(vertextracks,othertracks):
  print (len(othertracks),"other tracks to display\n")
  for itrk, track in enumerate(othertracks):
    ds.TrackDraw(track,isolatedtrackcolors[itrk])
+ #if (options.shower):
+ #  for segment in seglist:
+ #    ds.TrackDraw(segment)   
 
 ROOT.gStyle.SetPalette(1);
 
