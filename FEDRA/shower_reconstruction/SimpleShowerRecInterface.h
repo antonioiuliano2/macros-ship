@@ -23,7 +23,7 @@ class SimpleShowerRecInterface:public TObject {
    void LoadPVRec(TFile *inputfile);// load an EdbPVRec saved into a file
 
    void RecoFromTrack(int ntracks, int *tracklist, int* iseglist, char * filename = "linked_tracks.root"); //start reconstruction from a given track
-   void DrawShower(int ishower, char * showerfilename = "Shower.root");//draw only one entry from the tree
+   TObjArray* DrawShower(int ishower, char * showerfilename = "Shower.root");//draw only one entry from the tree
    void DrawAllShowers(char * showerfilename = "Shower.root"); //draw all reconstructed showers
 
 
