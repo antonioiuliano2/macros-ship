@@ -5,8 +5,10 @@ from rootUtils import bookHist
 from array import array # for tree branches
 import sys
 
+#output of reconstruction
+dfreconstruction =  pd.read_csv("events_withonesecondary.log",delimiter=" ",index_col=0,names = ["first","second"])
 
-#opening the file and getting the tree
+#opening the ouput file and defining histograms and tree
 histofile = r.TFile("distributions_mctrue.root","RECREATE")
 hipcharm = r.TH1D("hipcharm","Impact parameter charm daughters",100,0,1000)
 hdecaylen= r.TH1D("hdecaylen","Decay length charmed hadrons",1000,0,10000)
@@ -58,6 +60,7 @@ dy = array( 'f', sizearrays*[ 0. ] )
 dz = array( 'f', sizearrays*[ 0. ] )
 longdecay = array ( 'i', sizearrays*[0])
 nprong = array('i', sizearrays*[0])
+reconstructed = array('i',sizearrays*[0])
 
 charmlongntuple = r.TTree("charmdecays","Charm Decays") #tree structure, arrays containing the information for the two charm decays
 charmlongntuple.Branch("momentum",charmmomentum,'momentum[2]/F')
@@ -68,6 +71,7 @@ charmlongntuple.Branch("dy",dy,'dy[2]/F')
 charmlongntuple.Branch("dz",dz,'dz[2]/F')
 charmlongntuple.Branch("longdecay",longdecay,'longdecay[2]/I')
 charmlongntuple.Branch("nprong",nprong,'nprong[2]/I')
+charmlongntuple.Branch("reconstructed",reconstructed,'reconstructed[2]/I')
 
 def findplateID(zposition):
 	iplate = hplatez.FindBin(zposition)
@@ -277,6 +281,12 @@ def getdaughtertracks(inputtree,eventnumber):
 
    #print "TEST ",len(charmdaughterslist)
    hkinkprong[len(charmdaughterslist)-1].Fill(averagekinkangle)
+
+ #reading reconstruction information
+ if (eventnumber in dfreconstruction.index):
+   reconstructed[0] = dfreconstruction.loc[eventnumber,'first']
+   reconstructed[1] = dfreconstruction.loc[eventnumber,'second']
+
  charmlongntuple.Fill()
  return tracksID
 
@@ -290,6 +300,10 @@ for ievent in range(nevents):
  #array resetting
  nprong[0] = 0
  nprong[1] = 0
+
+ reconstructed[0] = 0
+ reconstructed[1] = 0
+
  charmmomentum[0] = 0.
  charmmomentum[1] = 0.
  charmpdgcode[0] = 0

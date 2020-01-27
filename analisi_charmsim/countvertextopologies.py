@@ -145,11 +145,17 @@ print(topologymatrix)
 print("Printing efficiencies ")
 topologyefficiency = topologymatrix/nevents
 print(topologyefficiency)
-
-topologyerrors = np.sqrt(topologymatrix*(1-topologymatrix)/nevents) #(approximated) efficiency error formula
+topologyerrors = np.sqrt(topologyefficiency*(1-topologyefficiency)/nevents) 
+#(approximated) efficiency error formula
 
 print("Printing errors")
 print(topologyerrors)
+
+#saving matrices to files
+np.savetxt("MCpredictions.csv",topologymatrix,delimiter=",",fmt='%1.4e',header="Primary, Secondary, Connected, Extra, Missing")
+np.savetxt("MCefficiencies.csv",topologyefficiency,delimiter=",",fmt='%1.4e',header="Primary, Secondary, Connected, Extra, Missing")
+np.savetxt("MCefficiencieserrors.csv",topologyerrors,delimiter=",",fmt='%1.4e',header="Primary, Secondary, Connected, Extra, Missing")
+
 dfprimaryvertices = dfprimaryvertices.groupby("MCEventID").first()
 
 dftosecondary = dfvertices.query("topology==22")
@@ -230,7 +236,8 @@ canvas1.BuildLegend()
 #plt.show()
 
 outputlogfile = open("vertices.log","w")
-def inspectevent(eventID,outputlogfile):
+selectionlogfile = open("events_withonesecondary.log","w") #list of events to check distributions on
+def inspectevent(eventID,outputlogfile,selectionlogfile):
     '''inspecting the two decay topologies in the event: a vertex takes priority over connected tracks and extra tracks'''
     topologies = [-1,-1]
     outputlogfile.write("MCEvent numer {}\n".format(eventID))
@@ -241,9 +248,20 @@ def inspectevent(eventID,outputlogfile):
     if (eventID in dftoprimary.index):        
       outputlogfile.write("Found charm daughter associated to primary,\n {}\n".format(dftoprimary.loc[[eventID],["ivtx"]]))
     if (eventID in dftosecondary.index):          
-      outputlogfile.write("Charm daughter associated to secondary,\n {}\n".format(dftosecondary.loc[[eventID],["ivtx"]]))    
+      outputlogfile.write("Charm daughter associated to secondary,\n {}\n".format(dftosecondary.loc[[eventID],["ivtx"]]))
+      #look for which mother is present
+      selectionlogfile.write("{}".format(eventID))
+      if ((eventID,1) in dftosecondary.index):
+       selectionlogfile.write(" {}".format(1))
+      else:
+       selectionlogfile.write(" {}".format(0)) 
+      if ((eventID,2) in dftosecondary.index):
+       selectionlogfile.write(" {}".format(2))
+      else:
+       selectionlogfile.write(" {}".format(0))          
      # for single in dfvertices.loc[eventID]:
        # help(single)
+      selectionlogfile.write("\n")
     if (eventID in dfconnected.index):
       outputlogfile.write("Track Connected to parent, \n {}\n".format(dfconnected.loc[[eventID],["itrk"]]))
     if (eventID in dfextra.index):
@@ -253,6 +271,11 @@ def inspectevent(eventID,outputlogfile):
 # Double Signal: topology 1, 2 ,2 total 5
 # Single Signal: topology 1,2 or 2,2: total less than 5
 
+print("Saving vertex log info")
+for ievent in range(nevents):
+  inspectevent(ievent,outputlogfile,selectionlogfile)
+outputlogfile.close()
+selectionlogfile.close()
 def rawcheck():
  '''Quick check, molteplicity (now replaced with topology)'''
  dfprimary = dfvertices[dfvertices['ntracks']>=6]
