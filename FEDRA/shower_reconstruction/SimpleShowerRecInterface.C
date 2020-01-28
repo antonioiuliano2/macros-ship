@@ -92,10 +92,6 @@ void SimpleShowerRecInterface::loadcouples(const int ibrick, const int nplates, 
 }
 
 void SimpleShowerRecInterface::RecoFromTrack(int ntracks, int* tracklist, int* iseglist,char * filename){
-
-    // Create ShowerRec Object
-    EdbShowerRec * eShowerRec = new EdbShowerRec();
-
     
     // Print parameters
     eShowerRec->PrintParameters();
