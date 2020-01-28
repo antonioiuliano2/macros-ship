@@ -201,9 +201,13 @@ TObjArray* SimpleShowerRecInterface::DrawShower(int ishower,char * showerfilenam
     for (int iseg = 0; iseg < sizeb; iseg++){
         EdbSegP *myseg = new EdbSegP();
         //loop on segments, find ours
-        if (!segments[29-plateb[iseg]])continue;
-        for (int i = 0; i < segments[29-plateb[iseg]]->GetEntriesFast();i++){
-            myseg->Copy(*((EdbSegP*) segments[29-plateb[iseg]]->At(i)));
+        if (!eEdbPVRec->GetPatternByZ(zb[iseg])) {
+         cout<<"Warning: Not found pattern"<<plateb[iseg]<< " for segment"<< iseg<<". Skipping that segment "<<endl;
+         continue;
+        }
+        int PID = eEdbPVRec->GetPatternByZ(zb[iseg])->PID();
+        for (int i = 0; i < segments[PID]->GetEntriesFast();i++){
+            myseg->Copy(*((EdbSegP*) segments[PID]->At(i)));
             myseg->SetDZ(300.);
             myseg->SetZ(zb[iseg]);
             if (myseg->ID() == idb[iseg]){ 
