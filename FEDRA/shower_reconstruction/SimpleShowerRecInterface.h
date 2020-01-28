@@ -5,12 +5,13 @@ class SimpleShowerRecInterface:public TObject {
 
   private:
     EdbPVRec* eEdbPVRec; //container of segments and patterns of all involved plates
+    EdbShowerRec *eShowerRec;
 
   public:
-   SimpleShowerRecInterface(){eEdbPVRec=0;};
+   SimpleShowerRecInterface(){eEdbPVRec=0;eShowerRec = new EdbShowerRec();};
    ~SimpleShowerRecInterface(){};
    
-   //void SetAlgoParameter(Double_t paravalue, Int_t paranr) {eEdbPVRec->SetAlgoParameter(Double_t paravalue, Int_t paranr);}; 
+   void SetAlgoParameter(double paravalue, int paranr) {eShowerRec->SetAlgoParameter(paravalue, paranr);};
    /*setting parameters of EdbShowerRec
    if (paranr==0) eAlgoParameterConeRadius=paravalue;
    else if (paranr==1) eAlgoParameterConeAngle=paravalue;
