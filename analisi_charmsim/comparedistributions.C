@@ -55,7 +55,7 @@ void plotoriginalvsreco(ROOT::RDF::RResultPtr<TH1D> horiginal, ROOT::RDF::RResul
  horiginal->DrawClone();
  hreconstructed->SetLineColor(kRed);
  hreconstructed->DrawClone("sames");
- hds->SetLineColor(kYellow);
+ hds->SetLineColor(kBlue);
  hds->DrawClone("sames");
 
  c->GetPad(1)->BuildLegend();
@@ -64,7 +64,7 @@ void plotoriginalvsreco(ROOT::RDF::RResultPtr<TH1D> horiginal, ROOT::RDF::RResul
  TEfficiency *peff = new TEfficiency(*(hreconstructed.GetPtr()),*(horiginal.GetPtr()));
  peff->Draw();
  TEfficiency *peff2 = new TEfficiency(*(hds.GetPtr()),*(horiginal.GetPtr()));
- peff2->SetLineColor(kYellow);
+ peff2->SetLineColor(kBlue);
  peff2->Draw("SAMES");
 }
 
@@ -120,7 +120,7 @@ void comparedistributions(){
     TEfficiency *peff = new TEfficiency(*(hreco.GetPtr()), *(horiginal.GetPtr()));
     TEfficiency *peff2 = new TEfficiency(*(hds.GetPtr()), *(horiginal.GetPtr()));
     peff->Draw();
-    peff2->SetLineColor(kYellow);
+    peff2->SetLineColor(kBlue);
     peff2->Draw("SAMES");
     c->cd(1);
     hreco->SetName((TString(hreco->GetName())+TString("_reco")).Data());
@@ -134,7 +134,7 @@ void comparedistributions(){
     hreco->SetLineColor(kRed); 
     hreco->DrawClone("histo && SAMES");
 
-    hds->SetLineColor(kYellow);
+    hds->SetLineColor(kBlue);
     hds->DrawClone("histo && SAMES");
 
 
@@ -191,8 +191,8 @@ void add_dsresults(){
  for (int ievent=0; ievent<nevents;ievent++){
    for (int icharm =0; icharm < ncharm;icharm++){
     dsreco[icharm] = dsfound[ievent][icharm];
-    dsrecotree->Fill();
    }
+    dsrecotree->Fill(); //be careful when you do the filling
   }
  outputfile->cd();
  dsrecotree->Write();
