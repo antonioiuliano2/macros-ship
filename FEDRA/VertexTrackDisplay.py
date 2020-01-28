@@ -20,6 +20,7 @@ parser.add_argument("-f", "--fedra", dest="vertexfilename", help="file with fedr
 parser.add_argument("-t", "--tracks", dest="tracksfilename", help="file with fedra tracks",
                     required=True)
 parser.add_argument("--shower", action='store_true')
+parser.add_argument("-ns","--nshower",dest="nshower",help="number of shower to draw")
 parser.add_argument("-nv", "--nvertices", nargs='+', dest="vertexnumberlist", help="number of vertices to display", required=True)
 parser.add_argument("-nt", "--ntracks", nargs='*', dest="tracklist", help="number of isolated tracks to display")
 parser.add_argument("-new", action='store_true') #for new file format
@@ -92,9 +93,15 @@ else:
 if (options.shower): # draw shower
   ROOT.gROOT.ProcessLine(".L /home/antonio/Scrivania/macros-ship/FEDRA/shower_reconstruction/SimpleShowerRecInterface.C")
   showerrecinterface = ROOT.SimpleShowerRecInterface()
-  pvrecfile = ROOT.TFile.Open("pvrecs/pvrec_100000_0.root")
+  #find which pvrec is it, according to my ordering
+  startx = tracks[0].X()
+  starty = tracks[0].Y()
+  xcode = int(startx/10000) * 10000
+  ycode = int(starty/10000) * 10000
+  print(xcode, ycode)
+  pvrecfile = ROOT.TFile.Open("pvrecs/pvrec_{}_{}.root".format(xcode,ycode))
   showerrecinterface.LoadPVRec(pvrecfile)
-  seglist = showerrecinterface.DrawShower(12,"/home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/Shower_100000_0.root")
+  seglist = showerrecinterface.DrawShower(int(options.nshower),"/home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/Shower_{}_{}.root".format(xcode,ycode))
 
 def drawtracks(vertextracks,othertracks):
  #ds.SetVerRec(gEVR);
