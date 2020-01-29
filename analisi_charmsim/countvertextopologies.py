@@ -56,6 +56,8 @@ dfvertices = dfcharm[dfcharm['topology']==2]
 topologymatrix = np.zeros([5,5])
 
 nevents = 10000
+selectionlogfile = open("events_withonesecondary.log","w") #list of events to check distributions on
+selectionlogfile.write("EventID,Charm1,Charm2,Primary\n")
 for ientry in range(0,nevents): #old style loop
     # need to know for each event how many instances of different topologies
     nbadevent = 0
@@ -89,6 +91,17 @@ for ientry in range(0,nevents): #old style loop
          for ndaughter in range(len(dfvertices.loc[[ientry],"ivtx"])):
              nbad = nbad +1
              nbadevent = nbadevent + 1
+         #I want to know which event is it
+         selectionlogfile.write("{}".format(ientry))
+         if ((ientry,1) in dfvertices.index):
+            selectionlogfile.write(",{}".format(1))
+         else:
+            selectionlogfile.write(",{}".format(0))
+         if ((ientry,2) in dfvertices.index):
+            selectionlogfile.write(",{}".format(1))
+         else:
+            selectionlogfile.write(",{}".format(0)) 
+         selectionlogfile.write(",{}\n".format(0)) #primary not found   
     # how many connected tracks and extra tracks?
     if (ientry in dfconnected.index):
       nconnectedevent = len(dfconnected.loc[ientry])
@@ -236,7 +249,6 @@ canvas1.BuildLegend()
 #plt.show()
 
 outputlogfile = open("vertices.log","w")
-selectionlogfile = open("events_withonesecondary.log","w") #list of events to check distributions on
 def inspectevent(eventID,outputlogfile,selectionlogfile):
     '''inspecting the two decay topologies in the event: a vertex takes priority over connected tracks and extra tracks'''
     topologies = [-1,-1]
@@ -252,13 +264,18 @@ def inspectevent(eventID,outputlogfile,selectionlogfile):
       #look for which mother is present
       selectionlogfile.write("{}".format(eventID))
       if ((eventID,1) in dftosecondary.index):
-       selectionlogfile.write(" {}".format(1))
+       selectionlogfile.write(",{}".format(1))
       else:
-       selectionlogfile.write(" {}".format(0)) 
+       selectionlogfile.write(",{}".format(0)) 
       if ((eventID,2) in dftosecondary.index):
-       selectionlogfile.write(" {}".format(2))
+       selectionlogfile.write(",{}".format(2))
       else:
-       selectionlogfile.write(" {}".format(0))          
+       selectionlogfile.write(",{}".format(0))
+      #looking for primary information
+      if (eventID in dfprimaryvertices.index): 
+       selectionlogfile.write(",{}".format(1))
+      else:
+       selectionlogfile.write(",{}".format(0))          
      # for single in dfvertices.loc[eventID]:
        # help(single)
       selectionlogfile.write("\n")
@@ -276,6 +293,11 @@ for ievent in range(nevents):
   inspectevent(ievent,outputlogfile,selectionlogfile)
 outputlogfile.close()
 selectionlogfile.close()
+#saving the list to a ROOT file to study what happens
+dfroot = ROOT.RDF.MakeCsvDataFrame("events_withonesecondary.log")
+dfroot.Snapshot("vertexinfo","eventids_withonesecondary.root")
+	
+
 def rawcheck():
  '''Quick check, molteplicity (now replaced with topology)'''
  dfprimary = dfvertices[dfvertices['ntracks']>=6]
