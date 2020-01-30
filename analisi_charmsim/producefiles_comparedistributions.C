@@ -156,7 +156,7 @@ void comparedistributions(){
   plotoriginalvsreco(hcharmtype,hcharmtype_reco,hcharmtype_ds);
 
   //lambda functions, to capture directly dataframe and apply operations for drawing
-  auto compareoriginalvsreco = [&dfcharmnames] (TString columnvariable,ROOT::RDF::TH1DModel histoparameters,bool isint = false){ //for all float/double variables is ok, setisint to true for int variables
+  auto compareoriginalvsreco = [&dfcharmnames] (TFile *histofile, TString columnvariable,ROOT::RDF::TH1DModel histoparameters,bool isint = false){ //for all float/double variables is ok, setisint to true for int variables
 
     ROOT::RDF::RResultPtr<TH1D> horiginal;
     ROOT::RDF::RResultPtr<TH1D> hreco;
@@ -208,15 +208,18 @@ void comparedistributions(){
 
 
     c->GetPad(1)->BuildLegend();
+    c->Write();
 
   };
 
   //drawing histograms
-  compareoriginalvsreco("dl", {"hdl", "Decay length of Charmed Hadron Decay;dl[#mum]",30,0,30000});
-  compareoriginalvsreco("dz", {"hdz", "DZ of Charmed Hadron Decay;z[#mum]",30,0,30000});
-  compareoriginalvsreco("momentum",{"hmomentum","Momentum of charmed hadron;P[GeV/c]",40,0,400});
-  compareoriginalvsreco("gamma",{"hgamma","Gamma factor",200,0,200});
-  compareoriginalvsreco("nprong",{"hmolt","Number of prongs of charmed hadron;nprong",10,0,10},true);
+  TFile *histofile = new TFile("trueMC_distributions_comparisons.root","RECREATE");
+  compareoriginalvsreco(histofile,"dl", {"hdl", "Decay length of Charmed Hadron Decay;dl[#mum]",30,0,30000});
+  compareoriginalvsreco(histofile,"dz", {"hdz", "DZ of Charmed Hadron Decay;z[#mum]",30,0,30000});
+  compareoriginalvsreco(histofile,"momentum",{"hmomentum","Momentum of charmed hadron;P[GeV/c]",40,0,400});
+  compareoriginalvsreco(histofile,"gamma",{"hgamma","Gamma factor",200,0,200});
+  compareoriginalvsreco(histofile,"nprong",{"hmolt","Number of prongs of charmed hadron;nprong",10,0,10},true);
+  histofile->Close();
 }
 
 void add_bdtresultslist(){ //I have 2nd and 1st lists with BDT selection. Match them by eventID
