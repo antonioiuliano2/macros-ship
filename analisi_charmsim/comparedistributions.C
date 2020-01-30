@@ -8,6 +8,16 @@
 */
 using namespace ROOT;
 
+void convertcsv(TString csvfile, TString outputfile, TString treename){
+  //NOT USED YET; PREPARED IF NEEDED
+ TFile * newfile = new TFile(outputfile.Data(),"RECREATE");
+ TTree * newtree = new TTree(treename.Data(),"Produced tree");
+ newtree->ReadFile(csvfile.Data()); //file must start with Primary/I:RecoCharm[2]/I
+ newfile->cd();
+ newtree->Write();
+ newfile->Close();
+}
+
 RVec<int> whichcharm (RVec<int> pdgcodes){
  RVec<int> whichcharm;
  for (const int &code : pdgcodes){
@@ -101,14 +111,20 @@ void plotoriginalvsreco(ROOT::RDF::RResultPtr<TH1D> horiginal, ROOT::RDF::RResul
 }
 
 void comparedistributions(){
-  TFile *file = TFile::Open("distributions_mctrue_withquarter_withds.root");
+  TFile *dsfile = TFile::Open("ds_charm_passed.root");
+  TTree *dsresults = (TTree*) dsfile->Get("dsrecoevents");
+ 
+  TFile *bdtfile = TFile::Open("bdt_charm_visible.root");
+  TTree *bdtresults = (TTree*) bdtfile->Get("bdtrecoevents");
+
+  TFile *file = TFile::Open("distributions_mctrue_withquarter.root");
   //connecting trees through addfriend
-  TTree *mcdistributions = (TTree*) file->Get("charmdecays");
-  TTree *dsresults = (TTree*) file->Get("dsrecoevents");
-  TTree *quarterstree = (TTree*) file->Get("quarters"); //we need to know which events belong to second quarter
+  TTree *mcdistributions = (TTree*) file->Get("charmdecays");  
+  TTree *quarters = (TTree*) file->Get("quarters"); 
 
   mcdistributions->AddFriend(dsresults,"ds");
-  mcdistributions->AddFriend(quarterstree,"quartersinfo");
+  mcdistributions->AddFriend(bdtresults,"bdt");
+  mcdistributions->AddFriend(quarters,"quarter identification");
 
   RDataFrame distdataframe = RDataFrame(*mcdistributions);
   //only the first 10000 events are actually passed to FEDRA for reconstructions
@@ -119,8 +135,8 @@ void comparedistributions(){
   auto dfcharmnames =  dfdecaylength.Define("charmtype",whichcharm,{"pdgcode"});
 
   auto hcharmtype = dfcharmnames.Define("charmtype_inquarter",selectedintdistribution,{"charmtype","decayinsecondquarter"}).Histo1D({"hcharmtype","Charmed hadron",8,0,8},"charmtype_inquarter");
-  auto hcharmtype_reco = dfcharmnames.Define("charmtype_reco",selectedintdistribution_2sels,{"charmtype","reconstructed","decayinsecondquarter"}).Histo1D({"hcharmtypereco","Reco Charmed hadron",8,0,8},"charmtype_reco");
-  auto hcharmtype_ds = dfcharmnames.Define("charmtype_ds",selectedintdistribution_2sels,{"charmtype","dsreco","decayinsecondquarter"}).Histo1D({"hcharmtypeds","Ds Reco Charmed hadron",8,0,8},"charmtype_ds");
+  auto hcharmtype_reco = dfcharmnames.Define("charmtype_reco",selectedintdistribution,{"charmtype","bdtreco"}).Histo1D({"hcharmtypereco","Reco Charmed hadron",8,0,8},"charmtype_reco");
+  auto hcharmtype_ds = dfcharmnames.Define("charmtype_ds",selectedintdistribution,{"charmtype","dsreco"}).Histo1D({"hcharmtypeds","Ds Reco Charmed hadron",8,0,8},"charmtype_ds");
 
   namebins(hcharmtype);
   namebins(hcharmtype_reco);
@@ -139,10 +155,10 @@ void comparedistributions(){
                                   Histo1D(histoparameters,(columnvariable+TString("_inquarter")).Data());
 
      hds = dfcharmnames.
-                          Define((columnvariable+TString("_ds")).Data(),selecteddistribution_2sels,{columnvariable.Data(),"dsreco","decayinsecondquarter"}).
+                          Define((columnvariable+TString("_ds")).Data(),selecteddistribution,{columnvariable.Data(),"dsreco"}).
                           Histo1D(histoparameters,(columnvariable+TString("_ds")).Data());
      hreco = dfcharmnames.
-                          Define((columnvariable+TString("_reco")).Data(),selecteddistribution_2sels,{columnvariable.Data(),"reconstructed","decayinsecondquarter"}).
+                          Define((columnvariable+TString("_reco")).Data(),selecteddistribution,{columnvariable.Data(),"bdtreco"}).
                           Histo1D(histoparameters,(columnvariable+TString("_reco")).Data());
     }
     else{ 
@@ -150,10 +166,10 @@ void comparedistributions(){
                                   Histo1D(histoparameters,(columnvariable+TString("_inquarter")).Data());
 
      hds = dfcharmnames.
-                          Define((columnvariable+TString("_ds")).Data(),selectedintdistribution_2sels,{columnvariable.Data(),"dsreco","decayinsecondquarter"}).
+                          Define((columnvariable+TString("_ds")).Data(),selectedintdistribution,{columnvariable.Data(),"dsreco"}).
                           Histo1D(histoparameters,(columnvariable+TString("_ds")).Data());     
-     hreco = dfcharmnames.
-                         Define((columnvariable+TString("_reco")).Data(),selectedintdistribution_2sels,{columnvariable.Data(),"reconstructed","decayinsecondquarter"}).
+    hreco = dfcharmnames.
+                         Define((columnvariable+TString("_reco")).Data(),selectedintdistribution,{columnvariable.Data(),"bdtreco"}).
                          Histo1D(histoparameters,(columnvariable+TString("_reco")).Data());   
     }
     TCanvas *c = new TCanvas(); //renaming reco histogram with a different name
@@ -167,8 +183,8 @@ void comparedistributions(){
     c->cd(1);
     hreco->SetName((TString(hreco->GetName())+TString("_reco")).Data());
     hreco->SetTitle((TString(hreco->GetTitle())+TString("_reco")).Data());
-    hds->SetName((TString(hreco->GetName())+TString("_ds")).Data());
-    hds->SetTitle((TString(hreco->GetTitle())+TString("_ds")).Data());
+    hds->SetName((TString(hds->GetName())+TString("_ds")).Data());
+    hds->SetTitle((TString(hds->GetTitle())+TString("_ds")).Data());
 
     
     horiginal->DrawClone("histo");
@@ -192,6 +208,111 @@ void comparedistributions(){
   compareoriginalvsreco("nprong",{"hmolt","Number of prongs of charmed hadron;nprong",10,0,10},true);
 }
 
+void add_bdtresultslist(){ //I have 2nd and 1st lists with BDT selection. Match them by eventID
+  //reading files and building ROOT TTrees for easier access
+  TTree *primarytree = new TTree("primaryfound","Primary found by BDT");
+  primarytree->ReadFile("list_mc_ev_post_bdt1.csv");
+  primarytree->BuildIndex("mp_eventID");
+
+  TTree *secondarytree = new TTree("secondaryfound", "Secondary found by BDT");
+  secondarytree->ReadFile("list_vid_post_bdt2.csv");
+  int vID;
+  secondarytree->SetBranchAddress("vID",&vID);
+  const int nvertices = secondarytree->GetEntries();
+
+  //original reconstructed vertex tree with track information
+  TFile *vertexfile = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/sim_fedra/CH1_charmcascade_23_12_19/b000001/reconstruction_output/secondquarter/vertextree_test.root");
+  TTreeReader vtxreader("vtx",vertexfile);
+   
+  TTreeReaderArray<int> MCMotherIDs(vtxreader,"MCMotherID");
+  TTreeReaderArray<int> MCEventIDs(vtxreader,"MCEventID");
+
+  //setting array to store found indeces
+  const int nevents = 10000;
+  const int ncharm = 2;
+  int bdtfound[nevents][ncharm];
+  //initializing arrays
+  for(int ievent=0;ievent < nevents; ievent++){ 
+   for(int icharm=0;icharm<ncharm;icharm++){ 
+	bdtfound[ievent][icharm] = 0;
+	}
+   }
+
+  int eventID,charmID; //ids to be filled
+  //loop on found secondary vertices
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+   secondarytree->GetEntry(ivtx); //vID now stores the index of found secondary vertex
+   vtxreader.SetEntry(vID); 
+   //loop on its track
+   for (int itrk = 0; itrk < MCMotherIDs.GetSize();itrk++){
+        charmID = MCMotherIDs[itrk];
+        if (charmID == 1 || charmID == 2){
+         eventID = MCEventIDs[itrk];
+         if (primarytree->GetEntryNumber(eventID) > -1){ 
+           cout<<"TEST "<<vID<<" "<<charmID<<" "<<eventID<<endl;
+           bdtfound[eventID][charmID-1] = 1; //look if it is found in primary tree
+         }
+        } 
+   } //end loop over tracks
+  } //end loop over vertices
+  TFile * outputfile = new TFile("bdt_charm_visible.root","RECREATE");
+  TTree * bdtrecotree = new TTree("bdtrecoevents","Events reconstructed by Valerio's BDT");
+
+  int bdtreco[ncharm];
+  bdtrecotree->Branch("bdtreco",bdtreco,"bdtreco[2]/I");
+  
+  for (int ievent=0; ievent<nevents;ievent++){
+    for (int icharm =0; icharm < ncharm;icharm++){
+      bdtreco[icharm] = bdtfound[ievent][icharm];
+    }
+    bdtrecotree->Fill(); //be careful when you do the filling
+  }
+  outputfile->cd();
+  bdtrecotree->Write();
+  outputfile->Close();
+}
+
+void add_dsresultslist(){
+  const int nevents = 10000;
+  const int ncharm = 2;
+  int dsfound[nevents][ncharm];
+  //initializing arrays
+  for(int ievent=0;ievent < nevents; ievent++){ 
+   for(int icharm=0;icharm<ncharm;icharm++){ 
+	dsfound[ievent][icharm] = 0;
+	}
+   }
+  //reading Valerio's list
+  ifstream inputfile;
+  inputfile.open("charm_ds_30_01_20.csv",ifstream::in);
+
+  string headers;
+  getline(inputfile,headers);
+   
+  int row, mcev, charm1,charm2;
+  while(inputfile.good()){
+    inputfile>>row>>mcev>>charm1>>charm2;
+    if (charm1 > 0) dsfound[mcev][0] = 1;
+    if (charm2 > 0) dsfound[mcev][1] = 1;
+  }
+
+  TFile * outputfile = new TFile("ds_charm_passed.root","RECREATE");
+  TTree * dsrecotree = new TTree("dsrecoevents","Events reconstructed by Valerio");
+
+  int dsreco[ncharm];
+  dsrecotree->Branch("dsreco",dsreco,"dsreco[2]/I");
+  
+  for (int ievent=0; ievent<nevents;ievent++){
+    for (int icharm =0; icharm < ncharm;icharm++){
+      dsreco[icharm] = dsfound[ievent][icharm];
+    }
+    dsrecotree->Fill(); //be careful when you do the filling
+  }
+  outputfile->cd();
+  dsrecotree->Write();
+  outputfile->Close();
+  
+}
 void add_dsresults(){
   //opening file and getting tree (this time, remember to create a separate tree)
   TFile *inputfile = TFile::Open("annotated_ds_data_result.root");
