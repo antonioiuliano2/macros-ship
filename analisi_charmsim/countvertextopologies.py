@@ -21,15 +21,11 @@ dfall = dfall.sort_values(["MCEventID","topology"])
 df = dfall.drop_duplicates(subset=["MCEventID","MCTrackID","MCMotherID"]) #many tracks are splitted up, first instance is kept
 
 dfcharm = df[df['topology']>1.5].groupby(['MCEventID','MCMotherID']).first()
-
-print ("How many charm daughters in log?", len(dfcharm))
-
 dfconnected = dfcharm[dfcharm['topology'] == 3]
-
-print ("How many connected? ",len(dfconnected))
-
 dfextra = dfcharm[dfcharm['topology'] == 4]
 
+print ("How many charm daughters in log?", len(dfcharm))
+print ("How many connected? ",len(dfconnected))
 print ("How many extra? ",len(dfextra))
 
 #counting for pair
@@ -47,7 +43,7 @@ print ("Both charm daughters connected to parent: ",len(pairextra[pairextra['qua
 dfprimaryvertices =df[df["topology"]==1]
 indexes = dfprimaryvertices.groupby("MCEventID")['ntracks'].idxmax()#returning indexes with maximum value
 dfprimaryvertices = dfprimaryvertices.loc[indexes] #splicing to keep only the vertices with more tracks
-#come cerco i vertici primari di un dato evento da quelli secondari?
+
 nbad = 0
 ngood = 0
 
@@ -65,17 +61,12 @@ for ientry in range(0,nevents): #old style loop
     nconnectedevent = 0
     nextraevent = 0
     dfprimaryvertex = dfprimaryvertices.query("MCEventID=={}".format(ientry)) #vertex for that ID
+    #looking if any vertex (topology 1 or 2) was reconstructed for that event
     if dfvertices.index.contains(ientry):       
         dfprimaryvertex = dfprimaryvertices.query("MCEventID=={}".format(ientry)) #vertex for that ID
         if len(dfprimaryvertex)==1:
             asprimary = dfvertices.loc[[ientry],"ivtx"]==dfprimaryvertex["ivtx"].iloc[0] #matching ivtx, they are not charm but primary vertices            
             indeces = [x[1] for x in asprimary.index]  #first index is MCEventID, second index is MCMotherID
-            #need to take into account cases where only one vertex is present
-            #if len(asprimary)==2:
-            # indeces.append(asprimary.index[0][1])
-            # indeces.append(asprimary.index[1][1])             
-            #if len(asprimary)==1:
-            # indeces.append(asprimary.index[0][1])
             for ndaughter in indeces:
                 #print (ientry, ndaughter)
                 if (asprimary.loc[ientry,ndaughter]):
@@ -93,11 +84,11 @@ for ientry in range(0,nevents): #old style loop
              nbadevent = nbadevent + 1
          #I want to know which event is it
          selectionlogfile.write("{}".format(ientry))
-         if ((ientry,1) in dfvertices.index):
+         if ((ientry,1) in dfvertices.index): #found daughter of first charm
             selectionlogfile.write(",{}".format(1))
          else:
             selectionlogfile.write(",{}".format(0))
-         if ((ientry,2) in dfvertices.index):
+         if ((ientry,2) in dfvertices.index): #found daughter of second charm
             selectionlogfile.write(",{}".format(1))
          else:
             selectionlogfile.write(",{}".format(0)) 
@@ -108,7 +99,7 @@ for ientry in range(0,nevents): #old style loop
     if (ientry in dfextra.index):
       nextraevent = len(dfextra.loc[ientry])
     tottopologiesevent = nbadevent + ngoodevent +nextraevent+ nconnectedevent
-    if (tottopologiesevent > 2):
+    if (tottopologiesevent > 2): #two charms, at maximum two topologies per event (according to this definition)
       print ("ERROR: TOO MANY TOPOLOGIES!")
       1./0.
     nmissingevent = 2 - tottopologiesevent
@@ -148,7 +139,8 @@ for ientry in range(0,nevents): #old style loop
      topologymatrix[2,4] = topologymatrix[2,4] + 1
     #off diagonal, fourth row
     if nextraevent == 1 and nmissingevent == 1:
-     topologymatrix[3,4] = topologymatrix[3,4] + 1    
+     topologymatrix[3,4] = topologymatrix[3,4] + 1   
+    #end matrix filling 
 #end of loop
 print("After loop: found {} as secondary, {} as primary".format(ngood,nbad))
 print(np.sum(topologymatrix))
@@ -199,10 +191,6 @@ hlength.Add(hconnectedlength)
 hlength.Add(hextralength)
 #finally drawing
 canvas = ROOT.TCanvas()
-#htoprimarylength.Draw("histo")
-#htosecondarylength.Draw("histo && SAMES")
-#hconnectedlength.Draw("histo && SAMES")
-#hextralength.Draw("histo && SAMES")
 hlength.Draw("histo")
 canvas.BuildLegend()
 
@@ -231,23 +219,10 @@ hmolteplicity.Add(hconnectedmolt)
 hmolteplicity.Add(hextramolt)
 #finally drawing
 canvas1 = ROOT.TCanvas()
-#hextramolt.Draw("histo")
-#htoprimarymolt.Draw("histo&&SAMES")
-#htosecondarymolt.Draw("histo && SAMES")
-#hconnectedmolt.Draw("histo && SAMES")
 hmolteplicity.Draw("histo")
 canvas1.BuildLegend()
 
-#import matplotlib.pyplot as plt #using matplotlib instead of ROOT for faster drawings
-#plt.figure()
-#plt.hist(dfconnected["preddecaylength"],bins = 30, range = (0,30000),density=True,alpha = 0.5, label = "connected to parent")
-#plt.hist(dfextra["preddecaylength"],bins = 30, range = (0,30000),density=True,alpha = 0.5,color="r", label = "extra tracks")
-#plt.hist(dftoprimary["preddecaylength"],bins = 30, range = (0,30000),density=True,alpha = 0.5,color="y",label = "associated to primary vertex")
-#plt.hist(dftosecondary["preddecaylength"],bins = 30, range = (0,30000),density=True,alpha = 0.5,color="m",label = "associated to secondary vertex")
-#plt.xlabel("decaylength[micron]")
-#plt.legend()
-#plt.show()
-
+#saving detailed information about vertices
 outputlogfile = open("vertices.log","w")
 def inspectevent(eventID,outputlogfile,selectionlogfile):
     '''inspecting the two decay topologies in the event: a vertex takes priority over connected tracks and extra tracks'''
@@ -283,10 +258,6 @@ def inspectevent(eventID,outputlogfile,selectionlogfile):
       outputlogfile.write("Track Connected to parent, \n {}\n".format(dfconnected.loc[[eventID],["itrk"]]))
     if (eventID in dfextra.index):
       outputlogfile.write("Extra track, \n {}\n".format(dfextra.loc[[eventID],["itrk"]]))
-
-#dfvertices.groupby(['MCEventID','ivtx']).sum()
-# Double Signal: topology 1, 2 ,2 total 5
-# Single Signal: topology 1,2 or 2,2: total less than 5
 
 print("Saving vertex log info")
 for ievent in range(nevents):
