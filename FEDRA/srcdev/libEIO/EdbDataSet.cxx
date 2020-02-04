@@ -2529,7 +2529,8 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
 
   //list of variables
 
-  Float_t vx, vy, vz;
+  Float_t vx, vy, vz; //true reconstructed vertex position
+  Float_t meanvx, meanvy, meanvz; //track connection point
   Int_t vID = 0;
   Float_t maxaperture;
   Float_t probability;
@@ -2558,6 +2559,9 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
   vtx->Branch("vx",&vx,"vx/F");
   vtx->Branch("vy",&vy,"vy/F");
   vtx->Branch("vz",&vz,"vz/F");
+  vtx->Branch("meanvx",&meanvx,"meanvx/F");
+  vtx->Branch("meanvy",&meanvy,"meanvy/F");
+  vtx->Branch("meanvz",&meanvz,"meanvz/F");
   vtx->Branch("maxaperture",&maxaperture,"maxaperture/F");
   //vtx->Branch("maxrmsthetaspace",&maxrmsthetaspace,"maxrmsthetaspace/F");
   vtx->Branch("probability",&probability,"probability/F");
@@ -2590,9 +2594,12 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
 
     EdbVertex* vertex = (EdbVertex*) (vtxarr.At(ivtx));
     if(vertex->Flag()<0) continue; //saving only 'true' vertices in the tree file and in the object
-    vx=vertex->X();
-    vy=vertex->Y();
-    vz=vertex->Z();
+    vx=vertex->VX();
+    vy=vertex->VY();
+    vz=vertex->VZ();
+    meanvx=vertex->X();
+    meanvy=vertex->Y();
+    meanvz=vertex->Z();
     n=vertex->N();
     maxaperture = vertex->MaxAperture();
     probability = vertex->V()->prob();  
