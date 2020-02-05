@@ -57,10 +57,17 @@ void fromFairShip2Fedra(TString filename){
  TEnv cenv("FairShip2Fedra");
  set_default(cenv);
  cenv.ReadFile("FairShip2Fedra.rootrc" ,kEnvLocal);
-
+ //getting options from file
+ const Int_t nevents = cenv.GetValue("FairShip2Fedra.nevents",10000);
  const int nplates = cenv.GetValue("FairShip2Fedra.nplates",29);
  int nbrick = cenv.GetValue("FairShip2Fedra.nbrick",1); // to set b00000%i number
 
+ float angres = cenv.GetValue("FairShip2Fedra.angres",0.003); //Used cases: 3, 5milliradians. Constant value overwritten if useresfunction=true
+ float minkinE = cenv.GetValue("FairShip2Fedra.minkinenergy",0.1);
+
+ const float ngrains = cenv.GetValue("FairShip2Fedra.ngrains",70) ; //the same number for all the couples, so they have the same weigth.
+ const float emuefficiency = cenv.GetValue("FairShip2Fedra.emuefficiency",0.85); // flat value
+ 
  const bool useefficiencymap = cenv.GetValue("FairShip2Fedra.useefficiencymap",0); //use the map instead of the constant value down
  const bool dosmearing = cenv.GetValue("FairShip2Fedra.dosmearing",1); //gaussian smearing or not
  const bool useresfunction = false; //use resfunction from operadata instead of constant value
@@ -69,16 +76,11 @@ void fromFairShip2Fedra(TString filename){
   file = TFile::Open("efficiency_alltracks.root");
   heff = (TH1D*) file->Get("heff");
  }
- const float emuefficiency = cenv.GetValue("FairShip2Fedra.emuefficiency",0.85); // flat value
  TF1 resfunction;
  if (useresfunction) resfunction = angularresolution();
- float angres = cenv.GetValue("FairShip2Fedra.angres",0.003); //Used cases: 3, 5milliradians. Constant value overwritten if useresfunction=true
- float minkinE = cenv.GetValue("FairShip2Fedra.minkinenergy",0.1);
-
- const float ngrains = cenv.GetValue("FairShip2Fedra.ngrains",70) ; //the same number for all the couples, so they have the same weigth.
  // **********************OPENING INPUT FILE***************************
  TFile * inputfile = TFile::Open(filename.Data());
- //TFile * inputfile = TFile::Open("/eos/user/a/aiuliano/sims_FairShip/sim_charm/pot/uniformonespill_onelayer_ch1_03_03_19/pythia8_Geant4_1000_0.5.root");
+
  if (!inputfile) return;
 
  //getting tree and arrays
@@ -86,9 +88,7 @@ void fromFairShip2Fedra(TString filename){
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
  TTreeReaderArray<BoxPoint> emulsionhits(reader,"EmuBaseTrks");
  
- //TTree* cbmsim = (TTree*)inputfile->Get("cbmsim");
  Float_t tx = 0, ty=0, xem= 0, yem = 0;
- const Int_t nevents = cenv.GetValue("FairShip2Fedra.nevents",10000);
  //const Int_t nevents = reader.GetTree()->GetEntries();
  int ihit = 0, ievent = 0;
  int nfilmhit = 0;
