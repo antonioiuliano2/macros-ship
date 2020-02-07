@@ -806,8 +806,7 @@ int EdbVertexRec::MakeV( EdbVertex &edbv, bool isRefit )
   v->use_kalman(eUseKalman);
   v->use_momentum(eUseMom);
 
-  float X0 = -1.;
-  //float X0 =  ePVR->GetScanCond()->RadX0();
+  float X0 =  ePVR->GetScanCond()->RadX0();
   if(!eUseMom) X0 = -1.;  // ignore multiple scattering contribution if eUseMom is false
 
   EdbSegP *seg=0;
@@ -872,7 +871,6 @@ EdbVertex *EdbVertexRec::Make1Vertex(TObjArray &tracks, float zexpected)
   }
   if( MakeV(*v) )  AddVertex(v);
   else { SafeDelete(v); return 0; }                                // vertex is not valid
-  //AddVertex(v);
   return v;
 }
 
