@@ -35,7 +35,7 @@ TF1 angularresolution(){
 }
 
 void set_default(TEnv &cenv){ //setting default parameters, if not presents from file
- cenv.SetValue("FairShip2Fedra.nbrick",1)//to set b00000%i number
+ cenv.SetValue("FairShip2Fedra.nbrick",1);//to set b00000%i number
  cenv.SetValue("FairShip2Fedra.nplates",29);
  cenv.SetValue("FairShip2Fedra.nevents",10000); // number of events to be passed to FEDRA
  cenv.SetValue("FairShip2Fedra.useefficiencymap",0);
@@ -169,6 +169,8 @@ void fromFairShip2Fedra(TString filename){
    ect[iplate]->Write();  
    ect[iplate]->Close();  
  }
+ cout<<"end of script, saving rootrc wih used parameters"<<endl;
+ cenv.WriteFile("FairShip2Fedra.save.rootrc");
 }
 
 void smearing (Float_t &TX, Float_t &TY, const float angres){
