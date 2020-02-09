@@ -28,7 +28,7 @@ for event in simtree:
  
  hppt.Fill(pt,p)
  hthetap.Fill(p,theta)
- if (r.TMath.Abs(vx) > 40.) or  (r.TMath.Abs(vy) > 40.): #out of target, go to next
+ if (r.TMath.Abs(vx) > targetdx) or  (r.TMath.Abs(vy) > targetdy): #out of target, go to next
   continue 
 
  intarget = intarget + 1
