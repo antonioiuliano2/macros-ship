@@ -5,6 +5,7 @@ import sys
 #selection
 zmin = 121.8365
 zmax = 125.5500
+maxentries = 20000
 
 simfile = r.TFile.Open(sys.argv[1])
 simtree = simfile.Get("cbmsim")
@@ -21,6 +22,9 @@ for ievent in range(nevents):
 
  if (startz >= zmin) and (startz <= zmax):
   copytree.Fill()
+
+ if (copytree.GetEntries() > maxentries):
+  break
 
 copytree.AutoSave()
 copyfile.Close()
