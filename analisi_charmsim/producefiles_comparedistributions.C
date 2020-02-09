@@ -225,8 +225,11 @@ void comparedistributions(){
 void add_bdtresultslist(){ //I have 2nd and 1st lists with BDT selection. Match them by eventID
   //reading files and building ROOT TTrees for easier access
   TTree *primarytree = new TTree("primaryfound","Primary found by BDT");
-  primarytree->ReadFile("list_mc_ev_post_bdt1.csv");
-  primarytree->BuildIndex("mp_eventID");
+  primarytree->ReadFile("list_ev_post_bdt1.csv");
+  float vzcut = -3950.;
+  TTree *primarytreecut = primarytree->CopyTree(Form("vz<=%f",vzcut));
+  cout<<"Entries after vz cut: "<<primarytreecut->GetEntries()<<" over "<<primarytree->GetEntries()<<endl;
+  primarytreecut->BuildIndex("mp_eventID");
 
   TTree *secondarytree = new TTree("secondaryfound", "Secondary found by BDT");
   secondarytree->ReadFile("list_vid_post_bdt2.csv");
@@ -240,6 +243,7 @@ void add_bdtresultslist(){ //I have 2nd and 1st lists with BDT selection. Match 
    
   TTreeReaderArray<int> MCMotherIDs(vtxreader,"MCMotherID");
   TTreeReaderArray<int> MCEventIDs(vtxreader,"MCEventID");
+  TTreeReaderValue<float> vz(vtxreader,"vz");
 
   //setting array to store found indeces
   const int nevents = 10000;
@@ -256,13 +260,15 @@ void add_bdtresultslist(){ //I have 2nd and 1st lists with BDT selection. Match 
   //loop on found secondary vertices
   for (int ivtx = 0; ivtx < nvertices; ivtx++){
    secondarytree->GetEntry(ivtx); //vID now stores the index of found secondary vertex
-   vtxreader.SetEntry(vID); 
+   vtxreader.SetEntry(vID);
+
+   if (*vz > vzcut) continue;
    //loop on its track
    for (int itrk = 0; itrk < MCMotherIDs.GetSize();itrk++){
         charmID = MCMotherIDs[itrk];
         if (charmID == 1 || charmID == 2){
          eventID = MCEventIDs[itrk];
-         if (primarytree->GetEntryNumber(eventID) > -1){ 
+         if (primarytreecut->GetEntryNumber(eventID) > -1){ 
           // cout<<"TEST "<<vID<<" "<<charmID<<" "<<eventID<<endl;
            bdtfound[eventID][charmID-1] = 1; //look if it is found in primary tree
          }
@@ -296,16 +302,28 @@ void add_dsresultslist(){
 	dsfound[ievent][icharm] = 0;
 	}
    }
+
+  //original reconstructed vertex tree with track information
+  TFile *vertexfile = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/sim_fedra/CH1_charmcascade_23_12_19/b000001/reconstruction_output/secondquarter/vertextree_test.root");
+  TTreeReader vtxreader("vtx",vertexfile);
+   
+ // TTreeReaderArray<int> MCMotherIDs(vtxreader,"MCMotherID");
+//  TTreeReaderArray<int> MCEventIDs(vtxreader,"MCEventID");
+  TTreeReaderValue<float> vz(vtxreader,"vz");
+  float vzcut = -3950.;
+
   //reading Valerio's list
   ifstream inputfile;
-  inputfile.open("charm_ds_30_01_20.csv",ifstream::in);
+  inputfile.open("charm_ds_30_01_20_withvid.csv",ifstream::in);
 
   string headers;
   getline(inputfile,headers);
    
-  int row, mcev, charm1,charm2;
+  int row, mcev, charm1,charm2,vid;
   while(inputfile.good()){
-    inputfile>>row>>mcev>>charm1>>charm2;
+    inputfile>>row>>mcev>>charm1>>charm2>>vid;   
+    vtxreader.SetEntry(vid);
+    if (*vz > vzcut) continue;
     if (charm1 > 0) dsfound[mcev][0] = 1;
     if (charm2 > 0) dsfound[mcev][1] = 1;
   }

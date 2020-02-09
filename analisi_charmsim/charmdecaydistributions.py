@@ -1,6 +1,7 @@
 #script to recognize daughters of charm and other particles from the primary proton interaction (created on 13 May 2019)
 
 import ROOT as r
+import pandas as pd
 from rootUtils import bookHist
 from array import array # for tree branches
 import sys
@@ -290,7 +291,7 @@ def getdaughtertracks(inputtree,eventnumber):
  charmlongntuple.Fill()
  return tracksID
 
-fileinput = r.TFile.Open("ship.conical.Pythia8CharmOnly-TGeant4_dig.root")
+fileinput = r.TFile.Open(sys.argv[1]) #file with cbmsim simulation, currently inECC_ship.conical.Pythia8CharmOnly-TGeant4_dig.root
 inputtree = fileinput.Get("cbmsim")
 
 nevents = inputtree.GetEntries()
