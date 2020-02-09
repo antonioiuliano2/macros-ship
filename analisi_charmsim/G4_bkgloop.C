@@ -25,6 +25,8 @@ void G4_bkgloop(TString inputfile){
  double startz;
 
  cout<<"Starting loop over "<<nentries<<endl;
+
+ TDatabasePDG *pdg = TDatabasePDG::Instance();
  for (int ientry = 0; ientry < nentries; ientry++){
   if (ientry % 10000==0) cout<<"Arrived at entry "<<ientry<<endl;
   reader.SetEntry(ientry);
@@ -32,6 +34,7 @@ void G4_bkgloop(TString inputfile){
   nprimaries = 0;
   startz = 0.;
   energy_primaries.clear();
+  int pdgcode;
   double primaryenergy = tracks[0].GetEnergy();
   bool interactingintarget = false;
   for (const ShipMCTrack &MCTrack:tracks){
@@ -41,7 +44,10 @@ void G4_bkgloop(TString inputfile){
 
    if (procid == 23 && motherid==0){ // primary daughter selection
      startz = MCTrack.GetStartZ();
-     if(startz<endtarget){ 
+     pdgcode = MCTrack.GetPdgCode();
+     int charge = 0;
+     if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge();
+     if(startz<endtarget&&TMath::Abs(charge)>0){ 
       nprimaries++;
       energy_primaries.push_back(MCTrack.GetEnergy());    
      }
