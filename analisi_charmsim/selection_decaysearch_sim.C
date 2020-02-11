@@ -343,29 +343,66 @@ int howmanyvertices(RVec<int> selection){
 }
 //start of script
 void selection_decaysearch_sim(){
+    //DEFINE VARIABLES CONTAINING BRANCH NAMES
     //input branches
     string vtx2_mc_pid = "dsvtx.vtx2_mc_pid";
 
+    //vertex positions
+    string vtx_x = "vtx.x";
+    string vtx_y = "vtx.y";
+    string vtx_z = "vtx.z";
+
+    //track variables
+    string trk_mc_ev = "trk.mc_ev";
     //secondary, vertex variables
     string vtx2_ntrk = "dsvtx.vtx2_ntrk";
     string vtx2_dz = "dsvtx.vtx2_dz";
     string vtx2_mc_ev = "dsvtx.vtx2_mc_ev";
 
-    //newbranches
+    //vertex positions
+    string vtx2_vx = "dsvtx.vtx2_vx";
+    string vtx2_vy = "dsvtx.vtx2_vy";
+    string vtx2_vz = "dsvtx.vtx2_vz";
+    //vertex molteplicity
+    string vtx2_ntrk = "dsvtx.vtx2_ntrk";
+    //secondary, track variables
+    string vtx2_tx = "dsvtx.vtx2_tx";
+    string vtx2_ty = "dsvtx.vtx2_ty";
+    string vtx2_incoming = "dsvtx.vtx2_incoming";
+    string vtx2_vka = "dsvtx.vtx2_vka";
+    string vtx2_tnseg = "dsvtx.vtx2_tnseg";
+    
+    //*************************newbranches********************///
     //primary, vertex variables
+
     string vtx_mc_ev = "vtx_mc_ev";
     string vtx_topology = "vtx_topology";
     //secondary, track variables
+    string vtx2_track_2starting = "dsvtx_vtx2_2starting_trk";
+    string vtx2_track_2goodtrks = "dsvtx_vtx2_2goodtrks_trk";
+ 
     string vtx2_track_charmdaugther = "dsvtx_vtx2_trk_charmdaughter";
     string vtx2_track_samevent = "dsvtx_vtx2_trk_samevent";
     string vtx2_track_positivedz = "dsvtx_vtx2_trk_positivedz";
 
     //secondary, vertex variables
+
+    string vtx2_phicharm = "dsvtx_vtx2_phicharm";
+    string vtx2_endingdeltaphi = "dsvtx_vtx2_endingdeltaphi";
+
+    string vtx2_dl = "dsvtx_vtx2_dl";
+    string vtx2_tau = "dsvtx_vtx2_tau";
+
     string vtx2_positivedz = "dsvtx_vtx2_positivedz";
     string vtx2_samevent = "dsvtx_vtx2_samevent";
     string vtx2_charmdaugther = "dsvtx_vtx2_charmdaughter";
     string vtx2_charmdaugthersamevent = "dsvtx_vtx2_charmdaughtersamevent"; 
 
+    string vtx2_2starting = "dsvtx_vtx2_2starting";
+    string vtx2_2goodtrks = "dsvtx_vtx2_2goodtrks";
+
+    string vtx2_meanphi = "dsvtx_vtx2_meanphi";
+    string vtx2_phidifference = "dsvtx_vtx2_phidifference";
     //condition for good charm decay vertices
     string condition = "dsvtx_vtx2_charmdaughtersamevent*dsvtx_vtx2_positivedz*dsvtx_vtx2_2goodtrks";
 
@@ -374,13 +411,13 @@ void selection_decaysearch_sim(){
     TFile *inputfile = TFile::Open("01_17_ds_data_result.root");
     RDataFrame dsdataframe = RDataFrame("ds",inputfile);
     //computing additional variables
-    auto dflength = dsdataframe.Define("dsvtx_vtx2_dl",decaylength,{"dsvtx.vtx2_vx", "dsvtx.vtx2_vy", "dsvtx.vtx2_vz","vtx.x","vtx.y","vtx.z"});
-    auto dfmeanlife = dflength.Define("dsvtx_vtx2_tau",meanlife,{"dsvtx.vtx2_ntrk","dsvtx.vtx2_vka","dsvtx_vtx2_dl","dsvtx.vtx2_incoming"});
-    auto df_primmcid = dfmeanlife.Define(vtx_mc_ev,mostscommonidvertex,{"trk.mc_ev"}); //mc event of vertex
+    auto dflength = dsdataframe.Define(vtx2_dl,decaylength,{vtx2_vx, vtx2_vy, vtx2_vz,vtx_x,vtx_y,vtx_z});
+    auto dfmeanlife = dflength.Define(vtx2_tau,meanlife,{vtx2_ntrk, vtx2_vka,vtx2_dl,vtx2_incoming});
+    auto df_primmcid = dfmeanlife.Define(vtx_mc_ev,mostscommonidvertex,{trk_mc_ev}); //mc event of vertex
 
     //angular information
-    auto df_meanphi = df_primmcid.Define("dsvtx_vtx2_meanphi",phi_medium,{vtx2_ntrk,"dsvtx.vtx2_tx", "dsvtx.vtx2_ty","dsvtx.vtx2_incoming"});
-    auto df_phidifference = df_meanphi.Define("dsvtx_vtx2_phidifference",phi_difference,{"dsvtx_vtx2_meanphi","vtx.x","vtx.y","vtx.z", "dsvtx.vtx2_vx", "dsvtx.vtx2_vy", "dsvtx.vtx2_vz"});
+    auto df_meanphi = df_primmcid.Define(vtx2_meanphi,phi_medium,{vtx2_ntrk,vtx2_tx, vtx2_ty,vtx2_incoming});
+    auto df_phidifference = df_meanphi.Define(vtx2_phidifference,phi_difference,{vtx2_meanphi,vtx_x,vtx_y,vtx_z, vtx2_vx, vtx2_vy, vtx2_vz});
 
     //checking conditions for selections
     //positive dz
@@ -398,16 +435,16 @@ void selection_decaysearch_sim(){
     auto dfcheck_charmdaughtersamevent = dfcheck_samevent.Define(vtx2_charmdaugthersamevent, MCvertex_charmdaughter_samevent,{vtx2_ntrk,vtx2_track_charmdaugther,vtx2_track_samevent});
     
     //vertex angle
-    auto dfphi_charm = dfcheck_charmdaughtersamevent.Define("dsvtx_vtx2_phicharm",phi_charm,{"vtx.x","vtx.y","vtx.z","dsvtx.vtx2_vx", "dsvtx.vtx2_vy", "dsvtx.vtx2_vz"});
+    auto dfphi_charm = dfcheck_charmdaughtersamevent.Define(vtx2_phicharm,phi_charm,{vtx_x,vtx_y,vtx_z,vtx2_vx, vtx2_vy, vtx2_vz});
 
-    auto dfcheck_endingtrackdeltaphi = dfphi_charm.Define("dsvtx_vtx2_endingdeltaphi",endingtrack_angledifference,{vtx2_ntrk,"dsvtx_vtx2_phicharm","dsvtx.vtx2_tx", "dsvtx.vtx2_ty","dsvtx.vtx2_incoming"});
+    auto dfcheck_endingtrackdeltaphi = dfphi_charm.Define(vtx2_endingdeltaphi,endingtrack_angledifference,{vtx2_ntrk,vtx2_phicharm,vtx2_tx,vtx2_ty,vtx2_incoming});
 
     //two starting tracks
-    auto dfcheck_2starting_trk = dfcheck_endingtrackdeltaphi.Define("dsvtx_vtx2_2starting_trk",atleast2starting,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
-    auto dfcheck_2starting = dfcheck_2starting_trk.Define("dsvtx_vtx2_2starting",atleast2starting_trk,{vtx2_ntrk,"dsvtx.vtx2_incoming"});
+    auto dfcheck_2starting_trk = dfcheck_endingtrackdeltaphi.Define(vtx2_track_2starting,atleast2starting,{vtx2_ntrk,vtx2_incoming});
+    auto dfcheck_2starting = dfcheck_2starting_trk.Define(vtx2_2starting,atleast2starting_trk,{vtx2_ntrk,vtx2_incoming});
     //two good tracks
-    auto dfcheck_twogoodtracks_trk = dfcheck_2starting.Define("dsvtx_vtx2_2goodtrks_trk",atleast2goodtrks_trk,{vtx2_ntrk,"dsvtx.vtx2_tnseg"});
-    auto dfcheck_twogoodtracks = dfcheck_twogoodtracks_trk.Define("dsvtx_vtx2_2goodtrks",atleast2goodtrks,{vtx2_ntrk,"dsvtx.vtx2_tnseg"});
+    auto dfcheck_twogoodtracks_trk = dfcheck_2starting.Define(vtx2_track_2goodtrks,atleast2goodtrks_trk,{vtx2_ntrk,vtx2_tnseg});
+    auto dfcheck_twogoodtracks = dfcheck_twogoodtracks_trk.Define(vtx2_2goodtrks,atleast2goodtrks,{vtx2_ntrk,vtx2_tnseg});
     //event topology
     auto dfcheck_topology = dfcheck_twogoodtracks.Define(vtx_topology,event_topology,{vtx2_charmdaugthersamevent,vtx2_positivedz});
 
@@ -435,12 +472,12 @@ void selection_decaysearch_sim(){
     cout<<"N good secondary vertices: "<<ngood_secondaries<<endl;
 
     //show how to plot a cut distribution here
-    auto hgooddl =  dfcheck_topology.Define("dsvtx_vtx2_gooddl",selecteddistribution,{"dsvtx_vtx2_dl","dsvtx_vtx2_positivedz"}).Histo1D("dsvtx_vtx2_gooddl");
+    auto hgooddl =  dfcheck_topology.Define("dsvtx_vtx2_gooddl",selecteddistribution,{vtx2_dl,vtx2_positivedz}).Histo1D("dsvtx_vtx2_gooddl");
     TCanvas *c = new TCanvas();
     hgooddl->DrawClone();
 
     //meanlife
-    auto htau = dfcheck_topology.Define("dsvtx_vtx2_meanlifecharm",selecteddistribution,{"dsvtx_vtx2_tau","goodevent"}).Histo1D("dsvtx_vtx2_meanlifecharm");
+    auto htau = dfcheck_topology.Define("dsvtx_vtx2_meanlifecharm",selecteddistribution,{vtx2_tau,"goodevent"}).Histo1D("dsvtx_vtx2_meanlifecharm");
     TCanvas *ctau = new TCanvas();
     htau->DrawClone();
 }
