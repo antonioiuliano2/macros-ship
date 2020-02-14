@@ -1,4 +1,6 @@
-#script to recognize daughters of charm and other particles from the primary proton interaction (created on 13 May 2019)
+'''script to recognize daughters of charm and other particles from the primary proton interaction 
+No energy cut is applied here, all charged daughters reported.
+(created on 13 May 2019)'''
 
 import ROOT as r
 import sys
