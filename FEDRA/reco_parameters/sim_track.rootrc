@@ -7,7 +7,7 @@ fedra.track.npass:                       1
 fedra.track.minPlate:                    -999
 fedra.track.maxPlate:                    999
 fedra.track.refPlate:                    999
-fedra.track.nsegmin:                     1
+fedra.track.nsegmin:                     2
 fedra.track.ngapmax:                     3 #4 in default options
 fedra.track.DZGapMax:                    5000
 fedra.track.DRmax:                       45
