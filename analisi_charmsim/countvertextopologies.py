@@ -3,8 +3,18 @@ import pandas as pd
 import sys
 import ROOT
 
+from argparse import ArgumentParser 
+
 '''Script to evaluate reconstructed topoligies from true MC information. Usage: python countvertextopologies MCVertexlist1.csv MCVertexlist2.csv .... (as many input files as needed)'''
 
+#definining arguments
+
+parser = ArgumentParser()
+parser.add_argument("-f", "--file", dest="inputfilename", help="CSV input files with vertex topologies", nargs='+',required=True)
+parser.add_argument("-n", "--nevents", dest="nevents", help="Number of reconstructed MC events", required = True)
+
+options = parser.parse_args()
+#end getting arguments
 def df2TH1D(column, name, title, nbins,xmin,xmax ):
     '''filling a histogram from pandas'''
     histo = ROOT.TH1D(name, title, nbins, xmin, xmax)
@@ -15,8 +25,7 @@ def df2TH1D(column, name, title, nbins,xmin,xmax ):
 
 dataframes = [] #list of dataframes, read from csv files
 
-for i,argument in enumerate(sys.argv):
- if (i>0): #first argument is  name of file
+for argument in options.inputfilename:
   dataframes.append(pd.read_csv(argument))
 
 dfall = pd.concat(dataframes,axis=0,ignore_index=True)
@@ -59,7 +68,7 @@ dfvertices = dfcharm[dfcharm['topology']==2]
 
 topologymatrix = np.zeros([5,5])
 
-nevents = 20000
+nevents = int(options.nevents)
 selectionlogfile = open("events_withonesecondary.log","w") #list of events to check distributions on
 selectionlogfile.write("EventID,Charm1,Charm2,Primary\n")
 for ientry in range(0,nevents): #old style loop
