@@ -100,7 +100,6 @@ RVec<float> phi_medium(RVec<int> vtx2_ntracks, RVec<float> vtx2_track_tx, RVec<f
    phi_medium_vertex.push_back(track_phi/nforward);
    //increasing ntracks counter
    nprevioustracks += ntracks;
-     cout<<"Prova meanphi "<<track_phi/nforward<<endl;
   }
   return phi_medium_vertex;
 }
@@ -119,7 +118,6 @@ RVec<float> phi_difference(RVec<float> vtx2_phi_medium, float vx, float vy, floa
    if (phidifference > TMath::Pi()) phidifference = 2*TMath::Pi() - phidifference;
    
    phi_difference_vertex.push_back(phidifference);
-   cout<<"Prova phi difference "<<phi<<" "<<vtx2_phi_medium[ivtx]<<endl;
   }
   return phi_difference_vertex;
 }
@@ -342,7 +340,7 @@ int howmanyvertices(RVec<int> selection){
   return selection[selection>0].size();
 }
 //start of script
-void selection_decaysearch_sim(){
+void selection_decaysearch_sim(TString inputfilename = "ds_data_result_23_01.root"){
     //DEFINE VARIABLES CONTAINING BRANCH NAMES
     //input branches
     string vtx2_mc_pid = "dsvtx.vtx2_mc_pid";
@@ -354,8 +352,6 @@ void selection_decaysearch_sim(){
 
     //track variables
     string trk_mc_ev = "trk.mc_ev";
-    //secondary, vertex variables
-    string vtx2_ntrk = "dsvtx.vtx2_ntrk";
     string vtx2_dz = "dsvtx.vtx2_dz";
     string vtx2_mc_ev = "dsvtx.vtx2_mc_ev";
 
@@ -408,7 +404,7 @@ void selection_decaysearch_sim(){
 
     //******************START OF MAIN SCRIPT*************************//
 
-    TFile *inputfile = TFile::Open("01_17_ds_data_result.root");
+    TFile *inputfile = TFile::Open(inputfilename.Data());
     RDataFrame dsdataframe = RDataFrame("ds",inputfile);
     //computing additional variables
     auto dflength = dsdataframe.Define(vtx2_dl,decaylength,{vtx2_vx, vtx2_vy, vtx2_vz,vtx_x,vtx_y,vtx_z});
