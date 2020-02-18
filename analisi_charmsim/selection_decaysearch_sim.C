@@ -16,6 +16,30 @@ RVec<float> decaylength(RVec<float> vtx2_vx, RVec<float> vtx2_vy, RVec<float> vt
   return rvtx2_dl;
 }
 
+int primary_atleast2starting(RVec<int>vtx_incoming){
+  int goodvertex=0;
+  int ngoodtrks=0;
+    for (int itrk = 0; itrk < vtx_incoming.size(); itrk++){
+      if (vtx_incoming[itrk] == 1) ngoodtrks++;
+    }
+    //at least 2 good tracks
+    if (ngoodtrks >= 2) goodvertex=1;
+    else goodvertex=0;
+  return goodvertex;
+}
+
+int primary_atleast2goodtrks(RVec<int>vtx_nseg){
+  int goodvertex=0;
+  int ngoodtrks=0;
+    for (int itrk = 0; itrk < vtx_nseg.size(); itrk++){
+      if (vtx_nseg[itrk] > 2) ngoodtrks++;
+    }
+    //at least 2 good tracks
+    if (ngoodtrks >= 2) goodvertex=1;
+    else goodvertex=0;
+  return goodvertex;
+}
+
 RVec<int> atleast2starting(RVec<int> vtx2_ntracks, RVec<int>vtx2_incoming){
   RVec<int> goodvertices;
   const int nvertices = vtx2_ntracks.size();
@@ -352,6 +376,9 @@ void selection_decaysearch_sim(TString inputfilename = "ds_data_result_23_01.roo
 
     //track variables
     string trk_mc_ev = "trk.mc_ev";
+    string trk_nseg = "trk.nseg";
+    string trk_incoming = "trk.incoming";
+
     string vtx2_dz = "dsvtx.vtx2_dz";
     string vtx2_mc_ev = "dsvtx.vtx2_mc_ev";
 
@@ -373,6 +400,10 @@ void selection_decaysearch_sim(TString inputfilename = "ds_data_result_23_01.roo
 
     string vtx_mc_ev = "vtx_mc_ev";
     string vtx_topology = "vtx_topology";
+    
+    string vtx_2starting = "vtx_2starting";
+    string vtx_2goodtrks = "vtx_2goodtrks";
+
     //secondary, track variables
     string vtx2_track_2starting = "dsvtx_vtx2_2starting_trk";
     string vtx2_track_2goodtrks = "dsvtx_vtx2_2goodtrks_trk";
@@ -438,11 +469,17 @@ void selection_decaysearch_sim(TString inputfilename = "ds_data_result_23_01.roo
     //two starting tracks
     auto dfcheck_2starting_trk = dfcheck_endingtrackdeltaphi.Define(vtx2_track_2starting,atleast2starting,{vtx2_ntrk,vtx2_incoming});
     auto dfcheck_2starting = dfcheck_2starting_trk.Define(vtx2_2starting,atleast2starting_trk,{vtx2_ntrk,vtx2_incoming});
+
+    auto dfcheck_primary_2starting = dfcheck_2starting.Define(vtx_2starting,primary_atleast2starting,{"trk.incoming"});
+  
     //two good tracks
-    auto dfcheck_twogoodtracks_trk = dfcheck_2starting.Define(vtx2_track_2goodtrks,atleast2goodtrks_trk,{vtx2_ntrk,vtx2_tnseg});
+    auto dfcheck_twogoodtracks_trk = dfcheck_primary_2starting.Define(vtx2_track_2goodtrks,atleast2goodtrks_trk,{vtx2_ntrk,vtx2_tnseg});
     auto dfcheck_twogoodtracks = dfcheck_twogoodtracks_trk.Define(vtx2_2goodtrks,atleast2goodtrks,{vtx2_ntrk,vtx2_tnseg});
+     
+    auto dfcheck_primary_twogoodtracks = dfcheck_twogoodtracks.Define(vtx_2goodtrks,primary_atleast2goodtrks,{"trk.nseg"});
+
     //event topology
-    auto dfcheck_topology = dfcheck_twogoodtracks.Define(vtx_topology,event_topology,{vtx2_charmdaugthersamevent,vtx2_positivedz});
+    auto dfcheck_topology = dfcheck_primary_twogoodtracks.Define(vtx_topology,event_topology,{vtx2_charmdaugthersamevent,vtx2_positivedz});
 
     //counting topologies
     auto ntotal = dfcheck_topology.Filter("vtx_topology>0").Count();
