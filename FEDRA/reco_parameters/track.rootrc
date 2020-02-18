@@ -1,7 +1,5 @@
-#fedra.readCPcut:                         eCHI2P<2.5&&s.eW>13&&eN1==1&&eN2==1&&s1.eFlag>=0&&s2.eFlag>=0
-fedra.readCPcut:                         s.eY > 50000 && s.eX > 62500 
-#third quarter
-#fedra.readCPcut:                         1
+fedra.readCPcut:                         eCHI2P<2.5&&s.eW>13&&eN1==1&&eN2==1&&s1.eFlag>=0&&s2.eFlag>=0
+#fedra.readCPcut:                         s.eW>(15+2*s.eChi2)&&eN1==1&&eN2==1&&s1.eFlag>=0&&s2.eFlag>=0&&TMath::Abs(s.eX-50000)<20000&&TMath::Abs(s.eY-50000)<20000
 fedra.track.TrZmap:                      2400 0 120000   2000 0 100000   30
 fedra.track.npass:                       1
 fedra.track.minPlate:                    -999
@@ -29,7 +27,6 @@ fedra.track.do_realign:                  0
 fedra.track.misalign_offset:             500
 fedra.track.do_local_corr:               1
 fedra.track.do_comb:                     0
-#fedra.track.outputfilename              linked_tracks_secondquarter.root #added by me, for parallel tracking, not officially endorsed by FEDRA
 emtra.outdir:                            ..
 emtra.env:                               track.rootrc
 emtra.EdbDebugLevel:                     1

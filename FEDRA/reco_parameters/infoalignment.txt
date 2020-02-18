@@ -1,0 +1,38 @@
+Info File created in Naples 13 November 2018
+First iteration of the alignment is done with the following align.rootrc in a 2cm x 2cm area (started with 0.1 as DPHI and SigmaT for CH1R6)
+
+fedra.align.OffsetMax:                   2000
+fedra.align.DZ:                          100
+fedra.align.DPHI:                        0.05
+fedra.align.SigmaR:                      100
+fedra.align.SigmaT:                      0.05
+fedra.align.DoFine:                      1
+#fedra.readCPcut:                         eCHI2P<2.0&&s.eW>10&&eN1==1&&eN2==1&&s.Theta()>0.02&&s.Theta()<0.1
+fedra.readCPcut:                         eCHI2P<2.0&&s.eW>10&&eN1==1&&eN2==1&&s.Theta()>0.02&&s.Theta()<0.1&&TMath::Abs(s.eX-60000)<10000 && TMath::Abs(s.eY-50000)<10000
+fedra.align.SaveCouples:                 1
+emalign.outdir:                          ..
+emalign.env:                             align.rootrc
+emalign.EdbDebugLevel:                   1
+
+
+Second iteration, DZ is reduced from 100 micrometers to 50 micrometers, but SigmaR is reduced to 20 micrometers, while DPHI and SigmaT are reduced from 0.05 rad to 0.02 rad ->OffsetMax reduced to 1000
+
+Finally, if alignment results are good, alignment is performed on the whole scanned surface (swapping comments on readCPcut) -> OffsetMax reduced to 200
+
+NOTE: small differences could be present in the single bricks, especially in
+the first one, where the alignment procedure was still in development. Refer
+to the alignment_parameters.txt file for specific informations in the brick
+folder. Moreover, an additional step sometimes is performed if alignment is
+still bad (passing sigmaT from 0.02 rad to 0.01 rad)
+
+Workflow: emalign -> EdbScanSet -> EdbPlateAlignment
+
+OffsetMax is the maximum offset in x and in y to look for tracks
+DZ and DPHI ranges scanned by coarce align
+DoFine true to do fine alignment
+SigmaR and SigmaT define tolerance in position and angle
+readCPcut is the cut in reading for the couples
+SaveCouples to save couples tree
+outdir sets directory  (.. if launched from b000001)
+env is the name of the env file to be looked for (align.rootrc)
+EdbDebugLevel is the default debug level
