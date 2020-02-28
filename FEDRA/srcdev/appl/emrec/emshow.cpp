@@ -181,11 +181,11 @@ int main(int argc, char* argv[])
 
           EdbShowerRec *eShowerRec = new EdbShowerRec();
           //Setting parameters
-          eShowerRec->SetAlgoParameter(0, ConeRadius);
-          eShowerRec->SetAlgoParameter(1, ConeAngle);
-          eShowerRec->SetAlgoParameter(2, ConnectionDR);
-          eShowerRec->SetAlgoParameter(3, ConnectionDT);
-          eShowerRec->SetAlgoParameter(4, NPropagation);
+          eShowerRec->SetAlgoParameter(ConeRadius,0);
+          eShowerRec->SetAlgoParameter(ConeAngle,1);
+          eShowerRec->SetAlgoParameter(ConnectionDR,2);
+          eShowerRec->SetAlgoParameter(ConnectionDT,3);
+          eShowerRec->SetAlgoParameter(NPropagation,4);
 
 
                // Print parameters
