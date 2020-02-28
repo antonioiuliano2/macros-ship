@@ -30,14 +30,12 @@ void set_default(TEnv &cenv)
     // default parameters for shower reconstruction
     // determined by experimental and simulation studies
     cenv.SetValue("emshow.cpcut","s.eW>13&&eCHI2P<2.5&&s1.eFlag>=0&&s2.eFlag>=0&&eN1==1&&eN2==1");
-    /*  cenv.SetValue("fedra.track.minPlate"  ,-999 );
-      cenv.SetValue("fedra.track.maxPlate"  , 999 );
-      cenv.SetValue("fedra.track.refPlate"  , 999 );
-      cenv.SetValue("fedra.track.nsegmin"   , 2 );
-      cenv.SetValue("fedra.track.ngapmax"   , 4 );
-      cenv.SetValue("fedra.track.probmin"   , 0.01 );
-      cenv.SetValue("fedra.track.momentum"  , 2 );
-      cenv.SetValue("fedra.track.mass"      , 0.14 );*/
+    cenv.SetValue("emshow.trkcut","nseg>1");
+    cenv.SetValue("emshow.ConeRadius", 800);
+    cenv.SetValue("emshow.ConeAngle", 0.02);
+    cenv.SetValue("emshow.ConnectionDR", 150);
+    cenv.SetValue("emshow.ConnectionDT", 0.15);
+    cenv.SetValue("emshow.NPropagation", 3);
     cenv.SetValue("emshow.outdir", "..");
     cenv.SetValue("emshow.env", "shower.rootrc");
     cenv.SetValue("emshow.EdbDebugLevel", 1);
@@ -121,9 +119,11 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    cenv.SetValue("emshow.env", env);
+    cenv.SetValue("emshow.env", env);        
+    
     cenv.ReadFile( cenv.GetValue("emshow.env", "shower.rootrc"),kEnvLocal);
     cenv.SetValue("emshow.outdir", outdir);
+
     cenv.WriteFile("shower.save.rootrc");
 
     if (do_set) {
@@ -136,16 +136,11 @@ int main(int argc, char* argv[])
         EdbID id(brick,plate,major,minor);
         EdbScanSet *ss = sproc.ReadScanSet(id);
         ss->Brick().SetID(brick);
-        //ss->MakePIDList();
-        //sproc.AssembleScanSet(*ss);
-
-//        TCut c = gEnv->GetValue("emshow.cpcut","s.eW>13&&eCHI2P<2.5&&s1.eFlag>=0&&s2.eFlag>=0&&eN1==1&&eN2==1");
+  
         EdbPVRec * eEdbPVRec = new EdbPVRec();
         TCut c = cenv.GetValue("emshow.cpcut","1");
         TCut trackcut = cenv.GetValue("emshow.trkcut","1");
-        //EdbScanCond cond;
-        //cond.Print();
-        //sproc.TrackSetBT(*ss,cond,c);
+ 
         if (do_showerfrom_lt){
                 //loop on plates
           int npl = ss->eIDS.GetEntries();
@@ -178,8 +173,22 @@ int main(int argc, char* argv[])
           selectedtrackstree->Write();
           std::cout<<"Selected "<<selectedtrackstree->GetEntries()<<" tracks with cut "<<trackcut<<std::endl;
 
-               // Print parameters
+          float ConeRadius = cenv.GetValue("emshow.ConeRadius", 800);
+          float ConeAngle = cenv.GetValue("emshow.ConeAngle", 0.02);
+          float ConnectionDR = cenv.GetValue("emshow.ConnectionDR", 150);
+          float ConnectionDT = cenv.GetValue("emshow.ConnectionDT", 0.15);
+          float NPropagation = cenv.GetValue("emshow.NPropagation", 3);
+
           EdbShowerRec *eShowerRec = new EdbShowerRec();
+          //Setting parameters
+          eShowerRec->SetAlgoParameter(0, ConeRadius);
+          eShowerRec->SetAlgoParameter(1, ConeAngle);
+          eShowerRec->SetAlgoParameter(2, ConnectionDR);
+          eShowerRec->SetAlgoParameter(3, ConnectionDT);
+          eShowerRec->SetAlgoParameter(4, NPropagation);
+
+
+               // Print parameters
           eShowerRec->PrintParameters();
     
          // Create Initiator BT array:
