@@ -28,6 +28,36 @@ void SimpleShowerRecInterface::BuildPVRec(const int ibrick, const int nplates, i
 
 }
 
+void SimpleShowerRecInterface::loadcouples_scanset(EdbID idset, TString *selections, char * outputdir){
+     eEdbPVRec = new EdbPVRec();
+     EdbScanProc sproc;
+     sproc.eProcDirClient=outputdir;
+     EdbScanSet *ss = sproc.ReadScanSet(idset);
+    //loop on plates
+     int npl = ss->eIDS.GetEntries();
+    // if (npl<cmd_NP) cmd_NP = npl;
+      for(int i=0; i<npl; i++) {
+        EdbID *id = ss->GetID(i);
+      
+        EdbPlateP *plate = ss->GetPlate(id->ePlate);
+        //read pattern information
+        EdbPattern *p = new EdbPattern();
+        sproc.ReadPatCPnopar(*p,*id, selections[id->ePlate].Data());
+        p->SetZ(plate->Z());
+        p->SetSegmentsZ();
+        p->SetID(i);
+        p->SetPID(i);
+        p->SetSegmentsPID();
+      //plate->Print();
+        p->Transform(    plate->GetAffineXY()   );
+        p->TransformShr( plate->Shr() );
+        p->TransformA(   plate->GetAffineTXTY() );
+        p->SetSegmentsPlate(id->ePlate);
+        eEdbPVRec->AddPattern(p);
+       } //end of loop on patterns
+     
+    }
+
 void SimpleShowerRecInterface::loadcouples(const int ibrick, const int nplates, int* PID, TString *selections){ //load couples from cp files, apply affine transformations    
     TString runpath = TString(Form("/ship/DESY2019/RUN%i/b00000%i/",ibrick,ibrick));
     //opening setfile (informations about transformations)
@@ -90,6 +120,50 @@ void SimpleShowerRecInterface::loadcouples(const int ibrick, const int nplates, 
       eEdbPVRec->GetPattern(ipattern)->SetPID(onesegment->PID());	
      }
 }
+
+void SimpleShowerRecInterface::RecoAllTracks(TTree *trackstree){
+        // Print parameters
+    eShowerRec->PrintParameters();
+    
+    // Create Initiator BT array:
+    TObjArray * eInBTArray=new TObjArray();
+
+    // Reset eShowerRec Arrays: InBTArray and RecoShowerArray....
+    eShowerRec->ResetInBTArray();
+    eShowerRec->ResetRecoShowerArray();
+
+    TClonesArray *seg  = new TClonesArray("EdbSegP", 60);
+    trackstree->SetBranchAddress("s",  &seg);
+
+    const int ntracks = trackstree->GetEntries();
+
+
+    for (int itrk = 0; itrk < ntracks; itrk++){
+     trackstree->GetEntry(itrk);
+    
+     EdbSegP *segtest = new EdbSegP(*((EdbSegP*) seg->At(0)));
+     
+     //set array with inBT (array of initiator base tracks)
+     eInBTArray->Add(segtest);
+    }
+    eShowerRec->SetInBTArray(eInBTArray);
+    eShowerRec->PrintInitiatorBTs();
+
+    //set edbpvrec
+    eShowerRec->SetEdbPVRec(eEdbPVRec);
+
+    cout << " eShowerRec->SetUseAliSub(0)..." << endl;
+    eShowerRec->SetUseAliSub(0);
+
+    cout << " eShowerRec->Execute()..." << endl;
+
+    //Start actual reconstruction
+    eShowerRec->Execute();
+
+    //Print output
+    eShowerRec->PrintRecoShowerArray();
+}
+
 
 void SimpleShowerRecInterface::RecoFromTrack(int ntracks, int* tracklist, int* iseglist,char * filename){
     

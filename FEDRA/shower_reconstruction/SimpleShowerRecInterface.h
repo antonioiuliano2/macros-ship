@@ -21,8 +21,10 @@ class SimpleShowerRecInterface:public TObject {
    */
    void BuildPVRec(const int ibrick, const int nplates, int* PID,  TString *selections, char* outputfilename); //build a new PVRec according to given selection, write it to file
    void loadcouples(const int ibrick, const int nplates, int* PID, TString *selections); //load couples according to given selection, called by BuildPVRec, not to be called externally (private?)
+   void loadcouples_scanset(EdbID idset, TString *selections, char * outputdir = "..");
    void LoadPVRec(TFile *inputfile);// load an EdbPVRec saved into a file
 
+   void RecoAllTracks(TTree *trackstree);
    void RecoFromTrack(int ntracks, int *tracklist, int* iseglist, char * filename = "linked_tracks.root"); //start reconstruction from a given track
    TObjArray* DrawShower(int ishower, char * showerfilename = "Shower.root");//draw only one entry from the tree
    void DrawAllShowers(char * showerfilename = "Shower.root"); //draw all reconstructed showers

@@ -5,11 +5,12 @@
 //buildcouples() for saving a new pvr
 //testinterface() for shower reconstruction
 //drawfoundshowers() for shower drawing
-#define gEDBDEBUGLEVEL 2
+#define gEDBDEBUGLEVEL 4
 
 using namespace ROOT;
+
 void testinterface(){
-    SimpleShowerRecInterface testinterface = SimpleShowerRecInterface();
+    SimpleShowRecInterface testinterface = SimpleShowRecInterface();
 
     
     TFile *myfile = TFile::Open("fullpvrec_sim.root");
@@ -28,8 +29,9 @@ void testinterface(){
     //testinterface.RecoFromTrack(ntracks,tracklist,"linked_tracks_simtest.root");
 }
 
+
 void drawfoundshowers(){
-    SimpleShowerRecInterface testinterface = SimpleShowerRecInterface();
+    SimpleShowRecInterface testinterface = SimpleShowRecInterface();
     int icell = 1;
     int startx = (icell / 5);
     int starty = (icell - (5*startx))* 10000;
@@ -43,18 +45,19 @@ void drawfoundshowers(){
 }
 
 void buildcouples(){
-    SimpleShowerRecInterface testinterface = SimpleShowerRecInterface();
-    const int ibrick = 5;
+    SimpleShowRecInterface testinterface = SimpleShowRecInterface();
+    const int ibrick = 1;
     const int nplates = 29;
     //need to give list of PIDs, due to missing/hidden plates (-1 if missing)
-    int PID[nplates] = {24,23,22,21,20,-1,19,-1,18,17,16,15,14,13,12,11,10,9,8,-1,7,6,5,4,3,2,-1,1,0};
+//    int PID[nplates] = {24,23,22,21,20,-1,19,-1,18,17,16,15,14,13,12,11,10,9,8,-1,7,6,5,4,3,2,-1,1,0};
+    int PID[nplates] = {28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0};
     
     //selection (can be different for each plate)
     TString selections[nplates];
     
-    for (int iplate = 0; iplate<nplates;iplate++) selections[iplate]=TString("TMath::Abs(s.eTX)<0.2 && TMath::Abs(s.eTY)<0.2");
+    for (int iplate = 0; iplate<nplates;iplate++) selections[iplate]=TString("1");
     
-    testinterface.BuildPVRec(ibrick, nplates, PID,selections,"pvrec_testdata2.root");
+    testinterface.BuildPVRec(ibrick, nplates, PID,selections,"fullpvrec_sim.root");
 }
 
 
@@ -90,7 +93,7 @@ void prepare_simlists(int ncell = 1){
       }//end track loop
   }//end event loop
   //checking associations
-  SimpleShowerRecInterface myinterface;
+  SimpleShowRecInterface myinterface;
   int startx, starty;
   for (int ipvrec = 0; ipvrec < npvrecs; ipvrec++){
       if (ipvrec != ncell) continue;      
@@ -108,9 +111,9 @@ void prepare_simlists(int ncell = 1){
   }
 
   //renaming trees and moving them in output folder
-  gSystem->Exec(Form("mv Shower.root /home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/Shower_%i_%i.root",startx,starty));
-  gSystem->Exec(Form("mv Shower2.root /home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/Shower2_%i_%i.root",startx,starty));
-  gSystem->Exec(Form("mv shower1.root /home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/shower1_%i_%i.root",startx,starty));
+  //gSystem->Exec(Form("mv Shower.root /home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/Shower_%i_%i.root",startx,starty));
+  //gSystem->Exec(Form("mv Shower2.root /home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/Shower2_%i_%i.root",startx,starty));
+  //gSystem->Exec(Form("mv shower1.root /home/antonio/cernbox/Synched/Charmsim_Showreco/Showreco_ds_25_01/shower1_%i_%i.root",startx,starty));
 
 
 
