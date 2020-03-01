@@ -2638,6 +2638,7 @@ void EdbShowerRec::Energy_ExtractShowerParametrisationProfile()
     // Create ShowerProfileTree ...
 
     if (gEDBDEBUGLEVEL>2) cout << "void EdbShowerRec::Energy_ExtractShowerParametrisationProfile(): Create ShowerProfileTree ..."<<endl;
+    fileout3->cd();
     ShowerParametrisationTree = new TTree("ShowerProfileTree","ShowerProfileTree");
 
     ShowerParametrisationTree->Branch("sizeb_for_plates",&sizeb_for_plates,"sizeb_for_plates/I");
@@ -2931,7 +2932,6 @@ void EdbShowerRec::Energy_ExtractShowerParametrisationProfile()
     // Write to File:
     fileout3->cd();
     treesaveb3->Write();
-    cout<<"PIPPOOOOOOOOOOOOOOOO"<<endl;
     fileout3->Close();
 
     eEnergyIsDone=kTRUE;
