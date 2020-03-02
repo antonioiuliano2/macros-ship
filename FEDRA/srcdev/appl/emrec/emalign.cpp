@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
   bool      do_set      = false;
   bool      do_check    = false;
   bool      do_makeAff  = false;
+  bool    	do_make_erase_file=false;
   bool      do_readAff  = false;
   Int_t     brick=0, plate=0, major=0, minor=0;
   Int_t     npre=0,  nfull=0;
@@ -195,14 +196,14 @@ int main(int argc, char* argv[])
        } 
    else sproc.AlignSet(*ss, npre, nfull);
 
+
+    //creating erase list
+    if(do_make_erase_file){
+        MakeEraseFiles(id, cenv);
+    }
   }
 
   cenv.WriteFile("align.save.rootrc");
-
-  //creating erase list
-  if(do_make_erase_file){
-        MakeEraseFiles(id, cenv);
-    }
 
   return 1;
 }
@@ -212,25 +213,25 @@ void MakeEraseFiles(EdbID id, TEnv &cenv)
 {
   EdbScanProc  sproc;
   //identifiers
-  int brick = id.Brick;
+  int brick = id.eBrick;
   int major = id.eMajor;
   int minor = id.eMinor;
   //we need to know first and last plate of the set
   EdbScanSet *ss = sproc.ReadScanSet(id); 
-  EdbID *id1, id2;
+  EdbID *id1, *id2;
   //loop between the plates
   for(int i=0; i<ss->eIDS.GetEntries()-1; i++) {
-   id1 = (EdbID *)(sc->eIDS.At(i));
-   id2 = (EdbID *)(sc.eIDS.At(i+1));
+   id1 = (EdbID *)(ss->eIDS.At(i));
+   id2 = (EdbID *)(ss->eIDS.At(i+1));
    sproc.eProcDirClient = cenv.GetValue("emtra.outdir"         , "..");
 
 
    //getting data
-   EdbPattern pat = EdbPattern();
-   sproc.ReadPatCPnopar(pat, Form("AFF/%d.%d.%d.%d_%d.%d.%d.%d.al.root",brick,id1->ePlate, major,minor,brick,id2->ePlate, major,minor), "1", 0, false); //no reading x.x.x.x.in.par file
+   EdbPattern *pat = new EdbPattern();
+   sproc.ReadPatCPnopar(*pat, Form("AFF/%d.%d.%d.%d_%d.%d.%d.%d.al.root",brick,id1->ePlate, major,minor,brick,id2->ePlate, major,minor), "1", 0, false); //no reading x.x.x.x.in.par file
   
    //EdbID idp(id); idp.ePlate=pat->PID();
-   sproc.MakeEraseFile(*id1, pat);
+   sproc.MakeEraseFile(*id1, *pat);
   }
 
 }
