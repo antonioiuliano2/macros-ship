@@ -48,6 +48,9 @@ hgammadcharge = r.TH1D("hgammadcharge","Gamma of D+",20,0,200);
 hgammadscharge = r.TH1D("hgammadscharge","Gamma of Ds+",20,0,200);
 hgammalambdac = r.TH1D("hgammalambda+","Gamma of Dlambdac++",20,0,200);
 
+hinvmass = r.TH1D("hinvmass","Invariant mass;m[GeV]",100,0,10)
+happroxinvmass = r.TH1D("happroxinvmass","Invariant mass with the pion hypothesis;m[GeV]",100,0,10)
+
 hzcharm = {421: hzd0, 411: hzdcharge, 431: hzdscharge, 4122:hzlambdac}
 hpcharm = {421: hpd0, 411: hpdcharge, 431: hpdscharge, 4122:hplambdac}
 hgammacharm = {421: hgammad0, 411: hgammadcharge, 431: hgammadscharge, 4122:hgammalambdac}
@@ -169,6 +172,12 @@ def getdaughtertracks(inputtree,eventnumber):
 
  inputtree.GetEntry(eventnumber)
  mctracks = inputtree.MCTrack
+
+ Etot = 0
+ ApproxEtot = 0
+ Pxtot = 0
+ Pytot = 0
+ Pztot = 0
 #****************************** loop on tracks*******************
  for j, track in enumerate(mctracks): 
    name = "UNKNOWN"
@@ -234,8 +243,26 @@ def getdaughtertracks(inputtree,eventnumber):
       impactparameter = IPtoVertex(vertex,track)
       #print "Estimated IP ", impactparameter, "in micron ", impactparameter*cmtomicron
       hipcharm.Fill(impactparameter*cmtomicron)
+      #variables for invariant mass
+      Etot = Etot + track.GetEnergy()
+      Pxtot = Pxtot + track.GetPx()
+      Pytot = Pytot + track.GetPy()
+      Pztot = Pztot + track.GetPz()
+
+      #approximated energy, given pion mass
+      pionmass = pdgdatabase.GetParticle(211).Mass()
+      ApproxEnergy = r.TMath.Sqrt(pow(pionmass,2)+pow(track.GetP(),2))
+      ApproxEtot = ApproxEtot + ApproxEnergy
 
       tracksID.append(j)
+  if (Etot>0.):
+   invariantmass = r.TMath.Sqrt(pow(Etot,2) - (pow(Pxtot,2)+pow(Pytot,2)+pow(Pztot,2)) )
+   approxinvariantmass = r.TMath.Sqrt(pow(ApproxEtot,2) - (pow(Pxtot,2)+pow(Pytot,2)+pow(Pztot,2)) )
+
+   hinvmass.Fill(invariantmass)
+   happroxinvmass.Fill(approxinvariantmass)
+
+
 
  #loop on the two groups of charmdaughters
  for i, charmdaughterslist in enumerate(charmdaughters):
@@ -416,6 +443,13 @@ hgammacharm[4122].Draw()
 hgammacharm[4122].GetXaxis().SetTitle("gamma")
 hgammacharm[4122].Write()
 cgammacharm.Write()
+
+cinvariantmass = r.TCanvas()
+cinvariantmass.Divide(1,2)
+cinvariantmass.cd(1)
+hinvmass.Draw()
+cinvariantmass.cd(2)
+happroxinvmass.Draw()
 
 charmlongntuple.Write()
 
