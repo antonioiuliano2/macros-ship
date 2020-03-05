@@ -1,0 +1,9 @@
+executable            = charm.sh
+arguments             = $(ClusterID) $(ProcId) $(Nevents)
+output                = output/charmdet.$(ClusterId).$(ProcId).out
+error                 = error/charmdet.$(ClusterId).$(ProcId).err
+log                   = log/charmdet.$(ClusterId).log
+getenv = true
+notification = Never
++JobFlavour             = "nextweek"
+queue 100

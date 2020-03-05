@@ -1,0 +1,9 @@
+executable            = pot.sh
+arguments             = $(ClusterID) $(ProcId) $(Nevents)
+output                = output/charmpot.$(ClusterId).$(ProcId).out
+error                 = error/charmpot.$(ClusterId).$(ProcId).err
+log                   = log/charmpot.$(ClusterId).log
+getenv = true
+notification = Never
++JobFlavour             = "nextweek"
+queue 10
