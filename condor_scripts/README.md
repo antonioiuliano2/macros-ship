@@ -1,12 +1,14 @@
 # General (personal) guidelines before submitting a new simulation to Condor
 
-Always check wchich FairShip **branch** is active. For charm simulation, it is currently my **charmsim** branch.
+* Check your AFS remaining space from CERN Resources page, section 'AFS Workspaces'
 
-When changing branches or merging new updates from the official repo, **always rebuild FairShip**
+* Always check wchich FairShip **branch** is active. For charm simulation, it is currently my **charmsim** branch.
 
-Finally, always be in FairShip environment before submitting a condor job (since there is the **getEnv** routine suggested by Annarita)
+* When changing branches or merging new updates from the official repo, **always rebuild FairShip**
 
-Keep in general this repository updated, and check periodically for different files.
+* Finally, always be in FairShip environment before submitting a condor job (since there is the **getEnv** routine suggested by Annarita)
+
+* Keep in general this repository updated, and check periodically for different files.
 
 Finally:
 
