@@ -3,8 +3,8 @@ import ROOT as r
 import sys
 
 #selection
-zmin = 121.8365
-zmax = 125.5500
+zmin = 121.879
+zmax = 125.562
 maxentries = 20000
 
 simfile = r.TFile.Open(sys.argv[1])
