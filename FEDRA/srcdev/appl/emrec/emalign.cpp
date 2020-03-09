@@ -6,6 +6,7 @@
 #include <TEnv.h>
 #include "EdbLog.h"
 #include "EdbScanProc.h"
+#include "EdbCouplesTree.h"
 
 using namespace std;
 
@@ -212,6 +213,7 @@ int main(int argc, char* argv[])
 void MakeEraseFiles(EdbID id, TEnv &cenv)
 {
   EdbScanProc  sproc;
+  sproc.eProcDirClient = cenv.GetValue("emalign.outdir"         , "..");
   //identifiers
   int brick = id.eBrick;
   int major = id.eMajor;
@@ -223,15 +225,27 @@ void MakeEraseFiles(EdbID id, TEnv &cenv)
   for(int i=0; i<ss->eIDS.GetEntries()-1; i++) {
    id1 = (EdbID *)(ss->eIDS.At(i));
    id2 = (EdbID *)(ss->eIDS.At(i+1));
-   sproc.eProcDirClient = cenv.GetValue("emtra.outdir"         , "..");
 
 
    //getting data
-   EdbPattern *pat = new EdbPattern();
-   sproc.ReadPatCPnopar(*pat, Form("AFF/%d.%d.%d.%d_%d.%d.%d.%d.al.root",brick,id1->ePlate, major,minor,brick,id2->ePlate, major,minor), "1", 0, false); //no reading x.x.x.x.in.par file
+   EdbPattern pat;
+ //  sproc.ReadPatCPnopar(*pat, Form("AFF/%d.%d.%d.%d_%d.%d.%d.%d.al.root",brick,id1->ePlate, major,minor,brick,id2->ePlate, major,minor), "1", 0, false); //no reading x.x.x.x.in.par file
+
+   EdbCouplesTree ect;
+   ect.InitCouplesTree("couples",Form("AFF/%d.%d.%d.%d_%d.%d.%d.%d.al.root",brick,id1->ePlate, major,minor,brick,id2->ePlate, major,minor),"READ");
+   ect.eCut="1";
+   ect.eEraseMask = 0;
+
+   int nread=0;
+   
+   
+   EdbPattern p1, p2;
+   nread = ect.GetCPData( &pat,&p1,&p2,0 );
+   ect.Close();  
   
    //EdbID idp(id); idp.ePlate=pat->PID();
-   sproc.MakeEraseFile(*id1, *pat);
+   sproc.MakeEraseFile(*id1, p1);
+   sproc.MakeEraseFile(*id2, p2);
   }
 
 }
