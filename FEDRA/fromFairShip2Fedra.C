@@ -71,6 +71,15 @@ void fromFairShip2Fedra(TString filename){
  const bool useefficiencymap = cenv.GetValue("FairShip2Fedra.useefficiencymap",0); //use the map instead of the constant value down
  const bool dosmearing = cenv.GetValue("FairShip2Fedra.dosmearing",1); //gaussian smearing or not
  const bool useresfunction = false; //use resfunction from operadata instead of constant value
+ //if not performed digitization
+ const bool donedigi = false;
+ int neventsxspill = 5500;
+ int ntotspills = nevents/neventsxspill;
+ float spilldy = 10./ntotspills;
+ cout<<"Generating "<<ntotspills<<" with dy "<<spilldy<<endl;
+ int nspill = 0;
+ float pottime = 0.;
+ float targetmoverspeed = 2.6; //speed of Target Mover
 
  if (useefficiencymap){ 
   file = TFile::Open("efficiency_alltracks.root");
@@ -86,7 +95,8 @@ void fromFairShip2Fedra(TString filename){
  //getting tree and arrays
  TTreeReader reader("cbmsim",inputfile);
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
- TTreeReaderArray<BoxPoint> emulsionhits(reader,"EmuBaseTrks");
+// TTreeReaderArray<BoxPoint> emulsionhits(reader,"EmuBaseTrks");
+ TTreeReaderArray<BoxPoint> emulsionhits(reader,"BoxPoint");
  
  Float_t tx = 0, ty=0, xem= 0, yem = 0;
  //const Int_t nevents = reader.GetTree()->GetEntries();
@@ -119,11 +129,30 @@ void fromFairShip2Fedra(TString filename){
      
      if (trackID >= 0) motherID = tracks[trackID].GetMotherId();
      else motherID = -2; //hope I do not see them
-     xem = emupoint.GetX()* 1E+4 + 62500;
-     yem = emupoint.GetY()* 1E+4 + 49500;     
-     tx = emupoint.GetPx()/emupoint.GetPz();
-     ty = emupoint.GetPy()/emupoint.GetPz();  
-     tantheta = pow(pow(tx,2) + pow(ty,2),0.5);
+
+     if (!donedigi){
+      nspill = i/neventsxspill;
+
+      pottime = gRandom->Uniform()*4.8;
+
+      xem = emupoint.GetX() -12.5/2. + pottime * targetmoverspeed;
+      yem = emupoint.GetY() - 9.9/2. + nspill * spilldy + 0.5;
+      } 
+    
+      else{
+
+       xem = emupoint.GetX();
+       yem = emupoint.GetY();
+
+      }
+
+      xem = xem* 1E+4 + 62500;
+      yem = yem* 1E+4 + 49500;         
+     
+      tx = emupoint.GetPx()/emupoint.GetPz();
+      ty = emupoint.GetPy()/emupoint.GetPz();  
+      tantheta = pow(pow(tx,2) + pow(ty,2),0.5);
+
      double charge,mass;        
 
      if ((TDatabasePDG::Instance()->GetParticle(pdgcode))!=NULL){ 
@@ -156,6 +185,7 @@ void fromFairShip2Fedra(TString filename){
      if (savehit){        
       ect[nfilmhit-1]->eS->Set(ihit,xem,yem,tx,ty,1,Flag);
       ect[nfilmhit-1]->eS->SetMC(ievent, trackID); //objects used to store MC true information
+      ect[nfilmhit-1]->eS->SetP(momentum); //storing true momentum of the hit
       ect[nfilmhit-1]->eS->SetAid(motherID, 0); //forcing areaID member to store mother MC track information
       ect[nfilmhit-1]->eS->SetVid(pdgcode,0); //forcing viewID[0] member to store pdgcode information
       ect[nfilmhit-1]->eS->SetW(ngrains); //need a high weight to do tracking
