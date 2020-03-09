@@ -38,6 +38,7 @@ void set_default(TEnv &cenv){ //setting default parameters, if not presents from
  cenv.SetValue("FairShip2Fedra.nbrick",1);//to set b00000%i number
  cenv.SetValue("FairShip2Fedra.nplates",29);
  cenv.SetValue("FairShip2Fedra.nevents",10000); // number of events to be passed to FEDRA
+ cenv.SetValue("FairShip2Fedra.neventsxspill",1000); // number of events to be passed to FEDRA
  cenv.SetValue("FairShip2Fedra.useefficiencymap",0);
  cenv.SetValue("FairShip2Fedra.emuefficiency",0.85); //only if useefficiency map is set to false
  cenv.SetValue("FairShip2Fedra.dosmearing",1);
@@ -73,10 +74,10 @@ void fromFairShip2Fedra(TString filename){
  const bool useresfunction = false; //use resfunction from operadata instead of constant value
  //if not performed digitization
  const bool donedigi = false;
- int neventsxspill = 5500;
+ int neventsxspill = cenv.GetValue("FairShip2Fedra.neventsxspill",1000);
  int ntotspills = nevents/neventsxspill;
  float spilldy = 10./ntotspills;
- cout<<"Generating "<<ntotspills<<" with dy "<<spilldy<<endl;
+ cout<<"Generating "<<ntotspills<<" spills with dy "<<spilldy<<endl;
  int nspill = 0;
  float pottime = 0.;
  float targetmoverspeed = 2.6; //speed of Target Mover
