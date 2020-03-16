@@ -120,7 +120,9 @@ void fromFairShip2Fedra(TString filename){
  for (int i = 0; i < nevents; i++){
   if (i%1000==0) cout<<"processing event "<<i<<" out of "<<nevents<<endl;
   reader.Next();
-   for (const BoxPoint& emupoint:emulsionhits){   
+  pottime = gRandom->Uniform()*4.8;
+  nspill = i/neventsxspill;
+  for (const BoxPoint& emupoint:emulsionhits){   
      bool savehit = true; //by default I save all hits
 //no you don't want to do this//     if (j % 2 == 0) continue;
      momentum = TMath::Sqrt(pow(emupoint.GetPx(),2) + pow(emupoint.GetPy(),2) + pow(emupoint.GetPz(),2));
@@ -131,10 +133,7 @@ void fromFairShip2Fedra(TString filename){
      if (trackID >= 0) motherID = tracks[trackID].GetMotherId();
      else motherID = -2; //hope I do not see them
 
-     if (!donedigi){
-      nspill = i/neventsxspill;
-
-      pottime = gRandom->Uniform()*4.8;
+     if (!donedigi){    
 
       xem = emupoint.GetX() -12.5/2. + pottime * targetmoverspeed;
       yem = emupoint.GetY() - 9.9/2. + nspill * spilldy + 0.5;
