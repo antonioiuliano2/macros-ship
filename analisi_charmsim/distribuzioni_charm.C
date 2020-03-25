@@ -5,7 +5,7 @@ bool isintermediate(Int_t PdgCode);
 using namespace ROOT;
 void distribuzioni_charm(TString filename = "" ){ 
  //opening file and activating reader
- TFile *file = TFile::Open("ship.conical.Pythia8CharmOnly-TGeant4.root"); 
+ TFile *file = TFile::Open("inECC_ship.conical.Pythia8CharmOnly-TGeant4_dig.root"); 
  if (!file) return;
  TTreeReader reader("cbmsim",file);
 
@@ -25,8 +25,8 @@ void distribuzioni_charm(TString filename = "" ){
  Double_t endz = 0;
  Double_t endy = 0;
  Double_t endx = 0;
-//const Int_t nevents = reader->GetEntries(); 
- const Int_t nevents =100000;
+ const Int_t nevents = reader.GetEntries(); 
+ //const Int_t nevents =100000;
   
  Int_t startpdg = 0;
  Int_t intermediatepdg = 0;
