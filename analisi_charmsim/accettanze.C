@@ -28,6 +28,10 @@ void accettanze(TString filename = "" ){
  TH1I *hnvisible = new TH1I("nvisible","Number of visible daughters per decay;N",10,0,10);
  TH1I *hnfound = new TH1I("hnfound","Number of found daughters per decay;N",10,0,10);
 
+ TH1I *hnhit_firstSciFi = new TH1I("hnhit_firstSciFi","Number of hits arrived at first SciFi per event;Nhits",40,0,40);
+ TH1D *hP_firstSciFi = new TH1D("hP_firstSciFi","Momentum of hits in first SciFi;P[GeV/c]",100,0,100);
+ TH2D *hxy_firstSciFi = new TH2D("hxy_firstSciFi","XY distribution of hits in first SciFi;x[cm];y[cm]",400,-20,20,400,-20,20);
+
  //declaring variables
  TDatabasePDG *pdg = TDatabasePDG::Instance();
  Int_t mytrackID;
@@ -38,6 +42,7 @@ void accettanze(TString filename = "" ){
  
  Int_t nallfound = 0;
  Int_t natleastonefound = 0;
+ Int_t nfirstSciFi = 0;
 
  Int_t mumID, mumpdg, startpdg,intermediatepdg;
  Double_t momentum;
@@ -56,6 +61,7 @@ void accettanze(TString filename = "" ){
    nvisible[icharm] = 0;
    nscififound[icharm] = 0;  
   }
+  nfirstSciFi = 0;
   hitx.clear();
   hity.clear();
   hitz.clear();
@@ -109,6 +115,8 @@ void accettanze(TString filename = "" ){
               bool foundhitscifi = false;
               bool foundhitpixel = false;
 
+              //these loops are made for every charm daughters!
+
               for (const PixelModulesPoint& hitpoint: pixelpoints){ 
                  if (hitpoint.GetTrackID()==mytrackID){ 
                    foundhitpixel = true;
@@ -117,8 +125,8 @@ void accettanze(TString filename = "" ){
                    hitz.push_back(hitpoint.GetZ());
                  }
              }
-
                for (const SciFiPoint& hitpoint: scifipoints){ 
+                 //saving charged hits from first station
                  if (hitpoint.GetTrackID()==mytrackID){
                    if(! foundhitscifi) nscififound[whichcharm-1]++; 
                    foundhitscifi = true;
@@ -135,7 +143,21 @@ void accettanze(TString filename = "" ){
        }
       }//condition about mumID
       mytrackID++;
+
    }//fine ciclo sulle tracce
+   //ora posso fare un loop sugli hit degli SciFi per studiarne la molteplicità
+   for (const SciFiPoint& hitpoint: scifipoints){ 
+    if (pdg->GetParticle(hitpoint.PdgCode())&& hitpoint.GetDetectorID()==111){
+     if (TMath::Abs(pdg->GetParticle(hitpoint.PdgCode())->Charge())>0){
+       Double_t hitmomentum = TMath::Sqrt(pow(hitpoint.GetPx(),2)+pow(hitpoint.GetPy(),2)+pow(hitpoint.GetPz(),2));
+       if (hitmomentum > 0.01){//cut to avoid to count production in my detector
+       nfirstSciFi++;
+       hP_firstSciFi->Fill(hitmomentum);
+       hxy_firstSciFi->Fill(hitpoint.GetX(),hitpoint.GetY());
+      }
+     }
+    }
+   }
    TGraph hityz = TGraph(hity.size(),hitz.data(),hity.data());
    TGraph hitxz = TGraph(hitx.size(),hitz.data(),hitx.data());
    
@@ -159,7 +181,7 @@ void accettanze(TString filename = "" ){
      else if (i%1000 == 0) cout<<"Not found all "<<i<<" "<<nvisible[icharm]<<endl;
      if (nscififound[icharm]>=1) natleastonefound++;
    }
-
+   hnhit_firstSciFi->Fill(nfirstSciFi);
  }//fine ciclo sugli eventi
 
  cout<<"Over decays "<<nevents*2<<endl;
@@ -172,6 +194,16 @@ void accettanze(TString filename = "" ){
  hvxy->Draw("COLZ");
  cprim->cd(2);
  hvz->Draw();
+
+ TCanvas *cmolt_firstSciFi = new TCanvas();
+ hnhit_firstSciFi->Draw();
+ TCanvas *chits_firstSciFi = new TCanvas();
+ chits_firstSciFi->Divide(1,2);
+ chits_firstSciFi->cd(1);
+ hxy_firstSciFi->Draw("COLZ");
+ chits_firstSciFi->cd(2);
+ hP_firstSciFi->Draw();
+
 
  TCanvas *cacceptance = new TCanvas();
  hchargeddaughterP->Draw();
