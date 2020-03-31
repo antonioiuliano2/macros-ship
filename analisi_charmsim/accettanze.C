@@ -29,6 +29,7 @@ void accettanze(TString filename = "" ){
  TH1I *hnfound = new TH1I("hnfound","Number of found daughters per decay;N",10,0,10);
 
  TH1I *hnhit_firstSciFi = new TH1I("hnhit_firstSciFi","Number of hits arrived at first SciFi per event;Nhits",40,0,40);
+ TH2D *hPstartz_firstSciFi = new TH2D("hPstartz_firstSciFi","Momentum vs startZ of hits in first SciFi; P[GeV/c];z[cm]",100,0,100,800,100,900);
  TH1D *hP_firstSciFi = new TH1D("hP_firstSciFi","Momentum of hits in first SciFi;P[GeV/c]",100,0,100);
  TH2D *hxy_firstSciFi = new TH2D("hxy_firstSciFi","XY distribution of hits in first SciFi;x[cm];y[cm]",400,-20,20,400,-20,20);
 
@@ -154,6 +155,11 @@ void accettanze(TString filename = "" ){
        nfirstSciFi++;
        hP_firstSciFi->Fill(hitmomentum);
        hxy_firstSciFi->Fill(hitpoint.GetX(),hitpoint.GetY());
+
+       if (hitpoint.GetTrackID() > -1){
+         hPstartz_firstSciFi->Fill(hitmomentum,tracks[hitpoint.GetTrackID()].GetStartZ());
+       }
+
       }
      }
     }
@@ -195,6 +201,9 @@ void accettanze(TString filename = "" ){
  cprim->cd(2);
  hvz->Draw();
 
+ TCanvas *cmolt_startz = new TCanvas();
+ hPstartz_firstSciFi->Draw("COLZ");
+
  TCanvas *cmolt_firstSciFi = new TCanvas();
  hnhit_firstSciFi->Draw();
  TCanvas *chits_firstSciFi = new TCanvas();
@@ -235,6 +244,71 @@ void accettanze(TString filename = "" ){
 
  graphfile->Close();
 } //fine programma
+
+void projection(){
+ //opening file and activating reader
+ TFile *file = TFile::Open("inECC_ship.conical.Pythia8CharmOnly-TGeant4_dig.root"); 
+ if (!file) return;
+ TTreeReader reader("cbmsim",file);
+ TDatabasePDG *pdg = TDatabasePDG::Instance();
+ //const Int_t nevents = 1000;
+ const Int_t nevents = reader.GetEntries();
+
+ TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
+ TTreeReaderArray<PixelModulesPoint> pixelpoints(reader,"PixelModulesPoint");
+ TTreeReaderArray<SciFiPoint> scifipoints(reader,"SciFiPoint");
+
+ TH2D *hdR = new TH2D("hdR","Position distance between SciFi hits and corresponding pixel hit projections;dX[cm];dY[cm]",410,-20.5,20.5,110,-5.5,5.5);
+
+ map<int,int> SciFihit_byID;
+ vector<int> charged_SciFihits;
+
+ //starting loop into the events
+ for (int i = 0; i < nevents; i++){
+   reader.SetEntry(i);
+   SciFihit_byID.clear();
+   charged_SciFihits.clear();
+   //starting loop into SciFi to build the map
+   for (int ihit = 0; ihit < scifipoints.GetSize();ihit++){
+     if(scifipoints[ihit].GetDetectorID()==111){ 
+       double charge = 0.;
+       int pdgcode = scifipoints[ihit].PdgCode();
+       if (pdg->GetParticle(pdgcode)){
+         if (TMath::Abs(pdg->GetParticle(pdgcode)->Charge())>0) charged_SciFihits.push_back(ihit);
+       }
+       SciFihit_byID[scifipoints[ihit].GetTrackID()] = ihit; //saving hits from first station
+     }
+   }  
+   if (scifipoints.GetSize() == 0) SciFihit_byID[-2] = -1; //avoid crash for empty container, dummy value
+   //starting loop into pixel
+   for (const PixelModulesPoint& pixelhit : pixelpoints){
+     int trackID = pixelhit.GetTrackID();
+     if(trackID > -1) {
+       if (SciFihit_byID.count(trackID)){
+        int whichhit = SciFihit_byID[trackID];
+        double scifihitz = scifipoints[whichhit].GetZ();
+        double scifihity = scifipoints[whichhit].GetY();
+        double scifihitx = scifipoints[whichhit].GetX();
+        //computing TX and TY for projections
+        double pixeltx = pixelhit.GetPx()/pixelhit.GetPz();
+        double pixelty = pixelhit.GetPy()/pixelhit.GetPz();
+
+        double deltaz = scifihitz - pixelhit.GetZ();
+        //computing projections
+        double projectedhitx = pixeltx * deltaz + pixelhit.GetX();
+        double projectedhity = pixelty * deltaz + pixelhit.GetY();
+//        cout<<scifihitx- projectedhitx<<" "<<pixelhit.PdgCode()<<endl;
+        hdR->Fill(scifihitx-projectedhitx,scifihity-projectedhity);
+
+
+       }
+     }
+   }//end loop on pixel hits
+ }//end loop on events
+
+ hdR->Draw("COLZ");
+}//end program
+
 bool ischarm(Int_t PdgCode){
   bool check = false;
   if ((abs(PdgCode) == 431) || (abs(PdgCode) == 411) || (abs(PdgCode) == 4122)  || (abs(PdgCode) == 421) || (abs(PdgCode) == 4132) || (abs(PdgCode) == 4232) ||(abs(PdgCode) == 4332)|| (PdgCode == 441))   check = true; 
