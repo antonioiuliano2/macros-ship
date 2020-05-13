@@ -9,7 +9,7 @@ EdbPVRec     *gAli=0;
 //
 
 void check(){ //quick efficiency check, as in check_tr
- TCut trcut = "t.eFlag>=0 &&t.eProb>0.01&&npl >= 25 && s[0].Plate()<=3 && s[nseg-1].Plate()>=27 && TMath::Abs(s.eX-50000) < 15000 && TMath::Abs(s.eY-56000)<15000";
+ TCut trcut = "t.eFlag>=0 &&t.eProb>0.01&&npl >= 25 && s[0].Plate()<=3 && s[nseg-1].Plate()>=27";
  TFile * inputfile = TFile::Open("linked_tracks.root");
  TTree * tracks = (TTree*) gFile->Get("tracks");
  //Doing selections from track tree
@@ -46,18 +46,19 @@ void check(){ //quick efficiency check, as in check_tr
 
 void efficiency_study(){ //efficiency estimation, as used in OPERA paper
 
- TCut trcut = "t.eFlag>=0 &&t.eProb>0.01&&npl >= 25 && s[0].Plate()<=3 && s[nseg-1].Plate()>=27 && TMath::Abs(s.eX-50000) <  15000 && TMath::Abs(s.eY-56000)<15000";
+ //TCut trcut = "t.eFlag>=0  &&t.eProb>0.01";
+ TCut trcut = "t.eFlag>=0 &&t.eProb>0.01&&npl >= 25";
  const int nfilms = 29;
 
  TEfficiency* heff = NULL;
 
- TH1D *hexpected = new TH1D("hexpected", "Tracks expected to be found in each plate", 30,0,30);
- TH1D *hfound = new TH1D("hfound", "Tracks with an associated segment in each plate", 30,0,30); 
+ TH1D *hexpected = new TH1D("hexpected", "Tracks expected to be found in each plate", 58,0,58);
+ TH1D *hfound = new TH1D("hfound", "Tracks with an associated segment in each plate", 58,0,58); 
 
- TH2D *hxy = new TH2D("hxy", "2D position of tracks", 40,30,70,40,35,75);
+ TH2D *hxy = new TH2D("hxy", "2D position of tracks",120,0,120,100,0,100);
 
  //reading tracks from linked_tracks.root file
- dproc = new EdbDataProc();
+ EdbDataProc *dproc = new EdbDataProc();
  dproc->InitVolume(100, trcut); //100 is the code for track reading (as from fedra/src/libEIO/EdbDataSet.cxx)
  gAli = dproc->PVR();
  const int ntracks = gAli->eTracks->GetEntries();
@@ -71,26 +72,27 @@ void efficiency_study(){ //efficiency estimation, as used in OPERA paper
   trk = (EdbTrackP*)(gAli->eTracks->At(itrk)); //accessing track object
 
   for (int i = 0; i < nfilms; i++) {
-  hexpected->Fill(i+1);
+    //if(i!=15)
+    hexpected->Fill(i+1);
   } 
   hexpected->Fill(0);//for having y range set from 0 to 1 I add a bin with null efficiency for Plate 0
-
+  
   for (int iseg = 0; iseg < trk->N();iseg++){ //loop on associated segments
-   seg = (EdbSegP*) trk->GetSegment(iseg);
-   nplate = seg->Plate();
-   hfound->Fill(nplate);
+    seg = (EdbSegP*) trk->GetSegment(iseg);
+    nplate = seg->Plate();
+    //if(nplate!=15)
+    hfound->Fill(nplate);
   }
-
+  
   hxy->Fill(trk->X()/1000., trk->Y()/1000.);
  } //end of track loop
 
  //Getting efficiency for all plates
-
  TCanvas *c1 = new TCanvas();
  if (TEfficiency::CheckConsistency(*hfound,*hexpected)){
   heff = new TEfficiency(*hfound, *hexpected);
   heff->Draw();
-  heff->SetTitle("Efficiency for each plate;npl");
+  heff->SetTitle(";npl;#epsilon");
   //estimating global efficiency and its error
   double effplate[nfilms]; //efficiency in each plate
   double mean = 0;
@@ -103,7 +105,7 @@ void efficiency_study(){ //efficiency estimation, as used in OPERA paper
   }
   mean = mean/nfilms;
   for (int ibin=0; ibin < nfilms; ibin++){
-   sd+=(effplate[ibin]-mean)**2;
+   sd+=pow((effplate[ibin]-mean),2);
   }
   sd=TMath::Sqrt(sd/(nfilms-1));
   sd_mean = sd/TMath::Sqrt(nfilms);
@@ -115,7 +117,7 @@ void efficiency_study(){ //efficiency estimation, as used in OPERA paper
 }
 
 void efficiency_study_alltracks(){ //efficiency estimation, dividing for number of tracks
-TCut trcut = "t.eFlag>=0 &&t.eProb>0.01&&npl >= 5&& TMath::Abs(s.eX-50000) < 10000 && TMath::Abs(s.eY-56000)<10000"; //identifying protons in the central region (all segments must be in this region)
+TCut trcut = "t.eFlag>=0 &&t.eProb>0.01&&npl >= 5"; //identifying protons in the central region (all segments must be in this region)
 
  const int nfilms = 26;
  TEfficiency* heff = NULL;
@@ -126,7 +128,7 @@ TCut trcut = "t.eFlag>=0 &&t.eProb>0.01&&npl >= 5&& TMath::Abs(s.eX-50000) < 100
  TH2D *hxy = new TH2D("hxy", "2D position of tracks", 40,30,70,40,35,75);
 
  //reading tracks from linked_tracks.root file
- dproc = new EdbDataProc();
+ EdbDataProc *dproc = new EdbDataProc();
  dproc->InitVolume(100, trcut); //100 is the code for track reading (as from fedra/src/libEIO/EdbDataSet.cxx)
  gAli = dproc->PVR();
  const int ntracks = gAli->eTracks->GetEntries();
@@ -188,4 +190,29 @@ TCut trcut = "t.eFlag>=0 &&t.eProb>0.01&&npl >= 5&& TMath::Abs(s.eX-50000) < 100
 
  TCanvas *c2 = new TCanvas();
  hxy->Draw("COLZ");
+}
+
+void pos_distribution(){
+ TFile * inputfile = TFile::Open("linked_tracks.root");
+ TTree * tracks = (TTree*) inputfile->Get("tracks");
+
+ TCanvas *c1 = new TCanvas();
+
+ tracks->Draw("s[nseg-1].eY*1e-3:s[nseg-1].eX*1e-3>>hxy(125,0,125,100,0,100)","","COLZ");
+ TH2D *hxy = (TH2D*) gDirectory->FindObject("hxy");
+
+ hxy->SetTitle("xy distribution end point of tracks;x[mm];y[mm]");
+ hxy->Draw("COLZ");
+
+ gStyle->SetStatX(0.5);
+ gStyle->SetStatY(0.9); 
+
+ TCanvas *c2 = new TCanvas();
+
+ tracks->Draw("s.ePID>>hPID");
+
+ TH1I *hPID = (TH1I*) gDirectory->FindObject("hPID");
+ hPID->SetTitle("Plate ID for each segment belonging to track;PID");
+ hPID->Draw();
+
 }

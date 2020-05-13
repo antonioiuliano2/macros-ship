@@ -1,5 +1,5 @@
 void vertexchain(){
- TString prepath("/eos/user/a/aiuliano/public/sims_fedra/CH3_pot_05_03_2020/b000001/reconstruction_output/");
+ TString prepath("/eos/experiment/ship/data/charmxsec/Emulsion/CHARM2_RUN2/");
  TChain vtxchain("vtx");
 
  //adding files for various quarters
@@ -9,7 +9,7 @@ void vertexchain(){
  vtxchain.Add((prepath+TString("fourthquarter/vertextree_fourthquarter.root")).Data());
  
  TCut selection("flag!=2 && flag!=5");
- 
+ TCanvas *cz = new TCanvas();
  //drawing vertex distributions
  vtxchain.Draw("vz>>hz",selection);
  vtxchain.Draw("vy:vx>>hxy",selection);
@@ -22,7 +22,7 @@ void vertexchain(){
  gStyle->SetStatX(0.5);
  gStyle->SetStatY(0.9);  
 
- TCanvas *cz = new TCanvas();
+ 
  hz->SetTitle("vz distribution;z[#mum]");
  hz->Draw();
 
