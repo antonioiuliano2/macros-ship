@@ -47,8 +47,8 @@ void check(){ //quick efficiency check, as in check_tr
 void efficiency_study(){ //efficiency estimation, as used in OPERA paper
 
  //TCut trcut = "t.eFlag>=0  &&t.eProb>0.01";
- TCut trcut = "t.eFlag>=0 &&t.eProb>0.01&&npl >= 25";
- const int nfilms = 29;
+ TCut trcut = "t.eFlag>=0 &&t.eProb>0.01&&npl >= 15";
+ const int nfilms = 57;
 
  TEfficiency* heff = NULL;
 
@@ -67,14 +67,18 @@ void efficiency_study(){ //efficiency estimation, as used in OPERA paper
  //begin track loop
  EdbTrackP *trk = NULL;
  EdbSegP *seg = NULL;
+ EdbSegP *firstseg = NULL;
+ EdbSegP *lastseg = NULL;
+
  int nplate;
  for (int itrk = 0; itrk <ntracks; itrk++){
   trk = (EdbTrackP*)(gAli->eTracks->At(itrk)); //accessing track object
-
-  for (int i = 0; i < nfilms; i++) {
-    //if(i!=15)
-    hexpected->Fill(i+1);
-  } 
+  //expected to found the track from first to last segment
+  firstseg = trk->GetSegmentFirst();
+  lastseg = trk->GetSegmentLast();
+  for (int i = firstseg->Plate(); i <= lastseg->Plate();i++){
+   hexpected->Fill(i);
+  }
   hexpected->Fill(0);//for having y range set from 0 to 1 I add a bin with null efficiency for Plate 0
   
   for (int iseg = 0; iseg < trk->N();iseg++){ //loop on associated segments
