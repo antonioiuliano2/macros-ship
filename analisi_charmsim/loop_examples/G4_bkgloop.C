@@ -25,12 +25,18 @@ void G4_bkgloop(TString inputfile){
  RVec<double> energy_primaries;
  double mindeltaE = 10.;
  double startz;
+ //parameters for selections
+ const double maxtheta = 1.;
+ const double minkinE = 0.03;
+ double tx,ty,tantheta;
+ double momentum,mass,kinenergy;
 
  cout<<"Starting loop over "<<nentries<<endl;
 
  struct myHadronicVertex {
         int molt;
         double vx,vy,vz;
+        double energy;
  };
 
  map<int, myHadronicVertex> VertexfromID;
@@ -51,16 +57,27 @@ void G4_bkgloop(TString inputfile){
   double primaryenergy = tracks[0].GetEnergy();
   bool interactingintarget = false;
   for (const ShipMCTrack &MCTrack:tracks){
+   tx = MCTrack.GetPx()/MCTrack.GetPz();
+   ty = MCTrack.GetPy()/MCTrack.GetPz();  
+   tantheta = pow(pow(tx,2) + pow(ty,2),0.5);
 
    motherid = MCTrack.GetMotherId();
+   double motherenergy = 0.;
+   if (motherid>=0) tracks[motherid].GetEnergy();
    procid = MCTrack.GetProcID();
 
-   if (procid == 23){ // primary daughter selection
+   if (procid == 23){ // primary daughter selection       
      startz = MCTrack.GetStartZ();
      pdgcode = MCTrack.GetPdgCode();
      int charge = 0;
-     if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge();
-     if(startz<endtarget&&TMath::Abs(charge)>0){ 
+     if (pdg->GetParticle(pdgcode)){
+     charge = pdg->GetParticle(pdgcode)->Charge();  
+     mass = pdg->GetParticle(pdgcode)->Mass();  
+     }
+     momentum = MCTrack.GetP();
+     kinenergy = TMath::Sqrt(pow(mass,2)+pow(momentum,2)) - mass;
+     //*****************GOOD TRACK SELECTION*****************
+     if( startz<endtarget && TMath::Abs(charge)>0 && kinenergy>=minkinE &&tantheta <= TMath::Tan(maxtheta)){ 
       nprimaries++;
      // energy_primaries.push_back(MCTrack.GetEnergy());
      vector<int>::iterator foundvertex = find (vertex_momIDs.begin(), vertex_momIDs.end(), motherid);
@@ -70,7 +87,8 @@ void G4_bkgloop(TString inputfile){
          VertexfromID[motherid] = *newvertex; 
   
          VertexfromID[motherid].molt = 0;      
-         VertexfromID[motherid].vz = startz;  
+         VertexfromID[motherid].vz = startz;
+         VertexfromID[motherid].energy = motherenergy;  
   
          vertex_momIDs.push_back(motherid);
        }
