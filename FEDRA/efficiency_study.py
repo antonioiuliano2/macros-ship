@@ -1,21 +1,31 @@
-#python version of efficiency_studyC, to easily hande multiple files
+'''python version of efficiency_studyC, to easily hande multiple files
+Usage: 
+1)for only one file
+  python -i efficiency_study.py linked_tracks.root 
+2)for 4 surface quarters 
+  python -i efficiency_study.py tracks1.root tracks2.root tracks3.root tracks4.root
+created by Antonio on date 16 June 2020
+'''
 import ROOT as r
+import sys
 import fedrarootlogon
 
 goodtrack ="t.eFlag>=0 &&t.eProb>0.01&&npl >= 15"
 
-surfaces = {}
+surfaces = []
 
-surfaces[0] = "t.eX < 62500 && t.eY<50000"
-surfaces[1] = "t.eX > 62500 && t.eY<50000"
-surfaces[2] = "t.eX < 62500 && t.eY>50000"
-surfaces[3] = "t.eX > 62500 && t.eY>50000"
-
-filenames = {}
-filenames[0] = "linked_tracks_firstquarter.root"
-filenames[1] = "linked_tracks_secondquarter.root"
-filenames[2] = "linked_tracks_thirdquarter.root"
-filenames[3] = "linked_tracks_fourthquarter.root"
+#need to use splicing to remove default first argument
+filenames = sys.argv[1:]
+nfiles = len(filenames)
+if nfiles==1:
+  surfaces.append("1")
+elif nfiles==4:
+  surfaces.append("t.eX < 62500 && t.eY<50000")
+  surfaces.append("t.eX > 62500 && t.eY<50000")
+  surfaces.append("t.eX < 62500 && t.eY>50000")
+  surfaces.append("t.eX > 62500 && t.eY>50000")
+else:
+  print("ERROR, please provide 1 or 4 tracks files as input")
 
 #degining histograms
 hexpected = r.TH1D("hexpected", "Tracks expected to be found in each plate", 58,0,58)
@@ -61,9 +71,8 @@ def trackloop(filename, condition):
   for seg in firsttracks.s:
    hfound.Fill(seg.Plate())
 #end of function, loop over files
-nquarters = 4
 
-for quarter in range (nquarters):
+for quarter in range (nfiles):
 
   condition = goodtrack+" && "+surfaces[quarter]
   trackloop(filenames[quarter],condition)
