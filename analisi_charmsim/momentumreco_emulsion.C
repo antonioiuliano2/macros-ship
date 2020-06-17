@@ -64,3 +64,72 @@ void momentumreco_emulsion(){
     hpwasfound->Draw("COLZ");
 
 }
+
+void read_dataframe(){
+    TFile *inputfile = TFile::Open("annotated_ds_data_result_2.root");
+    TTree *inputtree = (TTree*) inputfile->Get("ds");
+    
+    string lowmomentumbackground = "dsvtx_vtx2_alllowmomentum && !dsvtx_vtx2_charmdaughtersamevent && dsvtx_vtx2_prec  > 0. && dsvtx_vtx2_ntrk > 1";
+    string lowmomentumsignal = "dsvtx_vtx2_charmdaughtersamevent && dsvtx_vtx2_alllowmomentum && dsvtx_vtx2_prec > 0. && dsvtx_vtx2_ntrk > 1";
+    
+    TCanvas *cprec = new TCanvas();
+    inputtree->Draw("dsvtx_vtx2_prec>>hprecbkg(25)",lowmomentumbackground.data());
+    inputtree->Draw("dsvtx_vtx2_prec>>hprecsig(25)",lowmomentumsignal.data());
+
+    TH1D * hprecbkg = (TH1D*) gDirectory->FindObject("hprecbkg");
+    TH1D * hprecsig = (TH1D*) gDirectory->FindObject("hprecsig");
+
+    hprecbkg->Scale(1./hprecbkg->Integral());
+    hprecsig->Scale(1./hprecsig->Integral());
+    
+    hprecsig->SetLineColor(kRed);
+    hprecbkg->SetTitle("Background vertices");
+    hprecsig->SetTitle("Signal vertices");
+
+    hprecbkg->Draw("hist");
+    hprecsig->Draw("hist&&SAMES");
+    cprec->BuildLegend();
+
+    hprecbkg->SetTitle("Reconstructed momentum for low momentum vertices;Prec[GeV/c]");
+
+    TCanvas *cmassinv = new TCanvas();
+    inputtree->Draw("dsvtx_vtx2_mass_inv>>hmassinvbkg(50)",lowmomentumbackground.data());
+    inputtree->Draw("dsvtx_vtx2_mass_inv>>hmassinvsig(50)",lowmomentumsignal.data());
+    
+    TH1D * hmassinvbkg = (TH1D*) gDirectory->FindObject("hmassinvbkg");
+    TH1D * hmassinvsig = (TH1D*) gDirectory->FindObject("hmassinvsig");
+    
+    hmassinvbkg->Scale(1./hmassinvbkg->Integral());
+    hmassinvsig->Scale(1./hmassinvsig->Integral());
+    
+    hmassinvsig->SetLineColor(kRed);
+    hmassinvbkg->SetTitle("Background vertices");
+    hmassinvsig->SetTitle("Signal vertices");
+
+    hmassinvbkg->Draw("hist");
+    hmassinvsig->Draw("hist&&SAMES");
+    cmassinv->BuildLegend();
+
+    hmassinvbkg->SetTitle("Reconstructed invariant mass for low momentum vertices;Mass Inv[GeV]");
+
+    
+    TCanvas *cminmassinv = new TCanvas();
+    inputtree->Draw("dsvtx_vtx2_min_mass_inv>>hminmassinvbkg(50)",lowmomentumbackground.data());
+    inputtree->Draw("dsvtx_vtx2_min_mass_inv>>hminmassinvsig(50)",lowmomentumsignal.data());
+
+    TH1D * hminmassinvbkg = (TH1D*) gDirectory->FindObject("hminmassinvbkg");
+    TH1D * hminmassinvsig = (TH1D*) gDirectory->FindObject("hminmassinvsig");
+
+    hminmassinvbkg->Scale(1./hminmassinvbkg->Integral());
+    hminmassinvsig->Scale(1./hminmassinvsig->Integral());
+    
+    hminmassinvsig->SetLineColor(kRed);
+    hminmassinvbkg->SetTitle("Background vertices");
+    hminmassinvsig->SetTitle("Signal vertices");
+
+    hminmassinvbkg->Draw("hist");
+    hminmassinvsig->Draw("hist&&SAMES");
+    cminmassinv->BuildLegend();
+
+    hminmassinvbkg->SetTitle("Reconstructed minimum invariant mass for low momentum vertices;Min Mass Inv[Gev]");
+}
