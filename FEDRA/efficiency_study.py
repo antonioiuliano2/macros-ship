@@ -30,6 +30,8 @@ def trackloop(filename, condition):
  firsttracks = firstfile.Get("tracks")
 
  #reading entries from selection
+ print("Selection of good tracks:")
+ print(condition)
  firsttracks.Draw(">>lst",r.TCut(condition))
 
  lst = r.gDirectory.GetList().FindObject("lst");
