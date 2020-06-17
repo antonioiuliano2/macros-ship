@@ -23,16 +23,14 @@ hfound = r.TH1D("hfound", "Tracks with an associated segment in each plate", 58,
 
 hxy = r.TH2D("hxy", "2D position of tracks;x[mm];y[mm]",120,0,120,100,0,100);
 
-nquarters = 4
-
-for quarter in range (nquarters):
+def trackloop(filename, condition):
+ '''loop over all tracks in filename according to condition'''
  #getting file and tree
-
- firstfile = r.TFile.Open(filenames[quarter])
+ firstfile = r.TFile.Open(filename)
  firsttracks = firstfile.Get("tracks")
 
  #reading entries from selection
- firsttracks.Draw(">>lst",r.TCut(goodtrack+" && "+surfaces[quarter]))
+ firsttracks.Draw(">>lst",r.TCut(condition))
 
  lst = r.gDirectory.GetList().FindObject("lst");
 
@@ -60,11 +58,19 @@ for quarter in range (nquarters):
   #next, found plates
   for seg in firsttracks.s:
    hfound.Fill(seg.Plate())
+#end of function, loop over files
+nquarters = 4
+
+for quarter in range (nquarters):
+
+  condition = goodtrack+" && "+surfaces[quarter]
+  trackloop(filenames[quarter],condition)
+
 #end of loop, getting efficiency
 if (r.TEfficiency.CheckConsistency(hfound,hexpected)):
-  heff = r.TEfficiency(hfound, hexpected);
-  heff.Draw();
-  heff.SetTitle(";npl;#epsilon");
+  heff = r.TEfficiency(hfound, hexpected)
+  heff.Draw()
+  heff.SetTitle(";npl;#epsilon")
 
 cxy = r.TCanvas()
 hxy.Draw("COLZ")
