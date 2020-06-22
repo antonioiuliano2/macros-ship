@@ -10,6 +10,8 @@ import ROOT as r
 import sys
 import fedrarootlogon
 
+nplates=57
+
 goodtrack ="t.eFlag>=0 &&t.eProb>0.01&&npl >= 15"
 
 surfaces = []
@@ -28,10 +30,10 @@ else:
   print("ERROR, please provide 1 or 4 tracks files as input")
 
 #degining histograms
-hexpected = r.TH1D("hexpected", "Tracks expected to be found in each plate", 58,0,58)
-hfound = r.TH1D("hfound", "Tracks with an associated segment in each plate", 58,0,58); 
+hexpected = r.TH1D("hexpected", "Tracks expected to be found in each plate", nplates,1,nplates+1);
+hfound = r.TH1D("hfound", "Tracks with an associated segment in each plate;Plate", nplates,1,nplates+1); 
 
-hxy = r.TH2D("hxy", "2D position of tracks;x[mm];y[mm]",120,0,120,100,0,100);
+hxy = r.TH2D("hxy", "2D position of tracks;x[mm];y[mm]",125,0,125,100,0,100);
 
 def trackloop(filename, condition):
  '''loop over all tracks in filename according to condition'''
@@ -66,7 +68,7 @@ def trackloop(filename, condition):
   #I expect to found the track in all segments from first to last
   for iplate in range(firstplate, lastplate+1):
    hexpected.Fill(iplate)
-  hexpected.Fill(0)
+  #hexpected.Fill(0)
   #next, found plates
   for seg in firsttracks.s:
    hfound.Fill(seg.Plate())
@@ -78,12 +80,25 @@ for quarter in range (nfiles):
   trackloop(filenames[quarter],condition)
 
 #end of loop, getting efficiency
+
+cfound = r.TCanvas()
+hfound.Draw()
+cfound.Print("plots/Plate_tracks_npl15.root")
+cfound.Print("plots/Plate_tracks_npl15.png")
+
+
+ceff = r.TCanvas()
 if (r.TEfficiency.CheckConsistency(hfound,hexpected)):
   heff = r.TEfficiency(hfound, hexpected)
   heff.Draw()
-  heff.SetTitle(";npl;#epsilon")
+  heff.SetTitle(";Plate;#epsilon")
+ceff.Print("plots/Efficiency_tracks_npl15.root")
+ceff.Print("plots/Efficiency_tracks_npl15.png")
 
 cxy = r.TCanvas()
 hxy.Draw("COLZ")
+cxy.Print("plots/hxy_tracks_npl15.root")
+cxy.Print("plots/hxy_tracks_npl15.png")
+
 
  
