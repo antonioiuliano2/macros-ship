@@ -1,4 +1,4 @@
-//Exercise: after generating with a gaussian over an exponential, fit with a gaussian over a polynomial
+//Exercise: after generating with an exponential, fit 
  {
   
   gROOT->SetStyle("Plain");

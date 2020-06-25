@@ -1,5 +1,12 @@
+<<<<<<< Updated upstream
 /*look at topology of nutau simulation for my thesis*/
 void nutau_event(){
+=======
+/*look at topology of nutau simulation for my thesis (created by Antonio 22 June 2020)*/
+Bool_t FindBrick(TGeoManager *tgeom, Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow, Int_t &NColumn, Int_t &NPlate)
+
+void simple_loop(){
+>>>>>>> Stashed changes
  //getting tree and defining arrays
  TFile *file = TFile::Open("ship.conical.Genie-TGeant4.root"); 
  if (!file) return;
@@ -41,6 +48,7 @@ void nutau_event(){
          if (ientry < 10) cout<<"PdgCode of the track: "<<track.GetPdgCode()<<" at event number "<<ientry<<endl;
      }*/
      //access the hits: 
+     
      for (const TargetPoint& targetpoint: targetpoints){
         trackID = targetpoint.GetTrackID(); 
         if (trackID == 1){ //hit from tau lepton
@@ -59,4 +67,21 @@ void nutau_event(){
 
  TCanvas *cgamma = new TCanvas();
  htaugamma->Draw();
+}
+
+//find brick from position in the geometry
+Bool_t FindBrick(TGeoManager *tgeom, Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow, Int_t &NColumn, Int_t &NPlate)
+{
+ tgeom->FindNode(x,y,z);
+ if (tgeom->GetLevel() == 0) return kFALSE;//we have in the cave, no mother volume present
+ const char *name = tgeom->FindNode(x,y,z)->GetMotherVolume()->GetName(); //go there
+ if(strcmp(name, "Brick") == 0 ||strcmp(name, "CES") == 0){
+  NPlate = tgeom->GetMother(0)->GetNumber();
+  NColumn = tgeom->GetMother(2)->GetNumber();
+  NRow = tgeom->GetMother(3)->GetNumber();
+  NWall = tgeom->GetMother(4)->GetNumber();
+
+  return kTRUE;
+ }
+ else return kFALSE;
 }
