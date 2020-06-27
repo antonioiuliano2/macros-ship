@@ -17,6 +17,8 @@ void nutau_event(){
  TH1D *hvz =  new TH1D("hvz","Transverse position of vertices",300,-3300,-3000);
 
  TH1D *hdl = new TH1D("hdl","Tau Decay length",300,0,30);
+ TH1D *hkink = new TH1D("hkink","Kink angle",50,0,0.5);
+ TH1D *hip = new TH1D("hip","Impact Parameter;IP[#mum]",100,0,1000);
  
  int trackID, ntauhits;
  double energy, mass;
@@ -43,26 +45,31 @@ void nutau_event(){
  double totalweight = 0.;
  double geometricalweight = 0.;
  double localizedweight = 0.;
+ double decaysearchweight = 0.;
 
- bool isgeometrical, islocated;
+ bool isgeometrical, islocated, decaysearch;
 
- int nprimaryvisible, nprimarytracks;
+ int nprimaryvisible, nprimarytracks, nvisibledaughters;
 
  double tauendx, tauendy, tauendz;
- double taudecaylength;
+ double taudecaylength,ip,kinkangle;
 
  //***********************************START OF MAIN LOOP*************************//
  for(int ientry = 0;ientry<nentries;ientry++){
      //resetting counters
      isgeometrical = false;
      islocated = false;
+     decaysearch = false;
 
      whichplate = 60;
      ntauhits = 0;
      nprimaryvisible = 0;
      nprimarytracks = 0;
+     nvisibledaughters = 0;
 
      taudecaylength = -1000.;
+     ip = -1000.;
+     kinkangle = -1000.;
 
      if (ientry%10000 == 0) cout<<"arrived at entry" <<ientry<<endl;
      reader.SetEntry(ientry);// keeps track of the number of event (from 0 to Nevents - 1)
@@ -78,6 +85,13 @@ void nutau_event(){
      hvz->Fill(vz);
      //where in nutautarget did the interaction happen?
      FindBrick(vx, vy, vz, whichwall, whichrow, whichcolumn, whichplate);
+
+
+     //tau lepton variables
+     double taup = tracks[1].GetP();
+     double taupt = tracks[1].GetPt();
+     double tautx = tracks[1].GetPx()/tracks[1].GetPz();
+     double tauty = tracks[1].GetPy()/tracks[1].GetPz();
 
      //********************************FIRST CONDITION: GEOMETRICAL SELECTION********/
     if ((whichplate <= (Ntotplates - Nminplates +1)) && 
@@ -118,9 +132,24 @@ void nutau_event(){
           tauendz = track.GetStartZ();
      
           taudecaylength = TMath::Sqrt(pow(tauendx - vx,2) + pow(tauendy-vy,2)+ pow(tauendz-vz,2)); 
+          kinkangle = TMath::ATan(pow(tx - tautx,2)+pow(ty - tauty,2));
+
+          //'''Impact parameter of track with respect to primary vertex (standard transverse definition)'''
+ 
+          double dz = vz - tauendz;
+          double ipx = tracktx * dz + tauendx - vx;
+          double ipy = trackty * dz + tauendy - vy;
+          ip = TMath::Sqrt(pow(ipx,2)+pow(ipy,2));
+
+          hip->Fill(ip*1e+4);
+          hkink->Fill(kinkangle);
+          //*************************DECAY SEARCH**************************//
+          if (taudecaylength < 0.4 && ip > 10e-4 && kink > 0.02 && momentum > 0.1 && tantheta < 1.) nvisibledaughters++;
+
          } 
      } //end of track loop
      if (nprimaryvisible>0) islocated = true;
+     if (nvisibledaughters>0) decaysearch = true;
      //access the hits: 
      
      /*for (const TargetPoint& targetpoint: targetpoints){
@@ -135,12 +164,14 @@ void nutau_event(){
      totalweight += eventweight;
      if (isgeometrical) geometricalweight += eventweight;
      if (isgeometrical&&islocated) localizedweight += eventweight;
+     if (isgeometrical&&islocated&&decaysearch) decaysearchweight += eventweight;
 
  } // end of event loop
  //results
  cout<<"Analying a number of interactions: "<<hvxy->GetEntries()<<endl;
- cout<<"Fraction within fiducial volume "<<geometricalweight/totalweight<<endl;
- cout<<"Fraction of localized vertices "<<localizedweight/totalweight<<endl;
+ cout<<"Fraction within fiducial volume: "<<geometricalweight/totalweight<<endl;
+ cout<<"Fraction of localized vertices: "<<localizedweight/totalweight<<endl;
+ cout<<"Fraction of decay search: "<<decaysearchweight/totalweight<<endl;
  //***********************DRAWING HISTOGRAMS************************//
  /*TCanvas *cnfilm = new TCanvas();
  hnfilmtau->Draw();
