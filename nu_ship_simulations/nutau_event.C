@@ -16,9 +16,11 @@ void nutau_event(){
  TH2D *hvxy = new TH2D("hvxy","Transverse position of vertices",80,-40,40,80,-40,40);
  TH1D *hvz =  new TH1D("hvz","Transverse position of vertices",300,-3300,-3000);
 
- TH1D *hdl = new TH1D("hdl","Tau Decay length",300,0,30);
- TH1D *hkink = new TH1D("hkink","Kink angle",50,0,0.5);
+ TH1D *hdl = new TH1D("hdl","Tau Decay length;dl[mm]",300,0,30);
+ TH1D *hkink = new TH1D("hkink","Kink angle;#Theta[rad]",50,0,0.5);
  TH1D *hip = new TH1D("hip","Impact Parameter;IP[#mum]",100,0,1000);
+
+ TH1I *hchannel = new TH1I("hchannel","Tau lepton decay channel;IChannel",4,1,5);
  
  int trackID, ntauhits;
  double energy, mass;
@@ -51,6 +53,10 @@ void nutau_event(){
 
  int nprimaryvisible, nprimarytracks, nvisibledaughters;
 
+ //counters for decay channel
+ int nmuons, nelectrons, nhadrons;
+ int whichchannel;
+
  double tauendx, tauendy, tauendz;
  double taudecaylength,ip,kinkangle;
 
@@ -66,6 +72,11 @@ void nutau_event(){
      nprimaryvisible = 0;
      nprimarytracks = 0;
      nvisibledaughters = 0;
+ 
+     whichchannel = 0;
+     nmuons = 0;
+     nelectrons = 0;
+     nhadrons = 0;
 
      taudecaylength = -1000.;
      ip = -1000.;
@@ -127,27 +138,43 @@ void nutau_event(){
          }
          //look for charged particles from tau decay
          if(track.GetMotherId()==1 && TMath::Abs(charge)>0){  
+
+          //which particle is it?
+          if (TMath::Abs(pdgcode)==11) nelectrons++; 
+          else if (TMath::Abs(pdgcode)==13) nmuons++; 
+          else nhadrons++; 
+        
+
           tauendx = track.GetStartX();
           tauendy = track.GetStartY();
           tauendz = track.GetStartZ();
      
           taudecaylength = TMath::Sqrt(pow(tauendx - vx,2) + pow(tauendy-vy,2)+ pow(tauendz-vz,2)); 
-          kinkangle = TMath::ATan(pow(tx - tautx,2)+pow(ty - tauty,2));
+          kinkangle = TMath::ATan(TMath::Sqrt(pow(tx - tautx,2)+pow(ty - tauty,2)));
 
           //'''Impact parameter of track with respect to primary vertex (standard transverse definition)'''
  
           double dz = vz - tauendz;
-          double ipx = tracktx * dz + tauendx - vx;
-          double ipy = trackty * dz + tauendy - vy;
+          double ipx = tx * dz + tauendx - vx;
+          double ipy = ty * dz + tauendy - vy;
           ip = TMath::Sqrt(pow(ipx,2)+pow(ipy,2));
 
           hip->Fill(ip*1e+4);
           hkink->Fill(kinkangle);
           //*************************DECAY SEARCH**************************//
-          if (taudecaylength < 0.4 && ip > 10e-4 && kink > 0.02 && momentum > 0.1 && tantheta < 1.) nvisibledaughters++;
+          if (taudecaylength < 0.4 && ip > 10e-4 && kinkangle > 0.02 && momentum > 0.1 && tantheta < 1.) nvisibledaughters++;
 
          } 
      } //end of track loop
+     //decay channel identification
+     if (nmuons == 1) whichchannel = 1;
+     else if (nelectrons == 1) whichchannel = 2;
+     else if (nhadrons == 1) whichchannel = 3;
+     else if (nhadrons > 1) whichchannel = 4;
+     else cout<<"Unexpected channel for event "<<ientry<<" tau daughters (muons, electrons, hadrons): "<<nmuons<<" "<<nelectrons<<" "<<nhadrons<<endl;
+
+     hchannel->Fill(whichchannel);
+
      if (nprimaryvisible>0) islocated = true;
      if (nvisibledaughters>0) decaysearch = true;
      //access the hits: 
@@ -190,10 +217,14 @@ void nutau_event(){
  hvxy->Draw("COLZ");
  cv->cd(2);
  hvz->Draw();
+ 
+ TCanvas *cchannel = new TCanvas();
+ hchannel->Draw();
 
  TCanvas *cdecay = new TCanvas();
- cdecay->Divide(1,2);
+ cdecay->Divide(2,1);
  cdecay->cd(1);
+ hkink->Draw();
  cdecay->cd(2);
  hdl->Draw();
 }
