@@ -214,7 +214,7 @@ void nutau_event(){
       for (const ShipRpcPoint& rpcpoint: rpcpoints){
         trackID = rpcpoint.GetTrackID(); 
         int detID = rpcpoint.GetDetectorID();
-        if (trackID == muonID && detID == 10002){ //hit from tau lepton
+        if (trackID == muonID && detID == 10000){ //hit from tau lepton
             muoninfirstrpc = true;
         }
       } //end of hit loop
