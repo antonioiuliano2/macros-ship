@@ -213,11 +213,12 @@ void nutau_event(){
      if (whichchannel == 1){ //only for muon channel, look for muons in downstream detectors
       for (const ShipRpcPoint& rpcpoint: rpcpoints){
         trackID = rpcpoint.GetTrackID(); 
-        if (trackID == muonID && detID == 10000){ //hit from tau lepton
+        int detID = rpcpoint.GetDetectorID();
+        if (trackID == muonID && detID == 10002){ //hit from tau lepton
             muoninfirstrpc = true;
         }
       } //end of hit loop
-      if (muoninfirstrpc) muonacceptance += eventweight;
+      if (isgeometrical&&islocated&&decaysearch&&muoninfirstrpc) muonacceptance += eventweight;
      } //end of muon channel check
 
  } // end of event loop
@@ -229,7 +230,7 @@ void nutau_event(){
   cout<<"Fraction of decay search: "<<decaysearchweight[ichannel]/totalweight[ichannel]<<endl;
   cout<<endl;
  }
- cout<<"Fractions of muons from tau decays in first rpc: "<<muonacceptance/totalweight[1]<<endl;
+ cout<<"Fractions of muons from tau decays in first rpc: "<<muonacceptance/totalweight[0]<<endl;
  //***********************DRAWING HISTOGRAMS************************//
  /*TCanvas *cnfilm = new TCanvas();
  hnfilmtau->Draw();
