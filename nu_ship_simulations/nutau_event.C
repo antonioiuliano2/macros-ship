@@ -8,6 +8,7 @@ void nutau_event(){
 
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
  TTreeReaderArray<TargetPoint> targetpoints(reader,"TargetPoint");
+ TTreeReaderArray<ShipRpcPoint> rpcpoints(reader,"ShipRpcPoint");
  //*********DEFINITION OF HISTOGRAMS*********************//
  TH1I *hnfilmtau = new TH1I("hnfilmtau","Number of emulsion films passed by a tau lepton;Nfilms",15,0,15);
  TH2D *htauppt = new TH2D("htauppt","Transverse momentum vs momentum of tau lepton;P[GeV/c];Pt[GeV/c]",400,0,400,100,0,10);
@@ -43,11 +44,13 @@ void nutau_event(){
  const double offset = 0.5; //brick starts at 0.5 and ends at 40.5
 
  int whichwall, whichrow, whichcolumn, whichplate; //for findbrick function
+ const int ndecaychannels = 4;
+ double totalweight[ndecaychannels] = {0.,0.,0.,0.};
+ double geometricalweight[ndecaychannels] = {0.,0.,0.,0.};
+ double localizedweight[ndecaychannels] = {0.,0.,0.,0.};
+ double decaysearchweight[ndecaychannels] = {0.,0.,0.,0.};
 
- double totalweight = 0.;
- double geometricalweight = 0.;
- double localizedweight = 0.;
- double decaysearchweight = 0.;
+ double muonacceptance = 0;
 
  bool isgeometrical, islocated, decaysearch;
 
@@ -59,6 +62,10 @@ void nutau_event(){
 
  double tauendx, tauendy, tauendz;
  double taudecaylength,ip,kinkangle;
+
+ int itrack, muonID;
+
+ bool muoninfirstrpc;
 
  //***********************************START OF MAIN LOOP*************************//
  for(int ientry = 0;ientry<nentries;ientry++){
@@ -81,6 +88,10 @@ void nutau_event(){
      taudecaylength = -1000.;
      ip = -1000.;
      kinkangle = -1000.;
+
+     //muon detection variables
+     muoninfirstrpc = false;
+     muonID = -10;
 
      if (ientry%10000 == 0) cout<<"arrived at entry" <<ientry<<endl;
      reader.SetEntry(ientry);// keeps track of the number of event (from 0 to Nevents - 1)
@@ -118,6 +129,7 @@ void nutau_event(){
      htaugamma->Fill(energy/mass);
 
      //access the array of tracks
+     itrack = 0;
      for (const ShipMCTrack& track: tracks){
          double momentum = track.GetP();
          double charge = 0.;
@@ -141,7 +153,10 @@ void nutau_event(){
 
           //which particle is it?
           if (TMath::Abs(pdgcode)==11) nelectrons++; 
-          else if (TMath::Abs(pdgcode)==13) nmuons++; 
+          else if (TMath::Abs(pdgcode)==13){ 
+              nmuons++;
+              muonID = itrack;
+          } 
           else nhadrons++; 
         
 
@@ -165,6 +180,7 @@ void nutau_event(){
           if (taudecaylength < 0.4 && ip > 10e-4 && kinkangle > 0.02 && momentum > 0.1 && tantheta < 1.) nvisibledaughters++;
 
          } 
+      itrack++;
      } //end of track loop
      //decay channel identification
      if (nmuons == 1) whichchannel = 1;
@@ -188,17 +204,32 @@ void nutau_event(){
      hnfilmtau->Fill(ntauhits,eventweight);*/
      hdl->Fill(taudecaylength*10);
      //somming value, when efficiency is satisfied
-     totalweight += eventweight;
-     if (isgeometrical) geometricalweight += eventweight;
-     if (isgeometrical&&islocated) localizedweight += eventweight;
-     if (isgeometrical&&islocated&&decaysearch) decaysearchweight += eventweight;
+     if (whichchannel > 0){
+      totalweight[whichchannel-1] += eventweight;
+      if (isgeometrical) geometricalweight[whichchannel-1] += eventweight;
+      if (isgeometrical&&islocated) localizedweight[whichchannel-1] += eventweight;
+      if (isgeometrical&&islocated&&decaysearch) decaysearchweight[whichchannel-1] += eventweight;
+     }
+     if (whichchannel == 1){ //only for muon channel, look for muons in downstream detectors
+      for (const ShipRpcPoint& rpcpoint: rpcpoints){
+        trackID = rpcpoint.GetTrackID(); 
+        if (trackID == muonID && detID == 10000){ //hit from tau lepton
+            muoninfirstrpc = true;
+        }
+      } //end of hit loop
+      if (muoninfirstrpc) muonacceptance += eventweight;
+     } //end of muon channel check
 
  } // end of event loop
  //results
  cout<<"Analying a number of interactions: "<<hvxy->GetEntries()<<endl;
- cout<<"Fraction within fiducial volume: "<<geometricalweight/totalweight<<endl;
- cout<<"Fraction of localized vertices: "<<localizedweight/totalweight<<endl;
- cout<<"Fraction of decay search: "<<decaysearchweight/totalweight<<endl;
+ for (int ichannel = 0; ichannel < ndecaychannels; ichannel++){
+  cout<<"Fraction within fiducial volume: "<<geometricalweight[ichannel]/totalweight[ichannel]<<endl;
+  cout<<"Fraction of localized vertices: "<<localizedweight[ichannel]/totalweight[ichannel]<<endl;
+  cout<<"Fraction of decay search: "<<decaysearchweight[ichannel]/totalweight[ichannel]<<endl;
+  cout<<endl;
+ }
+ cout<<"Fractions of muons from tau decays in first rpc: "<<muonacceptance/totalweight[1]<<endl;
  //***********************DRAWING HISTOGRAMS************************//
  /*TCanvas *cnfilm = new TCanvas();
  hnfilmtau->Draw();
