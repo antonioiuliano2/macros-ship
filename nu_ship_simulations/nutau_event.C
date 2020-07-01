@@ -1,14 +1,15 @@
 //code for studing tau neutrino simulation and evaluating efficiencies for my PhD thesis (created on 22 June 2020 by A.Iuliano)
+//defined functions
+TVector3 NeutrinoVertexCoordinates(const ShipMCTrack &track);
 Bool_t FindBrick(Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow, Int_t &NColumn, Int_t &NPlate);
-void nutau_event(){
- //getting tree and defining arrays
- TFile *file = TFile::Open("ship.conical.Genie-TGeant4.root"); 
- if (!file) return;
- TTreeReader reader("cbmsim",file);
 
- TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
- TTreeReaderArray<TargetPoint> targetpoints(reader,"TargetPoint");
- TTreeReaderArray<ShipRpcPoint> rpcpoints(reader,"ShipRpcPoint");
+int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks);
+
+bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primaryvisible);
+bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates);
+bool TauDecay(int trackID, const ShipMCTrack &track,vector<int> &daughters, vector<int> &visibledaughters, TVector3 Vn, double tautx, double tauty, double& taudecaylength);
+
+//GLOBAL VARIABLES AND HISTOGRAMS
  //*********DEFINITION OF HISTOGRAMS*********************//
  TH1I *hnfilmtau = new TH1I("hnfilmtau","Number of emulsion films passed by a tau lepton;Nfilms",15,0,15);
  TH2D *htauppt = new TH2D("htauppt","Transverse momentum vs momentum of tau lepton;P[GeV/c];Pt[GeV/c]",400,0,400,100,0,10);
@@ -27,6 +28,23 @@ void nutau_event(){
  TH1D *hmuonangleall = new TH1D("hmuonangleall","Angle of all muons;#Theta[rad]",100,0,1);
  TH1D *hmuonpentered = new TH1D("hmuonpentered","Momentum of muons entered in first RPC;P[GeV/c]",400,0,400);
  TH1D *hmuonangleentered = new TH1D("hmuonangleentered","Angle muons entered in first RPC;#Theta[rad]",100,0,1);
+
+ const double dxtarget = 40.5;
+ const double dytarget = 40.5;
+
+ TDatabasePDG *pdg = TDatabasePDG::Instance();
+
+//start main script
+void nutau_event(){
+ //getting tree and defining arrays
+ TFile *file = TFile::Open("ship.conical.Genie-TGeant4.root"); 
+ //if (!file) return;
+ TTreeReader reader("cbmsim",file);
+
+ TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
+ TTreeReaderArray<TargetPoint> targetpoints(reader,"TargetPoint");
+ TTreeReaderArray<HptPoint> dtpoints(reader,"HptPoint");
+ TTreeReaderArray<ShipRpcPoint> rpcpoints(reader,"ShipRpcPoint");
  
  int trackID, ntauhits;
  double energy, mass;
@@ -34,21 +52,13 @@ void nutau_event(){
  TGeoManager * tgeom = new TGeoManager("Geometry", "Geane geometry");
  tgeom->Import("geofile_full.conical.Genie-TGeant4.root");
 
- TDatabasePDG *pdg = TDatabasePDG::Instance();
-
  cout<<"Number of events"<<reader.GetEntries()<<endl;
  const int nentries = reader.GetEntries();
 
- const double dxtarget = 40.5;
- const double dytarget = 40.5;
-
- const int Ntotplates = 56; //number of passive plates in a brick
  const int Nminplates = 4;
 
  const double trans_mindist = 0.1;
- const double offset = 0.5; //brick starts at 0.5 and ends at 40.5
 
- int whichwall, whichrow, whichcolumn, whichplate; //for findbrick function
  const int ndecaychannels = 4;
  double totalweight[ndecaychannels] = {0.,0.,0.,0.};
  double geometricalweight[ndecaychannels] = {0.,0.,0.,0.};
@@ -59,16 +69,18 @@ void nutau_event(){
 
  bool isgeometrical, islocated, decaysearch;
 
- int nprimaryvisible, nprimarytracks, nvisibledaughters;
+ //IDs of tracks of interest (Tracks at neutrino vertex other than tau and tau daughters)
+ vector<int> primaryvisible;
+ vector<int> daughters;
+ vector<int> visibledaughters;
 
  //counters for decay channel
- int nmuons, nelectrons, nhadrons;
  int whichchannel;
 
  double tauendx, tauendy, tauendz;
- double taudecaylength,ip,kinkangle;
+ double taudecaylength;
 
- int itrack, muonID;
+ int itrack;
 
  bool muoninfirstrpc;
 
@@ -79,40 +91,29 @@ void nutau_event(){
      islocated = false;
      decaysearch = false;
 
-     whichplate = 60;
-     ntauhits = 0;
-     nprimaryvisible = 0;
-     nprimarytracks = 0;
-     nvisibledaughters = 0;
- 
-     whichchannel = 0;
-     nmuons = 0;
-     nelectrons = 0;
-     nhadrons = 0;
+     //ntauhits = 0;
+     //clearing list of tracks of interest
+     primaryvisible.clear();
+     daughters.clear();
+     visibledaughters.clear();
 
      taudecaylength = -1000.;
-     ip = -1000.;
-     kinkangle = -1000.;
 
      //muon detection variables
      muoninfirstrpc = false;
-     muonID = -10;
+     //getting entry
 
      if (ientry%10000 == 0) cout<<"arrived at entry" <<ientry<<endl;
      reader.SetEntry(ientry);// keeps track of the number of event (from 0 to Nevents - 1)
      //event weight
      double eventweight = tracks[0].GetWeight();
      //neutrino interaction coordinates
-     double vx = tracks[0].GetStartX();
-     double vy = tracks[0].GetStartY();
-     double vz = tracks[0].GetStartZ();
+     TVector3 Vn = NeutrinoVertexCoordinates(tracks[0]);
      //if neutrino interacted off of our target, go to next
-     if ( (TMath::Abs(vx)>dxtarget) || (TMath::Abs(vy)>dytarget) ) continue;
-     hvxy->Fill(vx,vy);
-     hvz->Fill(vz);
-     //where in nutautarget did the interaction happen?
-     FindBrick(vx, vy, vz, whichwall, whichrow, whichcolumn, whichplate);
+     if ( (TMath::Abs(Vn(0))>dxtarget) || (TMath::Abs(Vn(1))>dytarget) ) continue;
 
+     hvxy->Fill(Vn(0),Vn(1));
+     hvz->Fill(Vn(2));
 
      //tau lepton variables
      double taup = tracks[1].GetP();
@@ -121,85 +122,34 @@ void nutau_event(){
      double tauty = tracks[1].GetPy()/tracks[1].GetPz();
 
      //********************************FIRST CONDITION: GEOMETRICAL SELECTION********/
-    if ((whichplate <= (Ntotplates - Nminplates +1)) && 
-        (TMath::Abs(vx)<(dxtarget -trans_mindist)) && (TMath::Abs(vy)<(dytarget -trans_mindist)) &&
-        (TMath::Abs(vx)>(offset + trans_mindist)) && (TMath::Abs(vy)>(offset + trans_mindist))
-        )isgeometrical = true;
+     isgeometrical = GeometricalEfficiency(Vn,trans_mindist, Nminplates);
 
+     //filling histograms about tau lepton
      htauppt->Fill(tracks[1].GetP(), tracks[1].GetPt());
-
      //computing gamma factor E/m
      energy = tracks[1].GetEnergy();
      mass = pdg->GetParticle(tracks[1].GetPdgCode())->Mass();
      htaugamma->Fill(energy/mass);
 
-     //access the array of tracks
+     //******************access the array of tracks
      itrack = 0;
-     for (const ShipMCTrack& track: tracks){
-         double momentum = track.GetP();
-         double charge = 0.;
-         double pdgcode = track.GetPdgCode();
-         if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge();          
-
+     for (const ShipMCTrack& track: tracks){         
          double tx = track.GetPx()/track.GetPz();
          double ty = track.GetPy()/track.GetPz();
          double tantheta = TMath::Sqrt(tx * tx + ty * ty);
+         
          //look for charged particles from primary vertex
-         if(track.GetMotherId()==0 && TMath::Abs(charge)>0){
-          nprimarytracks++;
-          //********************************SECOND CONDITION: VERTEX LOCATION********/
-          if(tantheta<1. && momentum > 1. && pdgcode!=15 ){ 
-            nprimaryvisible++;
-            //cout<<ientry<<" "<<pdgcode<<" "<<momentum<<" "<<tantheta<<endl;
-            }
-         }
-         //look for charged particles from tau decay
-         if(track.GetMotherId()==1 && TMath::Abs(charge)>0){  
-
-          //which particle is it?
-          if (TMath::Abs(pdgcode)==11) nelectrons++; 
-          else if (TMath::Abs(pdgcode)==13){ 
-              nmuons++;
-              muonID = itrack;
-              hmuonpall->Fill(momentum);
-              hmuonangleall->Fill(TMath::ATan(tantheta));
-          } 
-          else nhadrons++; 
-        
-
-          tauendx = track.GetStartX();
-          tauendy = track.GetStartY();
-          tauendz = track.GetStartZ();
-     
-          taudecaylength = TMath::Sqrt(pow(tauendx - vx,2) + pow(tauendy-vy,2)+ pow(tauendz-vz,2)); 
-          kinkangle = TMath::ATan(TMath::Sqrt(pow(tx - tautx,2)+pow(ty - tauty,2)));
-
-          //'''Impact parameter of track with respect to primary vertex (standard transverse definition)'''
- 
-          double dz = vz - tauendz;
-          double ipx = tx * dz + tauendx - vx;
-          double ipy = ty * dz + tauendy - vy;
-          ip = TMath::Sqrt(pow(ipx,2)+pow(ipy,2));
-
-          hip->Fill(ip*1e+4);
-          hkink->Fill(kinkangle);
-          //*************************DECAY SEARCH**************************//
-          if (taudecaylength < 0.4 && ip > 10e-4 && kinkangle > 0.02 && momentum > 0.1 && tantheta < 1.) nvisibledaughters++;
-
-         } 
-      itrack++;
+         NeutrinoVertexLocation(itrack, track, primaryvisible);
+         //look for charged tracks from tau decay lengths
+         TauDecay(itrack, track, daughters, visibledaughters, Vn, tautx, tauty, taudecaylength);
+         itrack++;
      } //end of track loop
      //decay channel identification
-     if (nmuons == 1) whichchannel = 1;
-     else if (nelectrons == 1) whichchannel = 2;
-     else if (nhadrons == 1) whichchannel = 3;
-     else if (nhadrons > 1) whichchannel = 4;
-     else cout<<"Unexpected channel for event "<<ientry<<" tau daughters (muons, electrons, hadrons): "<<nmuons<<" "<<nelectrons<<" "<<nhadrons<<endl;
-
+     whichchannel = DecayChannel(daughters,tracks);
      hchannel->Fill(whichchannel);
-
-     if (nprimaryvisible>0) islocated = true;
-     if (nvisibledaughters>0) decaysearch = true;
+     hdl->Fill(taudecaylength*10);
+     if (primaryvisible.size()>0) islocated = true;
+     if (visibledaughters.size()>0) decaysearch = true;
      //access the hits: 
      
      /*for (const TargetPoint& targetpoint: targetpoints){
@@ -209,7 +159,6 @@ void nutau_event(){
         }
      } //end of hit loop
      hnfilmtau->Fill(ntauhits,eventweight);*/
-     hdl->Fill(taudecaylength*10);
      //somming value, when efficiency is satisfied
      if (whichchannel > 0){
       totalweight[whichchannel-1] += eventweight;
@@ -217,12 +166,19 @@ void nutau_event(){
       if (isgeometrical&&islocated) localizedweight[whichchannel-1] += eventweight;
       if (isgeometrical&&islocated&&decaysearch) decaysearchweight[whichchannel-1] += eventweight;
      }
-     if (whichchannel == 1){ //only for muon channel, look for muons in downstream detectors
+
+     //****************************look for tau decay daughters in downstream trackers***//
+     for (const HptPoint& dtpoint: dtpoints){
+         
+           }
+
+     if (whichchannel == 1){ //only for muon channel,
+      //***************************look for muons in downstream detectors****************//
       for (const ShipRpcPoint& rpcpoint: rpcpoints){
         trackID = rpcpoint.GetTrackID(); 
         int detID = rpcpoint.GetDetectorID();
        
-        if (trackID == muonID && detID == 10000){ //hit from tau lepton
+        if (trackID == visibledaughters[0] && detID == 10000){ //hit from tau lepton
             muoninfirstrpc = true;
             hmuonpentered->Fill(tracks[trackID].GetP());
             double muonangle = 
@@ -285,6 +241,16 @@ void nutau_event(){
  hmuonangleentered->Draw("SAMES");
 }
 
+
+TVector3 NeutrinoVertexCoordinates(const ShipMCTrack &track){
+     //building a tvector3 with neutrino vertex coordinates
+     double vx = track.GetStartX();
+     double vy = track.GetStartY();
+     double vz = track.GetStartZ();
+    
+     return TVector3(vx,vy,vz);
+}
+
 //find brick from position in the geometry
 Bool_t FindBrick(Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow, Int_t &NColumn, Int_t &NPlate)
 {
@@ -300,4 +266,143 @@ Bool_t FindBrick(Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow,
   return kTRUE;
  }
  else return kFALSE;
+}
+
+//*************************************FIRST CONDITION: GEOMETRICAL EFFICIENCY*********************************//
+bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates){
+
+    double vx = Vn(0);
+    double vy = Vn(1);
+    double vz = Vn(2);
+
+    const int Ntotplates = 56;
+    double startbrickx = 0.5;
+    double startbricky = 0.5;
+
+    int whichwall, whichrow, whichcolumn; //for findbrick function
+    int whichplate = 60;
+
+    FindBrick(vx, vy, vz, whichwall, whichrow, whichcolumn, whichplate);
+    //longitudinal edge
+    if (whichplate > (Ntotplates - Nminplates +1)) return false;
+    //upper transverse edges
+    if (TMath::Abs(vx) > (dxtarget - offsetxy)) return false;
+    if (TMath::Abs(vy) > (dytarget - offsetxy)) return false;
+    //lower transverse edges
+    if (TMath::Abs(vx) < (startbrickx + offsetxy)) return false;
+    if (TMath::Abs(vy) < (startbricky + offsetxy)) return false;
+        
+    else return true;
+
+}
+
+bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primaryvisible){
+     //********************************SECOND CONDITION: VERTEX LOCATION********/
+    const double maxtantheta = 1.;
+    const double minmomentum = 1.;
+    //getting particle charge and momentum
+    double momentum = track.GetP();
+    double charge = 0.;
+    double pdgcode = track.GetPdgCode();
+
+    double tx = track.GetPx()/track.GetPz();
+    double ty = track.GetPy()/track.GetPz();
+    double tantheta = TMath::Sqrt(tx * tx + ty * ty);
+    if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge(); 
+    //is it from the primary neutrino interaction?
+    if(track.GetMotherId()==0 && TMath::Abs(charge)>0){
+          
+          //is it visible?      
+          if(tantheta<maxtantheta && momentum > minmomentum){ 
+            if (pdgcode!=15) primaryvisible.push_back(trackID); //I do not add the tau neutrino since it decays too soon
+            return true;
+            //cout<<ientry<<" "<<pdgcode<<" "<<momentum<<" "<<tantheta<<endl;
+            }
+           else return false;
+         }
+    else return false;
+}
+
+bool TauDecay(int trackID, const ShipMCTrack &track,vector<int> &daughters, vector<int> &visibledaughters, TVector3 Vn, double tautx, double tauty, double& taudecaylength){
+    //condition for a visible tau decay daughter
+    const double maxdl = 0.4;
+    const double minkinkangle = 0.02;
+    const double minip = 10e-4;
+    const double minmomentum = 0.1;
+    const double maxtantheta = 1.;
+
+    double vx = Vn(0);
+    double vy = Vn(1);
+    double vz = Vn(2);
+
+    //look for charged particles from tau decay
+    double momentum = track.GetP();
+    double charge = 0.;
+    double pdgcode = track.GetPdgCode();
+    if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge(); 
+    //check if it is a tau decay daughter
+    if(track.GetMotherId()==1 && TMath::Abs(charge)>0){  
+          daughters.push_back(trackID);
+    
+          double tx = track.GetPx()/track.GetPz();
+          double ty = track.GetPy()/track.GetPz();
+          double tantheta = TMath::Sqrt(tx * tx + ty * ty);
+
+          if (pdgcode==13){
+              hmuonpall->Fill(momentum);
+              hmuonangleall->Fill(TMath::ATan(tantheta));
+          }
+        
+          double tauendx = track.GetStartX();
+          double tauendy = track.GetStartY();
+          double tauendz = track.GetStartZ();
+     
+          taudecaylength = TMath::Sqrt(pow(tauendx - vx,2) + pow(tauendy-vy,2)+ pow(tauendz-vz,2)); 
+          double kinkangle = TMath::ATan(TMath::Sqrt(pow(tx - tautx,2)+pow(ty - tauty,2)));
+
+          //'''Impact parameter of track with respect to primary vertex (standard transverse definition)'''
+ 
+          double dz = vz - tauendz;
+          double ipx = tx * dz + tauendx - vx;
+          double ipy = ty * dz + tauendy - vy;
+          double ip = TMath::Sqrt(pow(ipx,2)+pow(ipy,2));
+
+          hip->Fill(ip*1e+4);
+          hkink->Fill(kinkangle);
+          //*************************DECAY SEARCH**************************//
+          //cout<<"TEST "<<taudecaylength<<" "<<" "<<ip<<" "<<kinkangle<<" "<<momentum<<" "<<tantheta<<endl;
+          if (taudecaylength > maxdl) return false;
+          if (ip < minip) return false;
+          if (kinkangle < minkinkangle) return false;
+          if (momentum < minmomentum || tantheta > maxtantheta) return false;
+          //if the code was not returned by all these checks, add the track to the visible list
+          visibledaughters.push_back(trackID);
+
+          return true;
+         } 
+         else return false;
+}
+
+int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks){
+    //tau decay channel identification
+    int nmuons = 0;
+    int nhadrons = 0;
+    int nelectrons = 0; 
+
+    for (auto trackID:daughters){
+       double pdgcode = tracks[trackID].GetPdgCode();
+       if (TMath::Abs(pdgcode) == 11) nelectrons++;
+       else if (TMath::Abs(pdgcode) == 13) nmuons++;
+       else nhadrons++;
+     }
+     if (nmuons == 1) return 1;
+     else if (nelectrons == 1) return 2;
+     else if (nhadrons == 1) return 3;
+     else if (nhadrons > 1) return 4;
+     else{          
+         cout<<"Unexpected channel for tau daughters (muons, electrons, hadrons): "<<nmuons<<" "<<nelectrons<<" "<<nhadrons<<endl;
+         return -1;
+     }
+     return 0;
+
 }
