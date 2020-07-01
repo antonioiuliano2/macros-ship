@@ -22,6 +22,11 @@ void nutau_event(){
  TH1D *hip = new TH1D("hip","Impact Parameter;IP[#mum]",100,0,1000);
 
  TH1I *hchannel = new TH1I("hchannel","Tau lepton decay channel;IChannel",4,1,5);
+
+ TH1D *hmuonpall = new TH1D("hmuonpall","Momentum of all muons from tau lepton decay;P[GeV/c]",400,0,400);
+ TH1D *hmuonangleall = new TH1D("hmuonangleall","Angle of all muons;#Theta[rad]",100,0,1);
+ TH1D *hmuonpentered = new TH1D("hmuonpentered","Momentum of muons entered in first RPC;P[GeV/c]",400,0,400);
+ TH1D *hmuonangleentered = new TH1D("hmuonangleentered","Angle muons entered in first RPC;#Theta[rad]",100,0,1);
  
  int trackID, ntauhits;
  double energy, mass;
@@ -156,6 +161,8 @@ void nutau_event(){
           else if (TMath::Abs(pdgcode)==13){ 
               nmuons++;
               muonID = itrack;
+              hmuonpall->Fill(momentum);
+              hmuonangleall->Fill(TMath::ATan(tantheta));
           } 
           else nhadrons++; 
         
@@ -214,9 +221,15 @@ void nutau_event(){
       for (const ShipRpcPoint& rpcpoint: rpcpoints){
         trackID = rpcpoint.GetTrackID(); 
         int detID = rpcpoint.GetDetectorID();
+       
         if (trackID == muonID && detID == 10000){ //hit from tau lepton
             muoninfirstrpc = true;
+            hmuonpentered->Fill(tracks[trackID].GetP());
+            double muonangle = 
+             TMath::ATan(TMath::Sqrt(pow(tracks[trackID].GetPx()/tracks[trackID].GetPz(),2)+pow(tracks[trackID].GetPy()/tracks[trackID].GetPz(),2)));
+            hmuonangleentered->Fill(muonangle);
         }
+
       } //end of hit loop
       if (isgeometrical&&islocated&&decaysearch&&muoninfirstrpc) muonacceptance += eventweight;
      } //end of muon channel check
@@ -259,6 +272,17 @@ void nutau_event(){
  hkink->Draw();
  cdecay->cd(2);
  hdl->Draw();
+
+ TCanvas *cmuonRPC = new TCanvas();
+ cmuonRPC->Divide(2,1);
+ cmuonRPC->cd(1);
+ hmuonpall->Draw();
+ hmuonpentered->SetLineColor(kRed);
+ hmuonpentered->Draw("SAMES");
+ cmuonRPC->cd(2);
+ hmuonangleall->Draw();
+ hmuonangleentered->SetLineColor(kRed);
+ hmuonangleentered->Draw("SAMES");
 }
 
 //find brick from position in the geometry
