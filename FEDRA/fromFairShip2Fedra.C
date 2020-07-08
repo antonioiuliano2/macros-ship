@@ -42,6 +42,7 @@ void set_default(TEnv &cenv){ //setting default parameters, if not presents from
  cenv.SetValue("FairShip2Fedra.useefficiencymap",0);
  cenv.SetValue("FairShip2Fedra.emuefficiency",0.85); //only if useefficiency map is set to false
  cenv.SetValue("FairShip2Fedra.dosmearing",1);
+ cenv.SetValue("FairShip2Fedra.maxtheta",1); //angular max of scanning
  cenv.SetValue("FairShip2Fedra.minkinenergy",0.1); //do not pass particles beyond this value, track ID would be -2
  cenv.SetValue("FairShip2Fedra.ngrains",70); // to set weight
  cenv.SetValue("FairShip2Fedra.angres",0.003);//used for smearing, if dosmearing = true
@@ -65,6 +66,7 @@ void fromFairShip2Fedra(TString filename){
 
  float angres = cenv.GetValue("FairShip2Fedra.angres",0.003); //Used cases: 3, 5milliradians. Constant value overwritten if useresfunction=true
  float minkinE = cenv.GetValue("FairShip2Fedra.minkinenergy",0.1);
+ float maxtheta = cenv.GetValue("FairShip2Fedra.maxtheta",1);
 
  const float ngrains = cenv.GetValue("FairShip2Fedra.ngrains",70) ; //the same number for all the couples, so they have the same weigth.
  const float emuefficiency = cenv.GetValue("FairShip2Fedra.emuefficiency",0.85); // flat value
@@ -72,6 +74,8 @@ void fromFairShip2Fedra(TString filename){
  const bool useefficiencymap = cenv.GetValue("FairShip2Fedra.useefficiencymap",0); //use the map instead of the constant value down
  const bool dosmearing = cenv.GetValue("FairShip2Fedra.dosmearing",1); //gaussian smearing or not
  const bool useresfunction = false; //use resfunction from operadata instead of constant value
+ 
+ cout<<"Starting conversion with efficiency "<<emuefficiency<<" maxtheta "<<maxtheta<<" and min kin E "<<minkinE<<endl;
  //if not performed digitization
  const bool donedigi = false;
  int neventsxspill = cenv.GetValue("FairShip2Fedra.neventsxspill",1000);
@@ -120,7 +124,9 @@ void fromFairShip2Fedra(TString filename){
  for (int i = 0; i < nevents; i++){
   if (i%1000==0) cout<<"processing event "<<i<<" out of "<<nevents<<endl;
   reader.Next();
-   for (const BoxPoint& emupoint:emulsionhits){   
+  pottime = gRandom->Uniform()*4.8;
+  nspill = i/neventsxspill;
+  for (const BoxPoint& emupoint:emulsionhits){   
      bool savehit = true; //by default I save all hits
 //no you don't want to do this//     if (j % 2 == 0) continue;
      momentum = TMath::Sqrt(pow(emupoint.GetPx(),2) + pow(emupoint.GetPy(),2) + pow(emupoint.GetPz(),2));
@@ -131,10 +137,7 @@ void fromFairShip2Fedra(TString filename){
      if (trackID >= 0) motherID = tracks[trackID].GetMotherId();
      else motherID = -2; //hope I do not see them
 
-     if (!donedigi){
-      nspill = i/neventsxspill;
-
-      pottime = gRandom->Uniform()*4.8;
+     if (!donedigi){    
 
       xem = emupoint.GetX() -12.5/2. + pottime * targetmoverspeed;
       yem = emupoint.GetY() - 9.9/2. + nspill * spilldy + 0.5;
@@ -168,7 +171,7 @@ void fromFairShip2Fedra(TString filename){
      double kinenergy = TMath::Sqrt(pow(mass,2)+pow(momentum,2)) - mass;
      // *************EXCLUDE HITS FROM BEING SAVED*******************
      if (nfilmhit > 1000) savehit = false;
-     if (tantheta > 1) savehit = false; //we scan from theta 0 to a maximum of 1 rad
+     if (tantheta > TMath::Tan(maxtheta) savehit = false; //we scan from theta 0 to a maximum of 1 rad
      if(charge == 0.) savehit = false; //we do not track neutral particles
      if(kinenergy < minkinE) savehit = false; //particles with too low kin energy 
      //saving the hits for a plate in the corresponding couples (only one layer saved, the other has ID + 10000)             

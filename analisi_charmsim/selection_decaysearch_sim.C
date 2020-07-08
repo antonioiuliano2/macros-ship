@@ -200,6 +200,24 @@ RVec<int> atleast2goodtrks_trk(RVec<int> vtx2_ntracks, RVec<int>vtx2_nseg){
   return tracks_ingoodvertices;
 }
 
+RVec<float> all_lowmomentum(RVec<int> vtx2_ntracks, RVec<float> vtx2_trk_mc_mom){
+  RVec<int> all_lowmomentum;
+  const int nvertices = vtx2_ntracks.size();
+
+  float momcut = 5.;
+  int nprevioustracks = 0;
+  for (int ivtx = 0; ivtx < nvertices; ivtx++){
+    bool haslowmomentum = true;
+    int ntracks = vtx2_ntracks[ivtx];
+    for (int itrk = 0; itrk < ntracks; itrk++){
+      if (vtx2_trk_mc_mom[itrk+nprevioustracks] > momcut) haslowmomentum = false;
+    }
+    all_lowmomentum.push_back(haslowmomentum);
+    nprevioustracks += ntracks;
+  }
+ return all_lowmomentum;
+}
+
 RVec<float> meanlife(RVec<int>vtx2_ntracks, RVec<float> vtx2_vka, RVec<float> vtx2_dl, RVec<int> vtx2_track_incoming){
   float lightspeed = 3 * 1e+10; // cm /s
   float micron2cm = 1e-4 ;
@@ -513,4 +531,12 @@ void selection_decaysearch_sim(TString inputfilename = "ds_data_result_23_01.roo
     auto htau = dfcheck_topology.Define("dsvtx_vtx2_meanlifecharm",selecteddistribution,{vtx2_tau,"goodevent"}).Histo1D("dsvtx_vtx2_meanlifecharm");
     TCanvas *ctau = new TCanvas();
     htau->DrawClone();
+}
+
+void addlowmomentumcondition(TString inputfilename = "annotated_ds_data_result.root"){
+    TFile *inputfile = TFile::Open(inputfilename.Data());
+    RDataFrame dsdataframe = RDataFrame("ds",inputfile);
+
+    auto df_newcheck = dsdataframe.Define("dsvtx_vtx2_alllowmomentum",all_lowmomentum,{"dsvtx_vtx2_ntrk","dsvtx_vtx2_trk_mc_mom"});
+    df_newcheck.Snapshot("ds","annotated_ds_data_result_2.root");
 }

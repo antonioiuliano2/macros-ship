@@ -1,7 +1,7 @@
 #script to recognize daughters of charm and other particles from the primary proton interaction (created on 13 May 2019)
 
 import ROOT as r
-import pandas as pd
+#import pandas as pd
 from rootUtils import bookHist
 from array import array # for tree branches
 import sys
@@ -19,7 +19,6 @@ hkink= r.TH1D("hkink","Kink angle charm and daughters",100,0,1)
 hmeanlife = r.TH1D("hmeanlife","Approximated charm hadron meanlife;#tau[s]", 1000,0,10e-12)
 hkink2D= r.TH2D("hkink2D","Kink angle ty vs tx charm and daughters",400,0,0.4,400,0,0.4)
 hkinkprong = []
-maxnprongs = 7
 
 hnfilmsmomentum = r.TH2D("hnfilmsmomentum","Number of films versus charm momentum",40,0,400,20,0,20)
 hnfilmsstartz = r.TH2D("hnfilmsstartz","Number of films versus production z",8,120.5,128.5,20,0,20)
@@ -52,6 +51,7 @@ hzcharm = {421: hzd0, 411: hzdcharge, 431: hzdscharge, 4122:hzlambdac}
 hpcharm = {421: hpd0, 411: hpdcharge, 431: hpdscharge, 4122:hplambdac}
 hgammacharm = {421: hgammad0, 411: hgammadcharge, 431: hgammadscharge, 4122:hgammalambdac}
 #defining the variables for the branches
+maxnprongs = 7
 sizearrays = 2
 charmmomentum = array( 'f', sizearrays*[ 0. ] )
 gamma = array( 'f', sizearrays*[ 0. ] )
@@ -64,6 +64,8 @@ approxmassinv = array( 'f', sizearrays*[ 0. ] )
 longdecay = array ( 'i', sizearrays*[0])
 nprong = array('i', sizearrays*[0])
 reconstructed = array('i',sizearrays*[0])
+charm1daughterspdg = array('i',maxnprongs*[0])
+charm2daughterspdg = array('i',maxnprongs*[0])
 
 charmlongntuple = r.TTree("charmdecays","Charm Decays") #tree structure, arrays containing the information for the two charm decays
 charmlongntuple.Branch("momentum",charmmomentum,'momentum[2]/F')
@@ -77,6 +79,8 @@ charmlongntuple.Branch("approxmassinv",approxmassinv,'approxmassinv[2]/F')
 charmlongntuple.Branch("longdecay",longdecay,'longdecay[2]/I')
 charmlongntuple.Branch("nprong",nprong,'nprong[2]/I')
 charmlongntuple.Branch("reconstructed",reconstructed,'reconstructed[2]/I')
+charmlongntuple.Branch("charm1daughterspdg",charm1daughterspdg,'charm1daughterspdg[nprong[0]]/I')
+charmlongntuple.Branch("charm2daughterspdg",charm2daughterspdg,'charm2daughterspdg[nprong[1]]/I')
 
 def findplateID(zposition):
 	iplate = hplatez.FindBin(zposition)
@@ -179,6 +183,7 @@ def getdaughtertracks(inputtree,eventnumber):
  Pxtot = [0,0]
  Pytot = [0,0]
  Pztot = [0,0]
+ idaughter= [0,0]
 #****************************** loop on tracks*******************
  for j, track in enumerate(mctracks): 
    name = "UNKNOWN"
@@ -237,6 +242,15 @@ def getdaughtertracks(inputtree,eventnumber):
 
      if momentum > 0.1 and r.TMath.Abs(charge) > 0: #energy cut, also we select charged particles
       charmdaughters[charmindex].append(track)
+      #adding pdgcode
+      if charmindex == 0:
+       charm1daughterspdg[idaughter[charmindex]] = track.GetPdgCode()
+       idaughter[charmindex] = idaughter[charmindex] + 1
+      elif charmindex == 1:
+       charm2daughterspdg[idaughter[charmindex]] = track.GetPdgCode()
+       idaughter[charmindex] = idaughter[charmindex] + 1
+      else:
+       print ("ERROR: strange charmindex")
 
       #print "Track Momentum", track.GetPx(), track.GetPy(), track.GetPz()
       #print "Start of Track: ",track.GetStartX(), track.GetStartY(), track.GetStartZ()
@@ -323,7 +337,7 @@ inputtree = fileinput.Get("cbmsim")
 
 nevents = inputtree.GetEntries()
 #Loop on the events
-for ievent in range(10000):
+for ievent in range(1000):
  if (ievent % 100 == 0): print "Start of event: ", ievent
  #array resetting
  nprong[0] = 0
