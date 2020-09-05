@@ -171,7 +171,7 @@ void fromFairShip2Fedra(TString filename){
      double kinenergy = TMath::Sqrt(pow(mass,2)+pow(momentum,2)) - mass;
      // *************EXCLUDE HITS FROM BEING SAVED*******************
      if (nfilmhit > 1000) savehit = false;
-     if (tantheta > TMath::Tan(maxtheta) savehit = false; //we scan from theta 0 to a maximum of 1 rad
+     if (tantheta > TMath::Tan(maxtheta)) savehit = false; //we scan from theta 0 to a maximum of 1 rad
      if(charge == 0.) savehit = false; //we do not track neutral particles
      if(kinenergy < minkinE) savehit = false; //particles with too low kin energy 
      //saving the hits for a plate in the corresponding couples (only one layer saved, the other has ID + 10000)             
