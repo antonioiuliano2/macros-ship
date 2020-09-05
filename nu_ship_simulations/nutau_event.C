@@ -279,10 +279,12 @@ void nutau_event(){
  hmuonpall->Draw();
  hmuonpentered->SetLineColor(kRed);
  hmuonpentered->Draw("SAMES");
+ gPad->BuildLegend();
  cmuonRPC->cd(2);
  hmuonangleall->Draw();
  hmuonangleentered->SetLineColor(kRed);
  hmuonangleentered->Draw("SAMES");
+ gPad->BuildLegend();
 }
 
 //find brick from position in the geometry
