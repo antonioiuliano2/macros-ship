@@ -5,7 +5,7 @@ just launch root -l simple_loop in the folder with the simulation output*/
 void hit_loop(){
   std::set<int>::iterator it;
 
- TFile *file = TFile::Open("pythia8_Geant4_1000_0.5.root"); 
+ TFile *file = TFile::Open("pythia8_Geant4_1000_0.1.root"); 
  if (!file) return;
  TTreeReader reader("cbmsim",file);
 
@@ -28,6 +28,10 @@ void hit_loop(){
 
  TH1D *hmomentum = new TH1D("hmomentum", "momentum of tracks associated to vertex",1000,0,100);
  TH1D *hangle = new TH1D("hangle","theta angle of tracks associated to vertex", 4,-2,2);
+
+ //histograms for detectorID
+ TH1I *hdetID_all = new TH1I("hdetID_all","DetID of all hits, no energy cut",57,1,58);
+
  cout<<"Molteplicity    TrackIDmother   Ievent(startsfrom0)"<<endl;
  int ientry = 0;
  std::map<int,set<int>> vertexmap;
@@ -44,6 +48,7 @@ void hit_loop(){
         double px = hit.GetPx();
         double py = hit.GetPy();
         double pz = hit.GetPz();
+        int detID = hit.GetDetectorID();
         double momentum = pow(px*px + py*py +pz*pz,0.5);
         double pdgcode = hit.PdgCode();
 	int trackID = hit.GetTrackID();
@@ -55,19 +60,22 @@ void hit_loop(){
 
         if ((TDatabasePDG::Instance()->GetParticle(pdgcode))!=NULL) charge = TDatabasePDG::Instance()->GetParticle(pdgcode)->Charge();
         else charge = 0.;
-
+        //filling detID histograms for charged particles (only one for pair)
+        if (detID < 100 && TMath::Abs(charge)>0){
+         hdetID_all->Fill(detID);
+        }
         //selection of particles to form the vertices
          
         if (procID ==23){ //Selecting hadronic inelastic interactions
         // if (p > 0.1){ //i see only tracks above 100 MeV
          hmother->Fill(motherID);         
-         if (TMath::Abs(charge)>0 && momentum>0.1) vertexmap[motherID].insert(trackID);
+        // if (TMath::Abs(charge)>0 && momentum>0.1) vertexmap[motherID].insert(trackID);
         // }
         }
      } //end of the loop on hits
   //readout of the vertices
 
-  if (!vertexmap.empty()){
+  /*if (!vertexmap.empty()){
    //loop over the map elements
    for (std::map<int,set<int>>::iterator it=vertexmap.begin(); it!=vertexmap.end(); ++it){
     set<int> trackidset = it->second;
@@ -85,12 +93,12 @@ void hit_loop(){
      hprimarystartz->Fill(tracks[(*trackidset.begin())].GetStartZ());
     }
     else{ 
-    if (tracks[(*trackidset.begin())].GetStartX() < -0.25)cout<<trackidset.size()<<" "<<it->first<<" "<<ientry<<endl;
+ //   if (tracks[(*trackidset.begin())].GetStartX() < -0.25)cout<<trackidset.size()<<" "<<it->first<<" "<<ientry<<endl;
      hsecondarysize->Fill(trackidset.size()); //secondary hadron interactions
      hsecondarystartz->Fill(tracks[(*trackidset.begin())].GetStartZ());
     } 
    }
-  }
+  }*/
  }//end of the loop on events 
  //***********DRAWING HISTOGRAMS****************
  hmother->Draw();
@@ -121,4 +129,7 @@ void hit_loop(){
  legendstartz->AddEntry(hvertexstartz, "all vertices, hadronic inelastic");
  legendstartz->Draw("SAME");
  cstartz->Print("startz.png");
+
+ TCanvas *cdetID = new TCanvas();
+ hdetID_all->Draw();
 }
