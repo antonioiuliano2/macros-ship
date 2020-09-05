@@ -460,22 +460,26 @@ void EdbScanProc::AlignSetNewNopar(EdbID id, TEnv &cenv )
 }
 
 //----------------------------------------------------------------
-int EdbScanProc::AlignSetNewNopar(EdbScanSet &sc, TEnv &cenv )
+int EdbScanProc::AlignSetNewNopar(EdbScanSet &sc, TEnv &cenv)
 {
   if(sc.eIDS.GetEntries()<2) return 0;
   int n=0;
   int minPlate = cenv.GetValue("fedra.align.minPlate"  ,-999);
   int maxPlate = cenv.GetValue("fedra.align.maxPlate"  , 999);
+
+  bool do_map = cenv.GetValue("fedra.align.do_map"  , 0);
   for(int i=0; i<sc.eIDS.GetEntries()-1; i++) {
     EdbID *id1 = sc.GetID(i);
     EdbID *id2 = sc.GetID(i+1);
+    EdbPlateP *plate2 = sc.GetPlate(id2->ePlate);
     if(id1->ePlate<minPlate||id1->ePlate>maxPlate) continue;
     if(id2->ePlate<minPlate||id2->ePlate>maxPlate) continue;
     EdbAffine2D aff;
     float dz = -1300;
     if(sc.GetAffP2P(id1->ePlate, id2->ePlate, aff))
       dz = sc.GetDZP2P(id1->ePlate, id2->ePlate);
-    n += AlignNewNopar(*id1, *id2, cenv, &aff, dz);
+    if (!do_map) n += AlignNewNopar(*id1, *id2, cenv, &aff, dz);
+    else n+= AlignNewLayernopar(*id1, *id2, cenv, *plate2, &aff, dz);
   }
   return n;
 }
@@ -511,6 +515,93 @@ int EdbScanProc::AlignNewNopar(EdbID id1, EdbID id2, TEnv &cenv, EdbAffine2D *af
   av.Align( p1, p2 , dz);
   av.CloseOutputFile();
   UpdateAFFPar( id1, id2, av.eCorrL[0], aff );
+  return npat;
+}
+
+//-------------------------------------------------------------------
+int EdbScanProc::AlignNewLayernopar(EdbID id1, EdbID id2, TEnv &cenv, EdbPlateP &plate2, EdbAffine2D *aff, float dz)
+{
+  // Align 2 patterns. All necessary information should be in the envfile
+  // Convension about Z(setted while process): the z of id2 is 0, the z of id1 is (-deltaZ) where
+  // deltaZ readed from aff.par file in a way that pattern of id1 projected 
+  // to deltaZ correspond to pattern of id2
+
+  int npat=0;
+
+  int nx = cenv.GetValue("fedra.align.NX", 1);
+  int ny = cenv.GetValue("fedra.align.NY", 1);
+  int nlayers = nx * ny;
+  
+  EdbPlateAlignment av[nlayers];
+  for (int ialign = 0; ialign < nlayers; ialign ++){
+   av[ialign].eOffsetMax =   cenv.GetValue("fedra.align.OffsetMax"   , 500. );
+   av[ialign].SetSigma(      cenv.GetValue("fedra.align.SigmaR"      , 13.  ), 
+       	            cenv.GetValue("fedra.align.SigmaT"      , 0.008) );
+   av[ialign].eDoFine      = cenv.GetValue("fedra.align.DoFine"      , 1);
+   av[ialign].eDZ          = cenv.GetValue("fedra.align.DZ"          , 120.);
+   av[ialign].eDPHI        = cenv.GetValue("fedra.align.DPHI"        , 0.008 );
+   av[ialign].eSaveCouples = cenv.GetValue("fedra.align.SaveCouples" , 1);
+  }
+  bool  do_erase  = cenv.GetValue("fedra.align.erase"    , false );
+  const char *cut = cenv.GetValue("fedra.readCPcut"         , "eCHI2P<2.5&&s.eW>18&&eN1==1&&eN2==1&&s.Theta()>0.05&&s.Theta()<0.5");
+
+  EdbPattern p1,p2;
+  ReadPatCPnopar( p1, id1, cut, do_erase);
+  ReadPatCPnopar( p2, id2, cut, do_erase);
+
+  TString mapout;  MakeAffName(mapout,id1,id2,"map.root");
+  TFile *corrmapfile = new TFile(mapout.Data(),"RECREATE");
+
+  EdbCorrectionMap *corrmap = new EdbCorrectionMap();
+  EdbCorrectionMap *corrmap_diff = new EdbCorrectionMap();
+  //corrmap->Init(nx,p1.Xmin(),p1.Xmax(),ny,p1.Ymin(),p1.Ymax()); //If i need to get limits from patterns
+  corrmap->Init(nx,0,120000,ny,0,100000); 
+  corrmap_diff->Init(nx,0,120000,ny,0,100000); 
+
+  if(aff) { aff->Print(); p1.Transform(aff);}
+  //applying current local correction to plate 2
+  if(plate2.Map().Ncell()>0) {
+    int nseg = p2.N();
+    Log(2,"AlignSetNewNoLayerPar","Apply correction to map with cells %i",plate2.Map().Ncell());
+    for(int j=0; j<nseg; j++) {
+            EdbSegP *s = p2.GetSegment(j);
+            plate2.CorrectSegLocal(*s);
+          }
+    corrmap->ApplyCorrections(plate2.Map());
+  }
+  //instead of doing only once, we do it in a loop
+  for (int ilayer = 0; ilayer < nlayers; ilayer++){
+    Log(2,"AlignSetNewNoLayerpar","Starting alignment for layer number %i",ilayer);
+    //extracting patterns form layer, X(ilayer) gives the position of middle point
+    float min[5] = {-1000,-1000,-1000,-1000,-1000}; //X,Y,TX,TY,W
+    float max[5] = {1000,1000,1000,1000,1000};
+
+    min[0] = corrmap->X(corrmap->IX(ilayer)) - (corrmap->Xbin()/2.);
+    max[0] = corrmap->X(corrmap->IX(ilayer))+ (corrmap->Xbin()/2.);
+    min[1] = corrmap->Y(corrmap->IY(ilayer))- (corrmap->Ybin()/2.);
+    max[1] = corrmap->Y(corrmap->IY(ilayer)) + (corrmap->Ybin()/2.);
+
+    //corrmap->GetLayer(ilayer)->SetAffXY(aff->A11(),aff->A12(),aff->A21(),aff->A22(),aff->B1(),aff->B2()); //we do not include the global affine transformations in the map
+
+    EdbPattern *p1_layer = p1.ExtractSubPattern(min,max);
+    EdbPattern *p2_layer = p2.ExtractSubPattern(min,max);
+
+    TString dataout;  MakeAffName(dataout,id1,id2,Form("al%i.root",ilayer));
+    av[ilayer].InitOutputFile( dataout );
+    av[ilayer].Align( *p1_layer, *p2_layer , dz);
+    av[ilayer].CloseOutputFile();
+    //saving number of coincidences and final transformations to map 
+    corrmap->GetLayer(ilayer)->ApplyCorrections(1.,av[ilayer].eCorrL[0].Zcorr() - dz, *(av[ilayer].eCorrL[0].GetAffineXY()), *(av[ilayer].eCorrL[0].GetAffineTXTY()));
+    corrmap_diff->GetLayer(ilayer)->ApplyCorrections(1.,av[ilayer].eCorrL[0].Zcorr()-dz, *(av[ilayer].eCorrL[0].GetAffineXY()), *(av[ilayer].eCorrL[0].GetAffineTXTY()));
+    corrmap->GetLayer(ilayer)->SetNcp(av[ilayer].eNcoins);
+    corrmap_diff->GetLayer(ilayer)->SetNcp(av[ilayer].eNcoins);
+   }
+  //UpdateAFFPar( id1, id2, av[0].eCorrL[0], aff );
+  corrmapfile->cd();
+  corrmap->Write("corrmap");
+  corrmap_diff->Write("corrmap_diff");
+  corrmapfile->Close();
+
   return npat;
 }
 
@@ -2755,6 +2846,16 @@ void EdbScanProc::UpdateSetWithAff(EdbID idset, EdbID idsetu )
     EdbID *id1   = ssu->GetID(i);
     EdbID *id2   = ssu->GetID(i+1);
     EdbLayer la;    if(!ReadAffToLayer( la, *id1, *id2)) continue;
+    
+    TString mapfilename; MakeAffName(mapfilename,*id1,*id2,"map.root");
+    EdbCorrectionMap *map; 
+    TFile *mapfile = TFile::Open(mapfilename.Data());
+    if(mapfile){ 
+     map = (EdbCorrectionMap*) mapfile->Get("corrmap");
+     std::cout<<"Adding correction map"<<std::endl;
+     if(map) la.ApplyCorrectionsLocal(*map);
+    }
+    
     ss->UpdateBrickWithP2P(la,id1->ePlate,id2->ePlate);
   }
   WriteScanSet( idset ,*ss );
