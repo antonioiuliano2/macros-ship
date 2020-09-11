@@ -1,9 +1,12 @@
 EdbPVRec     *gAli=0;
   void draw1D_comparison(TCanvas *c, TH1D * hall, TH1D *h_matched, TH1D *h_notmatched){
       hall->Draw();
+      hall->SetLineWidth(2);
       h_matched->SetLineColor(kRed);
+      h_matched->SetLineWidth(2);
       h_matched->Draw("SAMES");
       h_notmatched->SetLineColor(kGreen);
+      h_notmatched->SetLineWidth(2);
       h_notmatched->Draw("SAMES");
       c->BuildLegend();
   }
