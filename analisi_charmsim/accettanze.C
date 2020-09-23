@@ -5,7 +5,7 @@ bool isintermediate(Int_t PdgCode);
 using namespace ROOT;
 void accettanze(TString filename = "" ){ 
  //opening file and activating reader
- TFile *file = TFile::Open("inECC_ship.conical.Pythia8CharmOnly-TGeant4_dig.root"); 
+ TFile *file = TFile::Open("inECC_ship.conical.Pythia8CharmOnly-TGeant4.root"); 
  if (!file) return;
  TTreeReader reader("cbmsim",file);
 
@@ -15,6 +15,7 @@ void accettanze(TString filename = "" ){
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
  TTreeReaderArray<PixelModulesPoint> pixelpoints(reader,"PixelModulesPoint");
  TTreeReaderArray<SciFiPoint> scifipoints(reader,"SciFiPoint");
+ TTreeReaderArray<MufluxSpectrometerPoint> mufluxpoints(reader,"MufluxSpectrometerPoint");
 
  //primary vertex histograms
  TH2D *hvxy = new TH2D("hvxy","Primary event distribution;x[cm];y[cm]",60,-3,3,60,-3,3);
@@ -23,7 +24,8 @@ void accettanze(TString filename = "" ){
  TH1D *hchargeddaughterP = new TH1D("hchargeddaughterP","All visible charged daughters;P[GeV/c]",100,0,100);
  TH1D *hfoundpixelP = new TH1D("hfoundpixelP","Charged daughters found in pixel;P[GeV/c]",100,0,100);
  TH1D *hfoundscifiP = new TH1D("hfoundscifiP","Charged daughters found in SciFi;P[GeV/c]",100,0,100);
-
+ TH1D *hfoundmufluxP = new TH1D("hfoundmufluxP","Charged daughters found in Drift Tubes or SciFi;P[GeV/c]",100,0,100);
+ 
  //molteplicities
  TH1I *hnvisible = new TH1I("nvisible","Number of visible daughters per decay;N",10,0,10);
  TH1I *hnfound = new TH1I("hnfound","Number of found daughters per decay;N",10,0,10);
@@ -112,12 +114,12 @@ void accettanze(TString filename = "" ){
             if (abs(charge)>0. && momentum>0.1){              
               nvisible[whichcharm-1]++; 
               hchargeddaughterP->Fill(momentum);
-              //starting loop over SciFihits
+              bool foundhitmuflux = false;
               bool foundhitscifi = false;
               bool foundhitpixel = false;
 
               //these loops are made for every charm daughters!
-
+              //starting loop over pixel modules
               for (const PixelModulesPoint& hitpoint: pixelpoints){ 
                  if (hitpoint.GetTrackID()==mytrackID){ 
                    foundhitpixel = true;
@@ -126,6 +128,7 @@ void accettanze(TString filename = "" ){
                    hitz.push_back(hitpoint.GetZ());
                  }
              }
+               //starting loop over SciFihits
                for (const SciFiPoint& hitpoint: scifipoints){ 
                  //saving charged hits from first station
                  if (hitpoint.GetTrackID()==mytrackID){
@@ -136,6 +139,13 @@ void accettanze(TString filename = "" ){
                    hitz.push_back(hitpoint.GetZ());                    
                  }
              }
+               //loop on drifttubes
+               for (const MufluxSpectrometerPoint &hitpoint: mufluxpoints){
+                if (hitpoint.GetTrackID()==mytrackID){
+                   foundhitmuflux = true;
+                }
+               }
+             if (foundhitmuflux || foundhitscifi) hfoundmufluxP->Fill(momentum);  
              if (foundhitscifi) hfoundscifiP->Fill(momentum);
              if (foundhitpixel) hfoundpixelP->Fill(momentum);
           }
@@ -220,20 +230,26 @@ void accettanze(TString filename = "" ){
  hfoundpixelP->Draw("SAMES");
  hfoundscifiP->SetLineColor(kRed);
  hfoundscifiP->Draw("SAMES");
+ hfoundmufluxP->SetLineColor(kMagenta);
+ hfoundmufluxP->Draw("SAMES");
  cacceptance->BuildLegend();
 
  TCanvas *ceff = new TCanvas();
  TEfficiency *pixeleff = new TEfficiency(*hfoundpixelP,*hchargeddaughterP);
  TEfficiency *scifieff = new TEfficiency(*hfoundscifiP,*hchargeddaughterP);
+ TEfficiency *mufluxeff = new TEfficiency(*hfoundmufluxP,*hchargeddaughterP);
 
  pixeleff->SetTitle("Fraction of decay daughters seen in Pixel");
  scifieff->SetTitle("Fraction of decay daughters seen in SciFi"); 
+ mufluxeff->SetTitle("Fraction of decay daughters seen in Drift Tubes or SciFi"); 
 
  //pixeleff->GetHistogram()->GetXaxis()->SetRangeUser(0,1);
  pixeleff->SetLineColor(kGreen);
  scifieff->SetLineColor(kRed);
  pixeleff->Draw();
  scifieff->Draw("SAMES");
+ mufluxeff->SetLineColor(kMagenta);
+ mufluxeff->Draw("SAMES");
  ceff->BuildLegend();
 
  TCanvas *cprong = new TCanvas();
