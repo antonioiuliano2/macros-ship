@@ -8,6 +8,12 @@ import sys
 
 simdf = pd.read_csv(sys.argv[1])
 
+if ("FEDRATrackID" not in simdf.keys()):
+ simdf["FEDRATrackID"] = simdf["TrackID"]
+
+if ("quarter" not in simdf.keys()):
+ simdf["quarter"] = 0
+
 print("original size of segment sample ", len(simdf))
 nsegtrue = simdf.groupby(["MCEvent","MCTrack"]).count()
 
@@ -72,15 +78,21 @@ minlength = 3 #useless count 1 and 2 segments
 length = np.linspace(minlength,29,30-minlength)
 efficiencies = []
 purities = []
+
+efficiencies_errors = []
+purities_errors = []
 for l in length:
+
     subset = mergedsimdf.query("nsegtrue == {}".format(l))
+    N = len(subset)
     efficiencies.append(subset.mean()["efficiency"]*100)
+    efficiencies_errors.append(subset.std()["efficiency"]/np.sqrt(N)*100)
 
-    subset2 = mergedsimdf.query("nsegtrue == {}".format(l)) 
-    purities.append(subset2.mean()["purity"]*100)
+    purities.append(subset.mean()["purity"]*100)
+    purities_errors.append(subset.std()["purity"]/np.sqrt(N)*100)
 
-plt.plot(length,efficiencies,"r",label="efficiency")
-plt.plot(length,purities,"b",label= "purity")
+plt.errorbar(length,efficiencies,c = "r",fmt='.', yerr=efficiencies_errors,ecolor="r",label="efficiency")
+plt.errorbar(length,purities,c = "b",fmt='.',yerr=purities_errors,ecolor="b",label= "purity")
 plt.xlabel("Track length (number of segments)")
 plt.ylabel("Percentage (%)")
 plt.ylim((0, 100)) 
