@@ -1,11 +1,13 @@
 //studio sulla simulazione di produzione di charm in cascata (riscritto il 22 Marzo 2020 per salvare un tree invece di istogrammi)
 bool ischarm(Int_t PdgCode);
 bool isintermediate(Int_t PdgCode);
+vector<double> eff_formula(int found, int total);
 
 using namespace ROOT;
 void accettanze(TString filename = "" ){ 
+ double minP = 0.1; //visibility daughter selection for magnetic spectrometer
  //opening file and activating reader
- TFile *file = TFile::Open("inECC_ship.conical.Pythia8CharmOnly-TGeant4_dig.root"); 
+ TFile *file = TFile::Open("/eos/user/a/aiuliano/public/sims_FairShip/sim_charm/CH1_charmcascade_withdrifttubes_19_09_20/simulation/inECC_ship.conical.Pythia8CharmOnly-TGeant4.root"); 
  if (!file) return;
  TTreeReader reader("cbmsim",file);
 
@@ -15,6 +17,7 @@ void accettanze(TString filename = "" ){
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
  TTreeReaderArray<PixelModulesPoint> pixelpoints(reader,"PixelModulesPoint");
  TTreeReaderArray<SciFiPoint> scifipoints(reader,"SciFiPoint");
+ TTreeReaderArray<MufluxSpectrometerPoint> mufluxpoints(reader,"MufluxSpectrometerPoint");
 
  //primary vertex histograms
  TH2D *hvxy = new TH2D("hvxy","Primary event distribution;x[cm];y[cm]",60,-3,3,60,-3,3);
@@ -23,7 +26,8 @@ void accettanze(TString filename = "" ){
  TH1D *hchargeddaughterP = new TH1D("hchargeddaughterP","All visible charged daughters;P[GeV/c]",100,0,100);
  TH1D *hfoundpixelP = new TH1D("hfoundpixelP","Charged daughters found in pixel;P[GeV/c]",100,0,100);
  TH1D *hfoundscifiP = new TH1D("hfoundscifiP","Charged daughters found in SciFi;P[GeV/c]",100,0,100);
-
+ TH1D *hfoundmufluxP = new TH1D("hfoundmufluxP","Charged daughters found in Drift Tubes or SciFi;P[GeV/c]",100,0,100);
+ 
  //molteplicities
  TH1I *hnvisible = new TH1I("nvisible","Number of visible daughters per decay;N",10,0,10);
  TH1I *hnfound = new TH1I("hnfound","Number of found daughters per decay;N",10,0,10);
@@ -90,14 +94,16 @@ void accettanze(TString filename = "" ){
       	 ShipMCTrack mumtrk = tracks[mumID];
 	       mumID = mumtrk.GetMotherId();
       	 mumpdg = mumtrk.GetPdgCode();
-      	 while ((isintermediate(mumpdg) == true) && (mumID>0)) //se la madre è uno stato intermedio controllo se lo stato intermedio è stato prodotto dal charm
+      	 
+         while ((isintermediate(mumpdg) == true) && (mumID>0)) //se la madre è uno stato intermedio controllo se lo stato intermedio è stato prodotto dal charm
 	       {
 	        intermediatepdg = mumpdg;
 	        ShipMCTrack mumtrk = tracks[mumID];
 	        mumID = mumtrk.GetMotherId();
 	        mumpdg = mumtrk.GetPdgCode();
-	       } 
-     	 if((mumpdg == pdgcharm[0]) || (mumpdg == pdgcharm[1])){ //controllo se è la figlia di uno dei due charm
+	       }
+          
+     	   if((mumpdg == pdgcharm[0]) || (mumpdg == pdgcharm[1])){ //controllo se è la figlia di uno dei due charm
 
           int whichcharm = -1;
           if (mumpdg == pdgcharm[0]) whichcharm = 1;
@@ -109,15 +115,15 @@ void accettanze(TString filename = "" ){
           if(pdg->GetParticle(startpdg)){ //checking if it is registered
             charge = pdg->GetParticle(startpdg)->Charge()/3.; //TDatabasePDG saves charges as quark units
             //checking if it is charged and with momentum larger than 0.1
-            if (abs(charge)>0. && momentum>0.1){              
+            if (abs(charge)>0. && momentum>minP){              
               nvisible[whichcharm-1]++; 
               hchargeddaughterP->Fill(momentum);
-              //starting loop over SciFihits
+              bool foundhitmuflux = false;
               bool foundhitscifi = false;
               bool foundhitpixel = false;
 
               //these loops are made for every charm daughters!
-
+              //starting loop over pixel modules
               for (const PixelModulesPoint& hitpoint: pixelpoints){ 
                  if (hitpoint.GetTrackID()==mytrackID){ 
                    foundhitpixel = true;
@@ -125,8 +131,9 @@ void accettanze(TString filename = "" ){
                    hity.push_back(hitpoint.GetY());
                    hitz.push_back(hitpoint.GetZ());
                  }
-             }
-               for (const SciFiPoint& hitpoint: scifipoints){ 
+              }
+               //starting loop over SciFihits
+              for (const SciFiPoint& hitpoint: scifipoints){ 
                  //saving charged hits from first station
                  if (hitpoint.GetTrackID()==mytrackID){
                    if(! foundhitscifi) nscififound[whichcharm-1]++; 
@@ -135,13 +142,23 @@ void accettanze(TString filename = "" ){
                    hity.push_back(hitpoint.GetY());
                    hitz.push_back(hitpoint.GetZ());                    
                  }
-             }
-             if (foundhitscifi) hfoundscifiP->Fill(momentum);
-             if (foundhitpixel) hfoundpixelP->Fill(momentum);
-          }
-          }
+              }
+               //loop on drifttubes
+              for (const MufluxSpectrometerPoint &hitpoint: mufluxpoints){
+                if (hitpoint.GetTrackID()==mytrackID){
+                   foundhitmuflux = true;
+                }
+              }//end of loop on drift tubes
+             //requirements are consecutives (i.e. no sense asking for drift tubes or SciFi if pixels are lacking)
+              if (foundhitpixel){
+               hfoundpixelP->Fill(momentum);
+               if (foundhitscifi) hfoundscifiP->Fill(momentum);
+               if (foundhitmuflux || foundhitscifi) hfoundmufluxP->Fill(momentum);  
+              }
+          } //visibility conditions
          // ntotaldaughters++; //increasing counter to store information for next daughter
-       }
+        } //check if particle pdg is recognized
+       }//charm daughter condition
       }//condition about mumID
       mytrackID++;
 
@@ -213,28 +230,46 @@ void accettanze(TString filename = "" ){
  chits_firstSciFi->cd(2);
  hP_firstSciFi->Draw();
 
+ int totvisibledaughters = hchargeddaughterP->GetEntries();
+ int totfoundpixel = hfoundpixelP->GetEntries();
+ int totfoundscifi = hfoundscifiP->GetEntries();
+ int totfoundmuflux = hfoundmufluxP->GetEntries();
+ vector<double> totpixeleff = eff_formula(totfoundpixel, totvisibledaughters);
+ vector<double> totscifieff = eff_formula(totfoundscifi, totvisibledaughters);
+ vector<double> totmufluxeff = eff_formula(totfoundmuflux, totvisibledaughters);
+ 
+ cout<<"Magnetic spectrometer "<<endl;
+ cout<<"Over a total number of visible decay daughters "<<totvisibledaughters<<endl;
+ cout<<"Arriving at pixel "<<totfoundpixel<<" Ratio: "<<totpixeleff[0]<<" pm "<<totpixeleff[1]<<endl;
+ cout<<"Arriving at SciFi or DT: "<<totfoundmuflux<<" Ratio: "<<totmufluxeff[0]<<" pm "<<totmufluxeff[1]<<endl;
+cout<<"Arriving at SciFi or DT: "<<totfoundscifi<<" Ratio: "<<totscifieff[0]<<" pm "<<totscifieff[1]<<endl;
 
  TCanvas *cacceptance = new TCanvas();
+ cacceptance->Divide(1,2);
+ cacceptance->cd(1);
  hchargeddaughterP->Draw();
  hfoundpixelP->SetLineColor(kGreen);
  hfoundpixelP->Draw("SAMES");
  hfoundscifiP->SetLineColor(kRed);
  hfoundscifiP->Draw("SAMES");
- cacceptance->BuildLegend();
-
- TCanvas *ceff = new TCanvas();
+ hfoundmufluxP->SetLineColor(kMagenta);
+ hfoundmufluxP->Draw("SAMES");
+ gPad->BuildLegend();
+ 
+ cacceptance->cd(2);
  TEfficiency *pixeleff = new TEfficiency(*hfoundpixelP,*hchargeddaughterP);
  TEfficiency *scifieff = new TEfficiency(*hfoundscifiP,*hchargeddaughterP);
-
+ TEfficiency *mufluxeff = new TEfficiency(*hfoundmufluxP,*hchargeddaughterP);
  pixeleff->SetTitle("Fraction of decay daughters seen in Pixel");
  scifieff->SetTitle("Fraction of decay daughters seen in SciFi"); 
-
- //pixeleff->GetHistogram()->GetXaxis()->SetRangeUser(0,1);
+ mufluxeff->SetTitle("Fraction of decay daughters seen in Drift Tubes or SciFi"); 
  pixeleff->SetLineColor(kGreen);
  scifieff->SetLineColor(kRed);
  pixeleff->Draw();
  scifieff->Draw("SAMES");
- ceff->BuildLegend();
+ mufluxeff->SetLineColor(kMagenta);
+ mufluxeff->Draw("SAMES");
+ gPad->BuildLegend();
 
  TCanvas *cprong = new TCanvas();
  hnfound->SetLineColor(kRed);
@@ -308,6 +343,17 @@ void projection(){
 
  hdR->Draw("COLZ");
 }//end program
+
+vector<double> eff_formula(int found, int total){
+  vector<double> efficiency; //value and error
+  
+  efficiency.push_back((double) found/total);
+  double efferr = TMath::Sqrt(efficiency[0] * (1- efficiency[0])/total);
+  efficiency.push_back(efferr);
+  
+  return efficiency;
+  
+}
 
 bool ischarm(Int_t PdgCode){
   bool check = false;

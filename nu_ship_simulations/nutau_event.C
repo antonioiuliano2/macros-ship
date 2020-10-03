@@ -5,9 +5,9 @@ Bool_t FindBrick(Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow,
 
 int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks);
 
-bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primaryvisible);
+bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primaryvisible, ROOT::RVec<int> signalpdgs);
 bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates);
-bool TauDecay(int trackID, const ShipMCTrack &track,vector<int> &daughters, vector<int> &visibledaughters, TVector3 Vn, double tautx, double tauty, double& taudecaylength);
+bool TauDecay(int trackID, int tauid, const ShipMCTrack &track,vector<int> &daughters, vector<int> &visibledaughters, TVector3 Vn, double tautx, double tauty, double& taudecaylength);
 
 //GLOBAL VARIABLES AND HISTOGRAMS
  //*********DEFINITION OF HISTOGRAMS*********************//
@@ -28,6 +28,14 @@ bool TauDecay(int trackID, const ShipMCTrack &track,vector<int> &daughters, vect
  TH1D *hmuonangleall = new TH1D("hmuonangleall","Angle of all muons;#Theta[rad]",100,0,1);
  TH1D *hmuonpentered = new TH1D("hmuonpentered","Momentum of muons entered in first RPC;P[GeV/c]",400,0,400);
  TH1D *hmuonangleentered = new TH1D("hmuonangleentered","Angle muons entered in first RPC;#Theta[rad]",100,0,1);
+ 
+ TH1D *helectron_E = new TH1D("helectron_E","Energy of electrons from tau decay;E[GeV]",100,0,100);
+ TH1D *helectron_NPlate = new TH1D("helectron_NPlate","Number of plate where the electron is produced;Nplate",57,1,58);
+ 
+ TH1D *hxsagitta = new TH1D("hxsagitta","Sagitta in the xzplane;sxz[cm]",20,-0.1,0.1);
+ TH1D *hysagitta = new TH1D("hysagitta","Sagitta in the yzplane;syz[cm]",30,-30,30);
+ 
+ //**VARIABLES***//
 
  const double dxtarget = 40.5;
  const double dytarget = 40.5;
@@ -36,6 +44,10 @@ bool TauDecay(int trackID, const ShipMCTrack &track,vector<int> &daughters, vect
 
 //start main script
 void nutau_event(){
+ bool tausim = true;
+ ROOT::RVec<int> signalpdgs; //particles I want to study the decay
+ if (tausim) signalpdgs = {15}; //tau lepton
+ else signalpdgs = {411, 431, 41222, 421, 4132, 4232, 4332, 441};
  //getting tree and defining arrays
  TFile *file = TFile::Open("ship.conical.Genie-TGeant4.root"); 
  //if (!file) return;
@@ -46,14 +58,15 @@ void nutau_event(){
  TTreeReaderArray<HptPoint> dtpoints(reader,"HptPoint");
  TTreeReaderArray<ShipRpcPoint> rpcpoints(reader,"ShipRpcPoint");
  
- int trackID, ntauhits;
+ int trackID, detID, ntauhits;
  double energy, mass;
 
  TGeoManager * tgeom = new TGeoManager("Geometry", "Geane geometry");
  tgeom->Import("geofile_full.conical.Genie-TGeant4.root");
 
- cout<<"Number of events"<<reader.GetEntries()<<endl;
+// const int nentries = 10000; //test with fewer entries
  const int nentries = reader.GetEntries();
+ cout<<"Number of events"<<nentries<<endl;
 
  const int Nminplates = 4;
 
@@ -80,8 +93,13 @@ void nutau_event(){
  double tauendx, tauendy, tauendz;
  double taudecaylength;
 
- int itrack;
+ int itrack, tauid;
 
+ //DT spectrometer sagitta check
+ const int nstations = 5;
+ double XDT_daughter[nstations],YDT_daughter[nstations],ZDT_daughter[nstations]; 
+
+ //muon rpc check
  bool muoninfirstrpc;
 
  //***********************************START OF MAIN LOOP*************************//
@@ -116,38 +134,62 @@ void nutau_event(){
      hvz->Fill(Vn(2));
 
      //tau lepton variables
-     double taup = tracks[1].GetP();
-     double taupt = tracks[1].GetPt();
-     double tautx = tracks[1].GetPx()/tracks[1].GetPz();
-     double tauty = tracks[1].GetPy()/tracks[1].GetPz();
+
 
      //********************************FIRST CONDITION: GEOMETRICAL SELECTION********/
      isgeometrical = GeometricalEfficiency(Vn,trans_mindist, Nminplates);
 
-     //filling histograms about tau lepton
-     htauppt->Fill(tracks[1].GetP(), tracks[1].GetPt());
-     //computing gamma factor E/m
-     energy = tracks[1].GetEnergy();
-     mass = pdg->GetParticle(tracks[1].GetPdgCode())->Mass();
-     htaugamma->Fill(energy/mass);
-
      //******************access the array of tracks
      itrack = 0;
+     tauid = -1;
      for (const ShipMCTrack& track: tracks){         
          double tx = track.GetPx()/track.GetPz();
          double ty = track.GetPy()/track.GetPz();
          double tantheta = TMath::Sqrt(tx * tx + ty * ty);
+
+         double tautx, tauty, taup, taupt;
+         int signalparticle = signalpdgs[signalpdgs==TMath::Abs(track.GetPdgCode())].size();
+         if ( signalparticle > 0 && track.GetMotherId()==0 && tauid < 0){
+           tauid = itrack;
+           taup = track.GetP();
+           taupt = track.GetPt();
+           tautx = track.GetPx()/track.GetPz();
+           tauty = track.GetPy()/track.GetPz();
+           //filling histograms about tau lepton
+           htauppt->Fill(track.GetP(), track.GetPt());
+           //computing gamma factor E/m
+           energy = track.GetEnergy();
+           mass = pdg->GetParticle(track.GetPdgCode())->Mass();
+           htaugamma->Fill(energy/mass);
+         }
          
          //look for charged particles from primary vertex
-         NeutrinoVertexLocation(itrack, track, primaryvisible);
+         NeutrinoVertexLocation(itrack, track, primaryvisible, signalpdgs);
          //look for charged tracks from tau decay lengths
-         TauDecay(itrack, track, daughters, visibledaughters, Vn, tautx, tauty, taudecaylength);
+         TauDecay(itrack, tauid, track, daughters, visibledaughters, Vn, tautx, tauty, taudecaylength);
          itrack++;
      } //end of track loop
      //decay channel identification
      whichchannel = DecayChannel(daughters,tracks);
+     //else whichchannel = 3;
      hchannel->Fill(whichchannel);
      hdl->Fill(taudecaylength*10);
+     
+     //a visible electron from tau decay
+     if (whichchannel == 2 && isgeometrical && visibledaughters.size() == 1){
+
+      int electronid = visibledaughters[0];
+      //in which plate the electron was produced?
+      int NeWall, NeRow, NeColumn;
+      int NePlate = -1;
+      FindBrick(tracks[electronid].GetStartX(), tracks[electronid].GetStartY(), tracks[electronid].GetStartZ(), NeWall, NeRow, NeColumn, NePlate);
+      if (NePlate > 0) helectron_NPlate->Fill(NePlate);
+      if (NePlate >0 && NePlate< 20) cout<< "Electron at event "<<ientry<<" track ID "<<electronid<<"with energy "<<tracks[electronid].GetEnergy()<<"  starting at z "<<tracks[electronid].GetStartZ()<<" vz neutrino "<<Vn(2)<<endl;
+      //electron energy
+      helectron_E->Fill(tracks[electronid].GetEnergy());
+      
+     }
+     
      if (primaryvisible.size()>0) islocated = true;
      if (visibledaughters.size()>0) decaysearch = true;
      //access the hits: 
@@ -168,15 +210,40 @@ void nutau_event(){
      }
 
      //****************************look for tau decay daughters in downstream trackers***//
+     //resetting index
+     for (int index = 0; index < nstations; index++){
+      XDT_daughter[index] = 100000.;
+      YDT_daughter[index] = 100000.;
+      ZDT_daughter[index] = 100000.;
+     }
+     //starting loop
      for (const HptPoint& dtpoint: dtpoints){
-         
-           }
+        trackID = dtpoint.GetTrackID();
+        detID = dtpoint.GetDetectorID();
+        
+        int istation = detID/1000;
+        //check if track is from tau decay
+        if (trackID == visibledaughters[0]){
+          XDT_daughter[istation-1] = dtpoint.GetX();
+          YDT_daughter[istation-1] = dtpoint.GetY();
+          ZDT_daughter[istation-1] = dtpoint.GetZ();
+         }
+        
+        }
+        
+     //computing sagitta
+     if (ZDT_daughter[4] < 100000. && whichchannel == 1){
+      double ysagitta = ((YDT_daughter[0] + YDT_daughter[4])/2.) - YDT_daughter[2];
+      double xsagitta = ((XDT_daughter[0] + XDT_daughter[4])/2.) - XDT_daughter[2];
+      hxsagitta->Fill(xsagitta);
+      hysagitta->Fill(ysagitta);      
+     }
 
      if (whichchannel == 1){ //only for muon channel,
       //***************************look for muons in downstream detectors****************//
       for (const ShipRpcPoint& rpcpoint: rpcpoints){
         trackID = rpcpoint.GetTrackID(); 
-        int detID = rpcpoint.GetDetectorID();
+        detID = rpcpoint.GetDetectorID();
        
         if (trackID == visibledaughters[0] && detID == 10000){ //hit from tau lepton
             muoninfirstrpc = true;
@@ -229,6 +296,13 @@ void nutau_event(){
  cdecay->cd(2);
  hdl->Draw();
 
+ TCanvas *celectron = new TCanvas();
+ celectron->Divide(2,1);
+ celectron->cd(1);
+ helectron_E->Draw();
+ celectron->cd(2);
+ helectron_NPlate->Draw();
+
  TCanvas *cmuonRPC = new TCanvas();
  cmuonRPC->Divide(2,1);
  cmuonRPC->cd(1);
@@ -241,6 +315,14 @@ void nutau_event(){
  hmuonangleentered->SetLineColor(kRed);
  hmuonangleentered->Draw("SAMES");
  gPad->BuildLegend();
+ 
+ TCanvas *csagitta = new TCanvas();
+ csagitta->Divide(2,1);
+ csagitta->cd(1);
+ hxsagitta->Draw();
+ hxsagitta->Fit("gaus");
+ csagitta->cd(2);
+ hysagitta->Draw();
 }
 
 
@@ -298,7 +380,7 @@ bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates){
 
 }
 
-bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primaryvisible){
+bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primaryvisible, ROOT::RVec<int> signalpdgs){
      //********************************SECOND CONDITION: VERTEX LOCATION********/
     const double maxtantheta = 1.;
     const double minmomentum = 1.;
@@ -316,7 +398,7 @@ bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &
           
           //is it visible?      
           if(tantheta<maxtantheta && momentum > minmomentum){ 
-            if (pdgcode!=15) primaryvisible.push_back(trackID); //I do not add the tau neutrino since it decays too soon
+            if (signalpdgs[signalpdgs==TMath::Abs(pdgcode)].size() == 0) primaryvisible.push_back(trackID); //I do not add the tau lepton or charmed hadron since it decays too soon
             return true;
             //cout<<ientry<<" "<<pdgcode<<" "<<momentum<<" "<<tantheta<<endl;
             }
@@ -325,7 +407,8 @@ bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &
     else return false;
 }
 
-bool TauDecay(int trackID, const ShipMCTrack &track,vector<int> &daughters, vector<int> &visibledaughters, TVector3 Vn, double tautx, double tauty, double& taudecaylength){
+bool TauDecay(int trackID, int tauid, const ShipMCTrack &track,vector<int> &daughters, vector<int> &visibledaughters, TVector3 Vn, double tautx, double tauty, double& taudecaylength){
+    if (tauid < 0) return false; //MCTrackID for tau lepton not yet found, go to next
     //condition for a visible tau decay daughter
     const double maxdl = 0.4;
     const double minkinkangle = 0.02;
@@ -343,7 +426,7 @@ bool TauDecay(int trackID, const ShipMCTrack &track,vector<int> &daughters, vect
     double pdgcode = track.GetPdgCode();
     if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge(); 
     //check if it is a tau decay daughter
-    if(track.GetMotherId()==1 && TMath::Abs(charge)>0){  
+    if(track.GetMotherId()==tauid && TMath::Abs(charge)>0){  
           daughters.push_back(trackID);
     
           double tx = track.GetPx()/track.GetPz();
