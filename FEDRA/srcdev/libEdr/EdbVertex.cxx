@@ -46,6 +46,7 @@ EdbVTA::EdbVTA()
 EdbVTA::EdbVTA( EdbVTA& vta )
 {
   eTrack=vta.GetTrack();
+  eNeighborVertex=vta.GetNeighborVertex();
   eVertex=vta.GetVertex();
   eZpos=vta.Zpos();
   eFlag=vta.Flag();
