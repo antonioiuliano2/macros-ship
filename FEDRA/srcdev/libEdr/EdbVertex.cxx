@@ -160,7 +160,7 @@ EdbSegP   *EdbVertex::GetTrackV(int i, bool usesegpar)
 {
 	EdbTrackP *t = GetTrack(i); if(!t) return 0;
 	EdbSegP *s = t->TrackExtremity(Zpos(i), usesegpar);
- // if( s->P()>=0 && (s->P() != t->P()) ) Log(1,"GetTrackV","Warning! segment momentum=%f is not equal to the track momentum=%f",s->P(), t->P() );
+  if( s->P()>=0 && (s->P() != t->P()) ) Log(1,"GetTrackV","Warning! segment momentum=%f is not equal to the track momentum=%f",s->P(), t->P() );
 	return s;
 }
 
