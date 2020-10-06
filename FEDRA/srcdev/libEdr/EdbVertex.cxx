@@ -52,7 +52,13 @@ EdbVTA::EdbVTA( EdbVTA& vta )
   eImp=vta.Imp();
   eDist=vta.Dist();
 }
-
+//______________________________________________________________________________
+EdbVTA::EdbVTA( EdbVertex *ve, EdbVertex *v )
+{
+  Set0();
+  eNeighborVertex=ve;
+  eVertex=v;
+}
 //______________________________________________________________________________
 EdbVTA::EdbVTA( EdbTrackP *tr, EdbVertex *v )
 {
@@ -65,6 +71,7 @@ EdbVTA::EdbVTA( EdbTrackP *tr, EdbVertex *v )
 void EdbVTA::Set0()
 {
   eTrack=0;
+  eNeighborVertex=0;
   eVertex=0;
   eZpos=0;
   eFlag=0;
@@ -2806,7 +2813,7 @@ int EdbVertexRec::VertexNeighbor(EdbVertex *v, float RadMax, int Dpat, float Imp
 		    if (TMath::Sqrt(dx*dx + dy*dy) > RadMax) continue;
 		    dz = ve->VZ() - zvert;
 		    if (TMath::Abs(dz) > Dpat*Zbin) continue;
-		    vta = new EdbVTA((EdbTrackP *)ve, v);
+		    vta = new EdbVTA(ve, v);
 		    vta->SetFlag(3);
 		    vta->SetDist(TMath::Sqrt(dx*dx+dy*dy+dz*dz));
 		    v->AddVTA(vta);
@@ -2884,7 +2891,7 @@ int EdbVertexRec::VertexNeighbor(EdbVertex *v, float RadMax, int Dpat, float Imp
 					if (dz <= Dpat*Zbin)
 					{
 					    ve->SetFlag(-ve->Flag()-200);
-					    vta = new EdbVTA((EdbTrackP *)ve, v);
+					    vta = new EdbVTA(ve, v);
 					    vta->SetFlag(3);
 					    vta->SetDist(TMath::Sqrt(dx*dx+dy*dy+dz*dz));
 					    v->AddVTA(vta);
@@ -2919,7 +2926,7 @@ int EdbVertexRec::VertexNeighbor(EdbVertex *v, float RadMax, int Dpat, float Imp
 					if (dz <= Dpat*Zbin)
 					{
 					    ve->SetFlag(-ve->Flag()-200);
-					    vta = new EdbVTA((EdbTrackP *)ve, v);
+					    vta = new EdbVTA(ve, v);
 					    vta->SetFlag(3);
 					    vta->SetDist(TMath::Sqrt(dx*dx+dy*dy+dz*dz));
 					    v->AddVTA(vta);
