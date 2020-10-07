@@ -1,0 +1,9 @@
+executable            = charm25.sh
+arguments             = $(ClusterID) $(ProcId) $(quarter)
+output                = output/charmdet.$(ClusterId).$(ProcId).out
+error                 = error/charmdet.$(ClusterId).$(ProcId).err
+log                   = log/charmdet.$(ClusterId).log
+notification = Never
+RequestCpus = 10
++JobFlavour             = "nextweek"
+queue quarter in firstquarter, secondquarter, thirdquarter, fourthquarter
