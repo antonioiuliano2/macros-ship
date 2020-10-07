@@ -3,6 +3,144 @@
 #include "TGeoBBox.h"
 #include <map>
 //when you discover the difficulty of copying from the masters. Trying to replicate Annarita's studies on neutrino fluxes
+
+void generate_neutrinos(){ //generate neutrino produced spectra according to Thomas histograms
+
+ TFile * fInputFile = TFile::Open("pythia8_Geant4_1.0_withCharm_nu.root");
+ map<Int_t, TH1D*> hnu_p;
+ //getting 1D spectra
+ hnu_p[12] =  (TH1D*) fInputFile->Get("1012");
+ hnu_p[14] =  (TH1D*) fInputFile->Get("1014");
+ hnu_p[16] =  (TH1D*) fInputFile->Get("1016");
+ hnu_p[-12] =  (TH1D*) fInputFile->Get("2012");
+ hnu_p[-14] =  (TH1D*) fInputFile->Get("2014");
+ hnu_p[-16] =  (TH1D*) fInputFile->Get("2016");
+
+ Float_t deltaz = 3969.; //distance between center of proton target and start of neutrino target
+ Double_t targetdx = 40., targetdy = 40.; //for geometrical acceptance requirement
+
+ Float_t pzv;
+ Double_t start[3];
+
+ Int_t idbase=1200;
+ char ts[20];
+ TH1D* pxhist[3000];//!
+ TH1D* pyslice[3000][100];//!
+ printf("Reading (log10(p),log10(pt)) Hists from file: %s\n",fInputFile->GetName());
+ for (Int_t idnu=12;idnu<17;idnu+=2){
+    for (Int_t idadd=-1;idadd<2;idadd+=2){
+  	  Int_t idhnu=idbase+idnu;
+      if (idadd<0) idhnu+=1000;
+	    sprintf(ts,"%d",idhnu);
+	    //pickup corresponding (log10(p),log10(pt)) histogram
+      if (fInputFile->FindObjectAny(ts)){
+           TH2F* h2tmp = (TH2F*) fInputFile->Get(ts);
+           printf("HISTID=%d, Title:%s\n",idhnu,h2tmp->GetTitle());
+	         sprintf(ts,"px_%d",idhnu);
+           //make its x-projection, to later be able to convert log10(p) to its bin-number
+           pxhist[idhnu]=h2tmp->ProjectionX(ts,1,-1);
+           Int_t nbinx=h2tmp->GetNbinsX();
+           //printf("idhnu=%d  ts=%s  nbinx=%d\n",idhnu,ts,nbinx);
+	         //project all slices on the y-axis
+           for (Int_t k=1;k<nbinx+1;k+=1){
+	           sprintf(ts,"h%d%d",idhnu,k);
+             //printf("idnu %d idhnu %d bin%d  ts=%s\n",idnu,idhnu,k,ts);
+             pyslice[idhnu][k]=h2tmp->ProjectionY(ts,k,k);
+	  		   }
+      } //end if find object
+	  } //end for loop over neutrino/antineutrinos
+   } //end for loop over neutrino flavours
+
+ //loop over histogram entries
+
+
+ int neutrinopdgs[6] = {14,12,16,-14,-12,-16};
+ //histogram and counters to be filled
+ map<Int_t, TH1D*> hspectrumdet;
+ map<Int_t, Double_t> nall = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos produced, mapped per pdg
+ map<Int_t, Double_t> ndet = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos arrived at det
+
+ TFile *outfile = new TFile("neutrinos_detector.root","RECREATE"); 
+
+ hspectrumdet[12] = new TH1D("hnu_e","Spectrum electron neutrinos arrived at detector;P[GeV/c]",400,0,400);
+ hspectrumdet[-12] = new TH1D("hnu_e_bar","Spectrum electron antineutrinos arrived at detector;P[GeV/c]",400,0,400);
+
+ hspectrumdet[14] = new TH1D("hnu_mu","Spectrum muon neutrinos arrived at detector;P[GeV/c]",400,0,400);
+ hspectrumdet[-14] = new TH1D("hnu_mu_bar","Spectrum muon antineutrinos arrived at detector;P[GeV/c]",400,0,400);
+
+ hspectrumdet[16] = new TH1D("hnu_tau","Spectrum tau neutrinos arrived at detector;P[GeV/c]",400,0,400);
+ hspectrumdet[-16] = new TH1D("hnu_tau_bar","Spectrum tau antineutrinos arrived at detector;P[GeV/c]",400,0,400);
+
+for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
+ int Nentries = hnu_p[neu]->GetEntries();
+ cout<<"Nentries totali: "<<Nentries<<endl;
+ Double_t w = hnu_p[neu]->Integral()/hnu_p[neu]->GetEntries(); //i assume each neutrino to have the same weight (I cannot infer the original weights)
+ 
+ for (int i = 0; i < Nentries; i++){
+  pzv = hnu_p[neu]->GetRandom(); //getting p randomly from 1D histogram (pzv==pz in GENIE reference == p)
+  //if (i%100000==0) cout<<i<<endl;
+
+  // Incoming neutrino, get a random px,py
+  Double_t pout[3];
+  pout[2]=-1.;
+  Double_t txnu=0;
+  Double_t tynu=0;
+  while (pout[2]<0.) {
+      //Get pt of this neutrino from 2D hists.
+      Int_t idhnu=TMath::Abs(neu)+idbase;
+      if (neu<0) idhnu+=1000;
+      Int_t nbinmx=pxhist[idhnu]->GetNbinsX();
+      Double_t pl10=log10(pzv);
+      Int_t nbx=pxhist[idhnu]->FindBin(pl10);
+      //printf("idhnu %d, p %f log10(p) %f bin,binmx %d %d \n",idhnu,pzv,pl10,nbx,nbinmx);
+      if (nbx<1) nbx=1;
+      if (nbx>nbinmx) nbx=nbinmx;
+      Double_t ptlog10=pyslice[idhnu][nbx]->GetRandom();
+      //hist was filled with: log10(pt+0.01)
+      Double_t pt=pow(10.,ptlog10)-0.01;
+      //rotate pt in phi:
+      Double_t phi=gRandom->Uniform(0.,2*TMath::Pi());
+      pout[0] = cos(phi)*pt;
+      pout[1] = sin(phi)*pt;
+      pout[2] = pzv*pzv-pt*pt;
+
+      if (pout[2]>=0.) {
+        pout[2]=TMath::Sqrt(pout[2]);
+        if (gRandom->Uniform(-1.,1.)<0.) pout[0]=-pout[0];
+        if (gRandom->Uniform(-1.,1.)<0.) pout[1]=-pout[1];
+
+        txnu=pout[0]/pout[2];
+        tynu=pout[1]/pout[2];
+        //cout << "Info GenieGenerator: neutrino pxyz " << pout[0] << ", " << pout[1] << ", " << pout[2] << endl;
+        //printf("param %e %e %e \n",bparam,mparam[6],mparam[7]);
+       }
+  }
+  //if (i%100000==0) cout<<pout[0]<<" "<<pout[1]<<" "<<pout[2]<<" "<<pzv<<endl;
+   //end px,py,pz generation, now I can follow my previous procedure for neutrino fluxes
+
+  start[0] = txnu * deltaz; //projecting produced neutrinos to neutrino detector, aggiungere x e y non cambia significativamente il risultato
+  start[1] = tynu * deltaz;
+  start[2] = -3259;
+
+  nall[neu] +=w;
+
+  if(TMath::Abs(start[0]) < targetdx && TMath::Abs(start[1]) < targetdy){ //checking how many neutrinos are inside the detector
+    ndet[neu] += w;
+    hspectrumdet[neu]->Fill(pzv,w);
+   }
+  } //end main loop over neutrinos of the same flavour
+ cout<<"neutrinos of flavour "<<neu<<endl;
+ cout<<nall[neu]<<endl;
+ cout<<ndet[neu]<<endl; //dovrebbe escludere underflow and overflow
+ cout<<"Ratio arriving at det: "<<ndet[neu]/nall[neu]<<endl;
+ new TCanvas();
+ hspectrumdet[neu]->Draw();
+ 
+ }//end loop over neutrino flavours
+ outfile->Write();
+ outfile->Close();
+}
+
 void neutrino_fluxes(){ //projecting neutrino fluxes to the target
  TFile * f = TFile::Open("/home/antonio/SHIPBuild/pythia8_Geant4-withCharm_onlyNeutrinos.root");
  TTree *tree = (TTree*) f->Get("pythia8-Geant4");
