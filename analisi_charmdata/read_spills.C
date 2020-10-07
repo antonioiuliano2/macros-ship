@@ -1,32 +1,38 @@
 
-void read_spill (int runname){
+int sumspills(ROOT::VecOps::RVec<int> valuespills){
     //sum interacting protons and predicted charm for the spills in a selection of runs
-    ROOT::RDataFrame df("spill","charm_spills_predictions.root");
-    //select the run (or runs, i.e. name<20&&name>0 for first configuration)
-    auto df1 = df.Filter(TString::Format("name==%d",runname).Data());
+    int total = 0;
+    for (auto &value:valuespills) total+= value;
+    
+    return total;
+}
 
-    //doing sums (not getting values yet "lazy" operations)
-    auto sumpot = df1.Sum("pot");
-    auto suminteractingpot = df1.Sum("signalpot");
-    auto sumcharm = df1.Sum("primarycharm");
-
-    //actually getting sum results;
-    int npots = sumpot.GetValue();
-    float nintpots = suminteractingpot.GetValue();
-    float ncharms = sumcharm.GetValue();
-    //printing the result;
-    //cout<<TString::Format("On a total of %d pot, estimated %.2e interactions with %.2e charm pairs", npots, nintpots, ncharms)<<endl;
-    cout<<TString::Format("%d, %d, %.2e, %.2e", runname, npots, nintpots, ncharms)<<endl;
+float sumspillsfloat(ROOT::VecOps::RVec<float> valuespills){
+    //sum interacting protons and predicted charm for the spills in a selection of runs
+    float total = 0.;
+    for (auto &value:valuespills) total+= value;
+    
+    return total;
 }
 
 void read_spills(){
 //    ROOT::RDataFrame df("spill","charm_spills_predictions.root");
-    ROOT::VecOps::RVec<int> runs = {11,12,13,14,15,16,21,22,23,24,25,26,31,32,33,41,42,43,51,52,53,61,62,63}; //list of runs
-    cout<<"runname pot signalpot primarycharm"<<endl;
-    for (auto run:runs){
-	 //not a lazy way to do it, but the runs are not too many and I am too tired. To fix it at a later time
-         read_spill(run);	 
-	}
+    ROOT::RDataFrame df("spill","charm_spills_predictions.root");
+    //select the run (or runs, i.e. name<20&&name>0 for first configuration)
+    //doing sums (not getting values yet "lazy" operations)
+    auto df0 = df.Filter("name!=0"); //CH0 test run
+    auto df1 = df0.Define("totpot",sumspills,{"pot"});
+    auto df2 = df1.Define("totinteractingpot",sumspillsfloat,{"signalpot"});
+    auto df3 = df2.Define("totprimarycharm",sumspillsfloat,{"primarycharm"});
+
+    auto display = df3.Display({"name","minute","totpot","totinteractingpot","totprimarycharm"},24);
+    display->Print(); 
+    
+    auto normalizetime = [](int time) { return time -7.; }; //normalize time, so first run has time = 0;
+    auto potruns = df3.Define("normminute",normalizetime,{"minute"}).Graph("normminute","totpot");
+    potruns->SetTitle("Total protons on target vs runtime;runtime (minutes);p.o.t.");
+    potruns->DrawClone("AP*");
+//	}
 }
 
 void compute_spill(){
