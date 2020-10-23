@@ -2,20 +2,24 @@
 //in the b000001 folder, there should be already a folder called 
 //plots with subfolders: thicknesses, link_reports, al_reports
 //TString: class which allows path concatenation. Access the char* object with Data()
-TString run = "CH5-R2";
 
-TString path = "/ship/CHARM2018/" + run +"/b000001/"; 
+int runnumber=1;
+
+TString run = "DE19_R3";
+
+TString path = "/eos/experiment/ship/data/DESY19TB/" + run +"/b000001/"; 
 
 const int firstplate = 1;
-const int lastplate = 57;
+const int lastplate = 29;
 
 void linkreports(){
  TFile *inputfile;
  TCanvas *c;
  for (int i = firstplate; i <= lastplate; i++){
    //opening the file with the reports
-   if (i < 10) inputfile = TFile::Open(Form((path+"p00%i/1.%i.0.0.cp.root").Data(),i,i));
-   else inputfile = TFile::Open(Form((path+"p0%i/1.%i.0.0.cp.root").Data(),i,i));
+   if (i < 10) inputfile = TFile::Open(Form((path+"p00%i/%i.%i.0.0.cp.root").Data(),i,runnumber,i));
+   else if (i < 100) inputfile = TFile::Open(Form((path+"p0%i/%i.%i.0.0.cp.root").Data(),i,runnumber,i));
+   else inputfile = TFile::Open(Form((path+"p%i/%i.%i.0.0.cp.root").Data(),i,runnumber,i));
    if (inputfile){ //check if file is present
      if (inputfile->GetListOfKeys()->Contains("report") ){ //check if histogram is present (i.e. alignment was not interrupted leading to a zombie-like file, even if not seen as zombie)
        c = (TCanvas*) inputfile->Get("report");
@@ -27,7 +31,7 @@ void linkreports(){
        
        //saving many png images for quick view
        c->Draw();
-       c->Print(Form((path+"plots/link_reports/link_p%i.png").Data(),i),"png");  
+       c->Print(Form((path+"plots/linking_reports/link_p%i.png").Data(),i),"png");  
        
        //close the file
      }//end check for key
@@ -58,7 +62,7 @@ void alreports(){
 	c->Print(Form((path+"plots/al_reports/alignment_p%i_p%i.png").Data(),i,i-1),"png");
       }
       inputfile->Close();
-      else cout<<"Warning: report canvas missing for plate "<<i<<endl;
+      //else cout<<"Warning: report canvas missing for plate "<<i<<endl;
     }
     else cout<<"Warning: file missing for plate "<<i<<endl;
   }
@@ -85,7 +89,7 @@ void drawallthicknesses(){
   float thicknesserrortop, thicknesserrorbot, thicknesserrorbase;
   
   float upthmin, upthmax;
-  float bothmin, bothmax;
+  float botthmin, botthmax;
   float basethmin, basethmax;
   
   float threshold = 50.;
@@ -93,22 +97,21 @@ void drawallthicknesses(){
   int ipoint = 0;
 
 for (int i = firstplate; i <= lastplate; i++){
-  /* if (i == 40){
- ipoint = ipoint +1;
- continue;
-}*/
- if (i < 10) TFile *f = TFile::Open(Form((path+"p00%i/1.%i.0.0.raw.root").Data(),i,i));
- else TFile *f = TFile::Open(Form((path+"p0%i/1.%i.0.0.raw.root").Data(),i,i));
+ TFile *f;
+ if (i < 10) f = TFile::Open(Form((path+"p00%i/%i.%i.0.1000.raw.root").Data(),i,runnumber,i));
+ else f = TFile::Open(Form((path+"p0%i/%i.%i.0.1000.raw.root").Data(),i,runnumber,i));
  //executing script from Valeri to draw thickness curves
+ if(!f) continue;
+ if (!f->Get("Views")) continue;
  thickness();
 
- TCanvas *diff = gROOT->FindObject("diff");
+ TCanvas *diff = (TCanvas*) gROOT->FindObject("diff");
  diff->SetName(Form("canvas%d",i));
  TCanvas *thickcanvas = (TCanvas*) diff->GetPrimitive("diff_3");
  //getting the three histograms
- TH1F *hup = thickcanvas->GetPrimitive("up");
- TH1F *hdown = thickcanvas->GetPrimitive("down");
- TH1F *hbase = thickcanvas->GetPrimitive("base");
+ TH1F *hup = (TH1F*) thickcanvas->GetPrimitive("up");
+ TH1F *hdown = (TH1F*) thickcanvas->GetPrimitive("down");
+ TH1F *hbase = (TH1F*) thickcanvas->GetPrimitive("base");
  //removing peak at 0 (i.e. no surface acquired);
  hup->SetBinContent(1,0); 
  hbase->SetBinContent(1,0);
