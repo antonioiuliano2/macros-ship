@@ -18,17 +18,17 @@ ship_geo = ConfigRegistry.loadpy("$FAIRSHIP/geometry/geometry_config.py", Yheigh
 
 #ship_geo.NuTauTarget
 print("Start loop on EmuMagnet parameters")
-for attr, value in ship_geo.EmuMagnet.__dict__.iteritems():
-        print attr, value
+for attr, value in ship_geo.EmuMagnet.__dict__.items():
+        print (attr, value)
 print("Start loop on NuTauTarget parameters")
-for attr, value in ship_geo.NuTauTarget.__dict__.iteritems():
-        print attr, value
+for attr, value in ship_geo.NuTauTarget.__dict__.items():
+        print (attr, value)
 print("Start loop on NuTauTT parameters")
-for attr, value in ship_geo.NuTauTT.__dict__.iteritems():
-        print attr, value
+for attr, value in ship_geo.NuTauTT.__dict__.items():
+        print (attr, value)
 print("Start loop on tauHPT parameters")
-for attr, value in ship_geo.tauHPT.__dict__.iteritems():
-        print attr,value
+for attr, value in ship_geo.tauHPT.__dict__.items():
+        print (attr,value)
 print("Start loop on tauMudet parameters")
-for attr, value in ship_geo.tauMudet.__dict__.iteritems():
-        print attr, value
+for attr, value in ship_geo.tauMudet.__dict__.items():
+        print (attr, value)
