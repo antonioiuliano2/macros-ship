@@ -1,5 +1,7 @@
 EdbPVRec     *gAli=0;
   void draw1D_comparison(TCanvas *c, TH1D * hall, TH1D *h_matched, TH1D *h_notmatched){
+      c->Divide(1,2);
+      c->cd(1);
       hall->Draw();
       hall->SetLineWidth(2);
       h_matched->SetLineColor(kRed);
@@ -8,7 +10,20 @@ EdbPVRec     *gAli=0;
       h_notmatched->SetLineColor(kGreen);
       h_notmatched->SetLineWidth(2);
       h_notmatched->Draw("SAMES");
-      c->BuildLegend();
+      gPad->BuildLegend();
+      c->cd(2);
+      TEfficiency *heff_matched = new TEfficiency(*h_matched, *hall);
+      heff_matched->SetLineColor(kRed);
+      heff_matched->Draw();
+      gPad->Update(); 
+      heff_matched->GetPaintedGraph()->GetYaxis()->SetRangeUser(0,1.1);
+      TEfficiency *heff_notmatched = new TEfficiency(*h_notmatched, *hall);
+      heff_notmatched->SetLineColor(kGreen);
+      heff_notmatched->Draw("SAMES");
+      heff_matched->SetTitle("Ratio of matched tracks");
+      heff_notmatched->SetTitle("Ratio of not matched tracks");
+      gPad->BuildLegend();
+
   }
 
 void matchedtracks(){
@@ -67,9 +82,9 @@ void matchedtracks(){
     TH1D *heff_matched = new TH1D("heff_matched","Efficency for matched tracks;nseg/npl",20,0,1);
     TH1D *heff_notmatched = new TH1D("heff_notmatched","Efficency for not matched tracks;nseg/npl",20,0,1);
     
-    TH1D *hnseg = new TH1D("hnseg","Number of segments",29,0,30);
-    TH1D *hnseg_matched = new TH1D("hnseg_matched","Nseg for matched tracks",29,0,30);
-    TH1D *hnseg_notmatched = new TH1D("hnseg_notmatched","Nseg for not matched tracks",29,0,30);
+    TH1D *hnseg = new TH1D("hnseg","Number of segments",30,0,30);
+    TH1D *hnseg_matched = new TH1D("hnseg_matched","Nseg for matched tracks",30,0,30);
+    TH1D *hnseg_notmatched = new TH1D("hnseg_notmatched","Nseg for not matched tracks",30,0,30);
 
     TH1D *htheta = new TH1D("htheta","Theta angle of last segment;#theta[rad]", 44,0,0.22);
     TH1D *htheta_matched = new TH1D("htheta_matched","Theta for matched tracks;#theta[rad]", 44,0,0.22);
@@ -78,6 +93,10 @@ void matchedtracks(){
     TH1D *hphi = new TH1D("hphi","Phi angle of last segment;#phi[rad]", 140,-3.5,3.5);
     TH1D *hphi_matched = new TH1D("hphi_matched","Phi for matched tracks;#phi[rad]", 140,-3.5,3.5);
     TH1D *hphi_notmatched = new TH1D("hphi_notmatched","Phi for not matched tracks;#phi[rad]",140,-3.5,3.5);
+
+    TH1D *hstartz = new TH1D("hstartz","Z position of first segment;z[#mum]", 72,-36000,0);
+    TH1D *hstartz_matched = new TH1D("hstartz_matched","Z position of first segment for matched tracks;z[#mum]", 72,-36000,0);
+    TH1D *hstartz_notmatched = new TH1D("hstartz_notmatched ","Z position of first segment for not matched tracks;z[#mum]",72,-36000,0);
     
 
     //**********************************************START LOOP*****************************************************
@@ -88,6 +107,7 @@ void matchedtracks(){
         tracksreader.SetEntry(itrk);
 
         EdbSegP lastsegment = segments[*nseg -1];
+        EdbSegP firstsegment = segments[0];
     
         if (lastsegment.PID() != 0 || indecestree->GetEntryNumberWithIndex(itrk) < 0) continue; //we want tracks ending in the brick
         if (TMath::Abs(lastsegment.TX()+txoffset) > maxtx || TMath::Abs(lastsegment.TY()+tyoffset) > maxty) continue;
@@ -101,6 +121,7 @@ void matchedtracks(){
         heff->Fill(eff);
         htheta->Fill(TMath::ATan(TMath::Sqrt(pow(lastsegment.TX()+txoffset,2)+pow(lastsegment.TY()+tyoffset,2))));
         hphi->Fill(TMath::ATan2(lastsegment.TY()+tyoffset,lastsegment.TX()+txoffset));
+        hstartz->Fill(firstsegment.Z());
 
         //look in all files if track was matched
         ismatched = false;
@@ -115,6 +136,7 @@ void matchedtracks(){
             heff_matched->Fill(eff);
             htheta_matched->Fill(TMath::ATan(TMath::Sqrt(pow(lastsegment.TX()+txoffset,2)+pow(lastsegment.TY()+tyoffset,2))));
             hphi_matched->Fill(TMath::ATan2(lastsegment.TY()+tyoffset,lastsegment.TX()+txoffset));
+            hstartz_matched->Fill(firstsegment.Z());
         
         }
 
@@ -125,6 +147,7 @@ void matchedtracks(){
             heff_notmatched->Fill(eff);
             htheta_notmatched->Fill(TMath::ATan(TMath::Sqrt(pow(lastsegment.TX()+txoffset,2)+pow(lastsegment.TY()+tyoffset,2))));
             hphi_notmatched->Fill(TMath::ATan2(lastsegment.TY()+tyoffset,lastsegment.TX()+txoffset));
+            hstartz_notmatched->Fill(firstsegment.Z());
         }
 
 
@@ -148,6 +171,9 @@ void matchedtracks(){
 
   TCanvas *cphi = new TCanvas();
   draw1D_comparison(cphi, hphi, hphi_matched, hphi_notmatched);
+
+  TCanvas *cstartz = new TCanvas();
+  draw1D_comparison(cstartz, hstartz, hstartz_matched, hstartz_notmatched);
 
   //2D histograms
 
