@@ -12,6 +12,28 @@ TString path = "/eos/experiment/ship/data/DESY19TB/" + run +"/b000001/";
 const int firstplate = 1;
 const int lastplate = 29;
 
+void couplesecography(){
+ //check for quality of couples for alignment, as suggested by Dario
+ for (int iplate = firstplate; iplate <= lastplate; iplate++){
+
+  TFile *inputfile;
+  TTree *couples;
+
+  if (iplate < 10) inputfile = TFile::Open(Form((path+"p00%i/1.%i.0.0.cp.root").Data(),iplate,iplate));
+  else inputfile = TFile::Open(Form((path+"p0%i/1.%i.0.0.cp.root").Data(),iplate,iplate));
+
+  if(inputfile){
+   if (inputfile->Get("couples")){
+    couples = (TTree*) inputfile->Get("couples");
+
+    TCanvas *c = new TCanvas();
+    couples->Draw("s.eY:s.eX","eCHI2P<2.0&&s.eW>10&&eN1==1&&eN2==1");
+    c->Print(Form((path+"plots/goodcouples/goodcp_p%i.png").Data(),iplate),"png");
+   }
+  }
+ }//end loop on files
+}
+
 void linkreports(){
  TFile *inputfile;
  TCanvas *c;
