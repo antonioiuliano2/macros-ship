@@ -1,12 +1,14 @@
-void gettracks_goodvertices(){
+void gettracks_goodvertices(int quarter){
  //requirements for a 'good vertex'
- int min_ntracks = 6;
- float min_bdtvalue = 0.15;
- int quarter = 2; //which quarter files I am reading
+ //int min_ntracks = 6;
+ //float min_bdtvalue = 0.15;
+ const float maxbdtratio = 0.05; // (1-bdt)/ntracks < maxbdtratio 
+ 
+ TString quarterfolders[4] = {"firstquarter","secondquarter","thirdquarter","fourthquarter"};
 
  //opening file and getting trees
- TFile *vertexfile = TFile::Open("secondquarter/vertextree_secondquarter.root");
- TFile *bdtfile = TFile::Open("secondquarter/vtx_BDT_data_evaluated_2nd.root");
+ TFile *vertexfile = TFile::Open((quarterfolders[quarter-1]+"/vertextree_"+quarterfolders[quarter-1]+".root").Data());
+ TFile *bdtfile = TFile::Open("BDT_eval/vtx_BDT_evaluated_DATA_CH2R4.root");
  
  //setting bdt tree
  TTree *bdttree = (TTree*) bdtfile->Get("bdt");
@@ -25,8 +27,8 @@ void gettracks_goodvertices(){
  TTreeReaderArray<int> incoming(vtxreader,"incoming"); //0 if track ends at vertex, 1 if track starts at vertex
  
  //filling a tree with ids of good tracks
- TFile *outputfile = new TFile("indexestracks_goodvertices.root","UPDATE");
- TTree *outputtree = new TTree(Form("goodtrks_%i",quarter),Form("Tracks belonging to good vertices from quarter_%i",quarter));
+ TFile *outputfile = new TFile(Form("indexestracks_goodvertices_%i.root",quarter),"NEW");
+ TTree *outputtree = new TTree("goodtrks","Tracks belonging to good vertices");
 
  int trackID, nseg;
  int vtx_ID, vtx_ntrks;
@@ -41,18 +43,21 @@ void gettracks_goodvertices(){
  outputtree->Branch("vtx_bdt_value",&bdtvalue,"vtx_bdt_value/F");
 
  const int nentries = vtxreader.GetEntries();
+ cout<<"Starting loop over vertices "<<nentries<<endl;
  for (int ivtx = 0; ivtx < nentries; ivtx++){
      //getting entry for that vertex
+     if (ivtx%10000 == 0) cout<<" arrived at vertex "<<ivtx<<endl;
      vtxreader.SetEntry(ivtx);     
      vtx_ID = *vID;
      vtx_ntrks = *ntracks;
 
      //getting bdt value
-     bdt_entrynumber = bdttree->GetEntryNumberWithIndex(vtx_ID);
+     int bdt_entrynumber = bdttree->GetEntryNumberWithIndex(vtx_ID);
      if (bdt_entrynumber <0) continue;
      bdttree->GetEntry(bdt_entrynumber);
      //applying condition to select good vertex
-     if (vtx_ntrks >= min_ntracks && bdtvalue > min_bdtvalue){
+     float bdtratio = (1 - bdtvalue)/vtx_ntrks;
+     if (bdtratio < maxbdtratio){
          //looping over all tracks and saving tracks starting at that vertex
          for (int itrk=0; itrk < vtx_ntrks; itrk++){
             if (incoming[itrk]==1){

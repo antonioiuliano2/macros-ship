@@ -184,3 +184,105 @@ void matchedtracks(){
   cxy->cd(2);
   hxy_matched->Draw("COLZ");
 }
+
+//checking tracks candidates for matching without the matching
+void checkgoodtracks(){
+    TFile *indecesfile = TFile::Open("indexestracks_goodvertices.root");
+    TTree *indecestree = (TTree*) indecesfile->Get("goodtrks");
+    indecestree->BuildIndex("trid");
+
+    //cuts
+    const int maxnseg = 28;
+    const float txoffset = 0.00215;
+    const float tyoffset = -0.00464;
+    double maxtx = 0.150;
+    double maxty = 0.150;
+    
+    int nlast = 0;
+    
+    //reading tracks from linked_tracks.root file
+    TFile *tracksfile = TFile::Open("linked_tracks.root");
+    TTreeReader tracksreader("tracks",tracksfile);
+
+    int ntracks = tracksreader.GetEntries();
+    cout<<"Starting loop on "<<ntracks<<" tracks"<<endl;
+
+    TTreeReaderValue<int> npl(tracksreader, "npl");
+    TTreeReaderValue<int> nseg(tracksreader, "nseg");
+    TTreeReaderArray<EdbSegP> segments(tracksreader, "s");
+   
+    //*********************************************list of histograms************************************************/ 
+    TH2D *hxy = new TH2D("hxy","xy of last segment;x[#mu m];y[#mu m]",120,0,120000,100,0,100000);
+    TH1D *hx = new TH1D("hx","x of last segment;x[#mu m]",120,0,120000);
+    TH1D *hy = new TH1D("hy","y of last segment;y[#mu m]",120,0,120000);
+    TH1D *hxall = new TH1D("hxall","x of last segment all;x[#mu m]",120,0,120000);
+    TH1D *hyall = new TH1D("hyall","y of last segment all;y[#mu m]",100,0,100000);
+    
+    TH1D *heff = new TH1D("heff","Efficiency;nseg/npl",20,0,1);
+    
+    TH1D *hnseg = new TH1D("hnseg","Number of segments",29,0,30);
+
+    TH1D *htheta = new TH1D("htheta","Theta angle of last segment;#theta[rad]", 44,0,0.22);
+
+    TH1D *hphi = new TH1D("hphi","Phi angle of last segment;#phi[rad]", 140,-3.5,3.5);
+ 
+    //**********************************************START LOOP*****************************************************
+    for (int itrk = 0; itrk < ntracks;itrk++){
+       
+        //if (itrk%10000 == 0) cout<<"Arrived at track "<<itrk<<endl;
+        //indecestree->GetEntry(itrk);
+        tracksreader.SetEntry(itrk);
+
+        EdbSegP lastsegment = segments[*nseg -1];
+        //if (lastsegment.PID()==0) cout<<lastsegment.PID()<<endl;
+        if(indecestree->GetEntryNumberWithIndex(itrk) >= 0){
+         hxall->Fill(lastsegment.X());
+         hyall->Fill(lastsegment.Y());
+        } 
+        if (lastsegment.PID() > 1 || indecestree->GetEntryNumberWithIndex(itrk) < 0) continue; //we want tracks ending in the brick
+        //cout<<"TEST0"<<endl;
+        if (TMath::Abs(lastsegment.TX()+txoffset) > maxtx || TMath::Abs(lastsegment.TY()+tyoffset) > maxty) continue;
+        //cout<<"TEST"<<endl;
+        if (*nseg > maxnseg) continue;
+
+        nlast++;
+        double eff= (double) *nseg / *npl;
+        hx->Fill(lastsegment.X());
+        hy->Fill(lastsegment.Y());
+        hxy->Fill(lastsegment.X(),lastsegment.Y());
+        hnseg->Fill(*nseg);
+        heff->Fill(eff);
+        htheta->Fill(TMath::ATan(TMath::Sqrt(pow(lastsegment.TX()+txoffset,2)+pow(lastsegment.TY()+tyoffset,2))));
+        hphi->Fill(TMath::ATan2(lastsegment.TY()+tyoffset,lastsegment.TX()+txoffset));
+
+    }
+
+  cout<<"Total: "<<nlast<<endl;
+
+  //**********************************DRAWING HISTOGRAMS**********************************//
+  //1D histograms
+
+  TCanvas *cnseg = new TCanvas();
+  hnseg->Draw();
+
+  TCanvas *ceff = new TCanvas();
+  heff->Draw();
+
+  TCanvas *ctheta = new TCanvas();
+  htheta->Draw();
+
+  TCanvas *cphi = new TCanvas();
+  hphi->Draw();
+
+  TCanvas *cxyall = new TCanvas();
+  cxyall->Divide(1,2);
+  cxyall->cd(1);
+  hx->Draw();
+  cxyall->cd(2);
+  hy->Draw();
+
+  //2D histograms
+
+  TCanvas *cxy = new TCanvas();
+  hxy->Draw("COLZ");
+}
