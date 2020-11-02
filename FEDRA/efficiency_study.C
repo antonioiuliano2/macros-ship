@@ -44,6 +44,107 @@ void check(){ //quick efficiency check, as in check_tr
  
 }
 
+void nseg_thetacheck(){
+ TFile * inputfile = TFile::Open("linked_tracks.root");
+ TTree * tracks = (TTree*) gFile->Get("tracks");
+ 
+ TCut trcut = "s[0].Plate()<3";
+ //plotting nseg
+ TCanvas *c1 = new TCanvas();
+ tracks->Draw("nseg>>hnseg(30,0,30)",trcut);
+ TH1D *hnseg = (TH1D*) gDirectory->Get("hnseg");
+ hnseg->SetTitle("Number of segments;nseg");
+ 
+ TCanvas*c2 = new TCanvas();
+ tracks->Draw("s[0].Theta()>>htheta(100,0.,1.)",trcut);
+ TH1D *htheta = (TH1D*) gDirectory->Get("htheta");
+ htheta->SetTitle("First base-track angle;#theta[rad]");
+}
+
+
+int * getpotspills(int runname){
+  static int potsinglespills[10];
+ //get pot from spill tree
+  TFile *spill = TFile::Open("/eos/experiment/ship/data/charmxsec/bookkeeping/charm_spills.root");
+  TTree *tree = (TTree*) spill->Get("spill");
+  
+  tree->SetBranchAddress("pot",&potsinglespills);
+  tree->BuildIndex("name");
+  //getting entry and pots
+  tree->GetEntryWithIndex(runname);
+
+  return potsinglespills;  
+}
+
+void countprotons(){
+ //TCut trcut = "t.eFlag>=0  &&t.eProb>0.01";
+ TCut trcut = "s[0].Plate()<3 && s[0].Theta()<0.1 &&nseg>= 5";
+ const int nspills = 10;
+ int runname = 15;
+ const int nfilms = 29;
+
+ int *potspills = getpotspills(runname);
+
+ //10 spills are difficult to separe, let us group them 2 by 2
+/* if (nspills == 10){ 
+  potspills[0] = potspills[0] + potspills[1];
+  potspills[1] = potspills[2] + potspills[3];
+  potspills[2] = potspills[4] + potspills[5];
+  potspills[3] = potspills[6] + potspills[6];
+  potspills[4] = potspills[8] + potspills[9];
+  potspills[5] = 0;
+  potspills[6] = 0;
+  potspills[7] = 0;
+  potspills[8] = 0;
+  potspills[9] = 0;
+ }*/
+ 
+ const int nlines = 10;// float maxyspills[nspills+1] = {0.,10.,20.,30.,40.,50.,60.,70.,80.,90.,100.};
+ 
+// float maxyspills[nlines+1] = {0.,15.,35.,55.,75.,95.};
+ float maxyspills[nlines+1] = {0.,10.,20.,30.,40.,50.,60.,70.,80.,90.,100.};
+
+// int protons[nlines] = {0,0,0,0,0};
+ int protons[nlines] = {0,0,0,0,0,0,0,0,0,0};
+
+ TH2D *hxy = new TH2D("hxy", "2D position of tracks;x[mm];y[mm]",120,0,120,100,0,100);
+
+ //reading tracks from linked_tracks.root file
+ EdbDataProc *dproc = new EdbDataProc();
+ dproc->InitVolume(100, trcut); //100 is the code for track reading (as from fedra/src/libEIO/EdbDataSet.cxx)
+ gAli = dproc->PVR();
+ const int ntracks = gAli->eTracks->GetEntries();
+ printf("ntracks after cut = %d\n", ntracks);
+
+ //begin track loop
+ EdbTrackP *trk = NULL;
+ EdbSegP *seg = NULL;
+
+ for (int itrk = 0; itrk <ntracks; itrk++){
+  trk = (EdbTrackP*)(gAli->eTracks->At(itrk)); //accessing track object
+  seg = trk->GetSegmentFirst();
+  
+  float xseg = seg->X()*1e-3;
+  float yseg = seg->Y()*1e-3;
+
+  hxy->Fill(xseg, yseg);
+  //which spell does belong to?
+  for (int ispill = 0; ispill < nlines; ispill++){
+   if(yseg > maxyspills[ispill] && yseg < maxyspills[ispill+1]) protons[ispill]++;
+  }
+ }//end track loop 
+ TCanvas *cxy = new TCanvas();
+ hxy->Draw("COLZ");
+ for (int ispill = 0; ispill < nlines; ispill++){
+  TLine *sepline = new TLine(0,maxyspills[ispill+1],120,maxyspills[ispill+1]);
+  sepline->SetLineColor(kRed);
+  sepline->SetLineStyle(2);
+  sepline->SetLineWidth(2);
+  sepline->Draw("SAME");
+  cout<<"Numer of protons per spill "<<ispill+1<<" is "<<potspills[ispill]<<" found "<<protons[ispill]<<" percentage: "<<(float) protons[ispill]/potspills[ispill]<<endl;
+ }
+}
+
 void efficiency_study(){ //efficiency estimation, as used in OPERA paper
 
  //TCut trcut = "t.eFlag>=0  &&t.eProb>0.01";

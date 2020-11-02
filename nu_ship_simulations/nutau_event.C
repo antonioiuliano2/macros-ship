@@ -9,6 +9,7 @@ bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &
 bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates);
 bool TauDecay(int trackID, int tauid, const ShipMCTrack &track,vector<int> &daughters, vector<int> &visibledaughters, TVector3 Vn, double tautx, double tauty, double& taudecaylength);
 
+void smearing (double &Xpos, double &Ypos, double spaceres);
 //GLOBAL VARIABLES AND HISTOGRAMS
  //*********DEFINITION OF HISTOGRAMS*********************//
  TH1I *hnfilmtau = new TH1I("hnfilmtau","Number of emulsion films passed by a tau lepton;Nfilms",15,0,15);
@@ -17,6 +18,9 @@ bool TauDecay(int trackID, int tauid, const ShipMCTrack &track,vector<int> &daug
 
  TH2D *hvxy = new TH2D("hvxy","Transverse position of vertices",80,-40,40,80,-40,40);
  TH1D *hvz =  new TH1D("hvz","Transverse position of vertices",300,-3300,-3000);
+ 
+ TH1I *hdaughters = new TH1I("hdaughters","Number of daughters per decay", 5, 0,5);
+ TH1I *hvisibledaughters = new TH1I("hvisibledaughters","Number of visible daughters per decay", 5, 0,5);
 
  TH1D *hdl = new TH1D("hdl","Tau Decay length;dl[mm]",300,0,30);
  TH1D *hkink = new TH1D("hkink","Kink angle;#Theta[rad]",50,0,0.5);
@@ -33,7 +37,8 @@ bool TauDecay(int trackID, int tauid, const ShipMCTrack &track,vector<int> &daug
  TH1D *helectron_NPlate = new TH1D("helectron_NPlate","Number of plate where the electron is produced;Nplate",57,1,58);
  
  TH1D *hxsagitta = new TH1D("hxsagitta","Sagitta in the xzplane;sxz[cm]",20,-0.1,0.1);
- TH1D *hysagitta = new TH1D("hysagitta","Sagitta in the yzplane;syz[cm]",30,-30,30);
+ TH1D *hysagitta_positive = new TH1D("hysagitta_positive","Sagitta for positive particles;syz[cm]",30,-30,30);
+ TH1D *hysagitta_negative = new TH1D("hysagitta_negative","Sagitta for negative particles;syz[cm]",30,-30,30);
  
  //**VARIABLES***//
 
@@ -49,9 +54,12 @@ void nutau_event(){
  if (tausim) signalpdgs = {15}; //tau lepton
  else signalpdgs = {411, 431, 41222, 421, 4132, 4232, 4332, 441};
  //getting tree and defining arrays
- TFile *file = TFile::Open("ship.conical.Genie-TGeant4.root"); 
+ TChain treechain("cbmsim"); //I add a sim of tau and antitaus
+ treechain.Add("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/nutau2020/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
+ treechain.Add("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/nutau2020/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
+ 
  //if (!file) return;
- TTreeReader reader("cbmsim",file);
+ TTreeReader reader(&treechain);
 
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
  TTreeReaderArray<TargetPoint> targetpoints(reader,"TargetPoint");
@@ -62,10 +70,10 @@ void nutau_event(){
  double energy, mass;
 
  TGeoManager * tgeom = new TGeoManager("Geometry", "Geane geometry");
- tgeom->Import("geofile_full.conical.Genie-TGeant4.root");
+ tgeom->Import("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/nutau2020/tauneutrino_19June2020/geofile_full.conical.Genie-TGeant4.root");
 
-// const int nentries = 10000; //test with fewer entries
- const int nentries = reader.GetEntries();
+ //const int nentries = 10000; //test with fewer entries
+ const int nentries = reader.GetEntries(true);
  cout<<"Number of events"<<nentries<<endl;
 
  const int Nminplates = 4;
@@ -97,8 +105,9 @@ void nutau_event(){
 
  //DT spectrometer sagitta check
  const int nstations = 5;
- double XDT_daughter[nstations],YDT_daughter[nstations],ZDT_daughter[nstations]; 
-
+ const int maxndaughters = 5;
+ double XDT_daughter[maxndaughters][nstations],YDT_daughter[maxndaughters][nstations],ZDT_daughter[maxndaughters][nstations]; 
+ const double DTspaceres = 50 * 1e-4; //50 micron in cm
  //muon rpc check
  bool muoninfirstrpc;
 
@@ -169,6 +178,8 @@ void nutau_event(){
          TauDecay(itrack, tauid, track, daughters, visibledaughters, Vn, tautx, tauty, taudecaylength);
          itrack++;
      } //end of track loop
+     hdaughters->Fill(daughters.size());
+     hvisibledaughters->Fill(visibledaughters.size());
      //decay channel identification
      whichchannel = DecayChannel(daughters,tracks);
      //else whichchannel = 3;
@@ -210,11 +221,13 @@ void nutau_event(){
      }
 
      //****************************look for tau decay daughters in downstream trackers***//
-     //resetting index
-     for (int index = 0; index < nstations; index++){
-      XDT_daughter[index] = 100000.;
-      YDT_daughter[index] = 100000.;
-      ZDT_daughter[index] = 100000.;
+     //resetting indeces to be filled with daughters positions in DT stations
+     for (int idaughter = 0; idaughter < visibledaughters.size(); idaughter++){
+      for (int index = 0; index < nstations; index++){
+       XDT_daughter[idaughter][index] = 100000.;
+       YDT_daughter[idaughter][index] = 100000.;
+       ZDT_daughter[idaughter][index] = 100000.;
+      }
      }
      //starting loop
      for (const HptPoint& dtpoint: dtpoints){
@@ -222,21 +235,29 @@ void nutau_event(){
         detID = dtpoint.GetDetectorID();
         
         int istation = detID/1000;
-        //check if track is from tau decay
-        if (trackID == visibledaughters[0]){
-          XDT_daughter[istation-1] = dtpoint.GetX();
-          YDT_daughter[istation-1] = dtpoint.GetY();
-          ZDT_daughter[istation-1] = dtpoint.GetZ();
+        //check if track is a daughter from tau decay
+        for (int idaughter = 0; idaughter < visibledaughters.size(); idaughter++){
+          if (trackID == visibledaughters[idaughter]){
+          XDT_daughter[idaughter][istation-1] = dtpoint.GetX();
+          YDT_daughter[idaughter][istation-1] = dtpoint.GetY();
+          ZDT_daughter[idaughter][istation-1] = dtpoint.GetZ();
+          
+          smearing(XDT_daughter[idaughter][istation-1], YDT_daughter[idaughter][istation-1], DTspaceres);
+          }
          }
         
         }
         
      //computing sagitta
-     if (ZDT_daughter[4] < 100000. && whichchannel == 1){
-      double ysagitta = ((YDT_daughter[0] + YDT_daughter[4])/2.) - YDT_daughter[2];
-      double xsagitta = ((XDT_daughter[0] + XDT_daughter[4])/2.) - XDT_daughter[2];
-      hxsagitta->Fill(xsagitta);
-      hysagitta->Fill(ysagitta);      
+     for (int idaughter = 0; idaughter < visibledaughters.size(); idaughter++){
+      double particlecharge = pdg->GetParticle(tracks[visibledaughters[idaughter]].GetPdgCode())->Charge();
+      if (ZDT_daughter[idaughter][4] < 100000. && ZDT_daughter[idaughter][2] < 100000. && ZDT_daughter[idaughter][0] < 100000.){
+       double ysagitta = ((YDT_daughter[idaughter][0] + YDT_daughter[idaughter][4])/2.) - YDT_daughter[idaughter][2];
+       double xsagitta = ((XDT_daughter[idaughter][0] + XDT_daughter[idaughter][4])/2.) - XDT_daughter[idaughter][2];
+       hxsagitta->Fill(xsagitta);
+       if (particlecharge > 0.) hysagitta_positive->Fill(ysagitta);
+       else hysagitta_negative->Fill(ysagitta);      
+      }
      }
 
      if (whichchannel == 1){ //only for muon channel,
@@ -289,6 +310,12 @@ void nutau_event(){
  TCanvas *cchannel = new TCanvas();
  hchannel->Draw();
 
+ TCanvas *cndaughters = new TCanvas();
+ hdaughters->Draw();
+ hvisibledaughters->SetLineColor(kRed);
+ hvisibledaughters->Draw("SAMES");
+ cndaughters->BuildLegend();
+
  TCanvas *cdecay = new TCanvas();
  cdecay->Divide(2,1);
  cdecay->cd(1);
@@ -322,7 +349,10 @@ void nutau_event(){
  hxsagitta->Draw();
  hxsagitta->Fit("gaus");
  csagitta->cd(2);
- hysagitta->Draw();
+ hysagitta_negative->Draw();
+ hysagitta_positive->SetLineColor(kRed);
+ hysagitta_positive->Draw("SAMES");
+ gPad->BuildLegend();
 }
 
 
@@ -490,4 +520,13 @@ int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks){
      }
      return 0;
 
+}
+
+
+void smearing (double &Xpos, double &Ypos, double spaceres){
+ float deltaX = gRandom->Gaus(0,spaceres); //angular resolution, adding a gaussian offset to TX and TY
+ float deltaY = gRandom->Gaus(0,spaceres);
+ //cout<<TX<<endl;
+ Xpos = Xpos + deltaX;
+ Ypos = Ypos + deltaY;
 }

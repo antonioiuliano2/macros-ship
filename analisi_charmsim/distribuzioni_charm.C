@@ -267,3 +267,89 @@ bool isintermediate(Int_t PdgCode){
   return check;
   }
 //lista intermedi: omega, sigma+(-), sigma*, eta', eta, a1,pho+-,pho0, K*+-, delta++, sigma0
+
+void plotdistributions(){
+ //reading charmdecays tree produced at previous step to produce nice distributions
+ TFile *charmfile = TFile::Open("alldistributions_mctrue_withdaughters.root");
+ TTree *charmdecays = (TTree*) charmfile->Get("charmdecays");
+
+ RVec<int> charmpdglist = {421,411,431,4122,4232,4132,4332};
+ RVec<int> charmcolors = {kBlack, kRed, kBlue, kYellow, kMagenta, kCyan, kGreen};
+ RVec<TString> charmpdgnamelist = {"D0","D#pm","Ds#pm","Lambdac#pm","Sigma_c^#pm","Sigma_c^0","Omega_c^0"};
+
+ if ((charmcolors.size() != charmpdglist.size()) || (charmpdgnamelist.size() != charmpdglist.size())) cout<<"Warning: sizes of RVecs not matching, please check!"<<endl;
+ 
+ map<int,int> charmpdgbin; //for histogram of charm variety
+ map<int, TH1D*> charmmomentum; //for charm spectrum histogram
+ map<int, TH1D*> charmdl; //decay length for each pdg
+ 
+ TH1I *hpdg = new TH1I ("hpdg", "Produced charmed hadron pdg; Particle name", 7,0,7);
+ TH1D *hdl = new TH1D ("hdl","Flight length of charmed hadrons;dl[mm]",100,0,100);
+
+ //defining histograms
+ for (int icharm = 0; icharm < charmpdglist.size(); icharm++){
+  int charmpdg = charmpdglist[icharm];
+
+  charmmomentum[charmpdg] = new TH1D(TString::Format("hp%i",charmpdg), (charmpdgnamelist[icharm]+TString(";GeV/c")).Data(), 40,0,400);
+  charmdl[charmpdg] = new TH1D(TString::Format("hdl%i",charmpdg), (charmpdgnamelist[icharm]+TString(";dl[mm]")).Data(), 100,0,100);
+
+  charmpdgbin[charmpdg] = icharm;
+  hpdg->GetXaxis()->SetBinLabel(icharm+1,charmpdgnamelist[icharm].Data());
+ }
+ 
+ const int npairs = charmdecays->GetEntries();
+ const int ncharms = 2;
+ //defining variables and setting addresses
+ int pdg[ncharms];
+ double dx[ncharms], dy[ncharms], dz[ncharms];
+ double px[ncharms], py[ncharms], pz[ncharms];
+ 
+ charmdecays->SetBranchAddress("pdgcode",&pdg);
+ charmdecays->SetBranchAddress("dx",&dx);
+ charmdecays->SetBranchAddress("dy",&dy);
+ charmdecays->SetBranchAddress("dz",&dz);
+ charmdecays->SetBranchAddress("px",&px);
+ charmdecays->SetBranchAddress("py",&py);
+ charmdecays->SetBranchAddress("pz",&pz);
+
+
+ 
+ for (int ientry = 0; ientry < npairs; ientry++){ //all events in the tree
+  charmdecays->GetEntry(ientry);
+  for (int icharm = 0; icharm < ncharms; icharm++){ //2 charms for event
+
+   hpdg->Fill(charmpdgbin[TMath::Abs(pdg[icharm])]);
+   hdl->Fill(TMath::Sqrt(pow(dx[icharm],2)+ pow(dy[icharm],2) + pow(dz[icharm],2))*10.);
+
+   charmdl[TMath::Abs(pdg[icharm])]->Fill(TMath::Sqrt(pow(dx[icharm],2)+ pow(dy[icharm],2) + pow(dz[icharm],2))*10.);
+   charmmomentum[TMath::Abs(pdg[icharm])]->Fill(TMath::Sqrt(pow(px[icharm],2)+ pow(py[icharm],2) + pow(pz[icharm],2)));
+  }
+ }
+ TCanvas *cpdg = new TCanvas();
+ hpdg->Draw();
+ TCanvas *cdl = new TCanvas();
+ hdl->Draw();
+
+ TCanvas *cspectrum = new TCanvas();
+ for (int icharm = 0; icharm < charmpdglist.size(); icharm++){
+  int charmpdg = charmpdglist[icharm];
+  charmmomentum[charmpdg]->SetLineColor(charmcolors[icharm]);
+ 
+  if (icharm == 0) charmmomentum[charmpdg]->Draw();
+  else charmmomentum[charmpdg]->Draw("SAME");
+ 
+ }
+ cspectrum->BuildLegend();
+ 
+ TCanvas *cdlpdg = new TCanvas();
+ for (int icharm = 0; icharm < charmpdglist.size(); icharm++){
+  int charmpdg = charmpdglist[icharm];
+  charmdl[charmpdg]->SetLineColor(charmcolors[icharm]);
+ 
+  if (icharm == 0) charmdl[charmpdg]->Draw();
+  else charmdl[charmpdg]->Draw("SAME");
+ 
+ }
+ cdlpdg->BuildLegend();
+
+}
