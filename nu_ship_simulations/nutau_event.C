@@ -3,13 +3,14 @@
 TVector3 NeutrinoVertexCoordinates(const ShipMCTrack &track);
 Bool_t FindBrick(Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow, Int_t &NColumn, Int_t &NPlate);
 
-int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks);
+int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks, int nnue, int nnumu, int ievent);
 
 bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primaryvisible, ROOT::RVec<int> signalpdgs);
 bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates);
-bool TauDecay(int trackID, int tauid, const ShipMCTrack &track,vector<int> &daughters, vector<int> &visibledaughters, TVector3 Vn, double tautx, double tauty, double& taudecaylength);
+bool TauDecay(int trackID, int tauid, const ShipMCTrack &track, TVector3 Vn, double tautx, double tauty, double& taudecaylength);
 
 void smearing (double &Xpos, double &Ypos, double spaceres);
+vector<double> eff_formula(int found, int total);
 //GLOBAL VARIABLES AND HISTOGRAMS
  //*********DEFINITION OF HISTOGRAMS*********************//
  TH1I *hnfilmtau = new TH1I("hnfilmtau","Number of emulsion films passed by a tau lepton;Nfilms",15,0,15);
@@ -52,11 +53,11 @@ void nutau_event(){
  bool tausim = true;
  ROOT::RVec<int> signalpdgs; //particles I want to study the decay
  if (tausim) signalpdgs = {15}; //tau lepton
- else signalpdgs = {411, 431, 41222, 421, 4132, 4232, 4332, 441};
+ else signalpdgs = {411, 431, 4122, 421, 4132, 4232, 4332, 441}; //adding 4122 makes program crash
  //getting tree and defining arrays
  TChain treechain("cbmsim"); //I add a sim of tau and antitaus
- treechain.Add("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/nutau2020/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
- treechain.Add("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/nutau2020/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
+ treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
+ treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
  
  //if (!file) return;
  TTreeReader reader(&treechain);
@@ -70,7 +71,7 @@ void nutau_event(){
  double energy, mass;
 
  TGeoManager * tgeom = new TGeoManager("Geometry", "Geane geometry");
- tgeom->Import("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/nutau2020/tauneutrino_19June2020/geofile_full.conical.Genie-TGeant4.root");
+ tgeom->Import("/home/utente/Simulations/tauneutrino_19June2020/geofile_full.conical.Genie-TGeant4.root");
 
  //const int nentries = 10000; //test with fewer entries
  const int nentries = reader.GetEntries(true);
@@ -95,6 +96,8 @@ void nutau_event(){
  vector<int> daughters;
  vector<int> visibledaughters;
 
+ int nnue, nnumu;
+
  //counters for decay channel
  int whichchannel;
 
@@ -112,11 +115,14 @@ void nutau_event(){
  bool muoninfirstrpc;
 
  //***********************************START OF MAIN LOOP*************************//
- for(int ientry = 0;ientry<nentries;ientry++){
+ for(int ientry = 0;ientry<nentries;ientry++){    
      //resetting counters
      isgeometrical = false;
      islocated = false;
      decaysearch = false;
+
+     nnue = 0;
+     nnumu = 0;
 
      //ntauhits = 0;
      //clearing list of tracks of interest
@@ -151,14 +157,18 @@ void nutau_event(){
      //******************access the array of tracks
      itrack = 0;
      tauid = -1;
-     for (const ShipMCTrack& track: tracks){         
+     for (const ShipMCTrack& track: tracks){        
+         int pdgcode = track.GetPdgCode();
+         double charge = 0.;
+         if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge();
+
          double tx = track.GetPx()/track.GetPz();
          double ty = track.GetPy()/track.GetPz();
          double tantheta = TMath::Sqrt(tx * tx + ty * ty);
 
          double tautx, tauty, taup, taupt;
-         int signalparticle = signalpdgs[signalpdgs==TMath::Abs(track.GetPdgCode())].size();
-         if ( signalparticle > 0 && track.GetMotherId()==0 && tauid < 0){
+         int signalparticle = signalpdgs[signalpdgs==TMath::Abs(pdgcode)].size();
+         if ( signalparticle > 0 && track.GetMotherId()==0 && tauid < 0){           
            tauid = itrack;
            taup = track.GetP();
            taupt = track.GetPt();
@@ -167,21 +177,34 @@ void nutau_event(){
            //filling histograms about tau lepton
            htauppt->Fill(track.GetP(), track.GetPt());
            //computing gamma factor E/m
-           energy = track.GetEnergy();
-           mass = pdg->GetParticle(track.GetPdgCode())->Mass();
-           htaugamma->Fill(energy/mass);
+           energy = track.GetEnergy();           
+           mass = pdg->GetParticle(pdgcode)->Mass();
+           htaugamma->Fill(energy/mass);           
          }
-         
+         if (ientry == 975) cout<<"Start of vertex function for event "<<ientry<<" track "<<itrack<<endl;
          //look for charged particles from primary vertex
          NeutrinoVertexLocation(itrack, track, primaryvisible, signalpdgs);
          //look for charged tracks from tau decay lengths
-         TauDecay(itrack, tauid, track, daughters, visibledaughters, Vn, tautx, tauty, taudecaylength);
-         itrack++;
+         if (ientry == 975) cout<<"Start tau decay  function for event "<<ientry<<" track "<<itrack<<endl;
+
+         if(track.GetMotherId()==tauid && TMath::Abs(charge)==0){ //counting neutrinos
+             if (TMath::Abs(pdgcode) == 12) nnue++;
+             else if (TMath::Abs(pdgcode) == 14) nnumu++;
+         } 
+         if(track.GetMotherId()==tauid && TMath::Abs(charge)>0){ //daughter of tau/charm particle, adding to daughter list
+          daughters.push_back(itrack);
+          //check if decay is visible
+          if (TauDecay(itrack, tauid, track, Vn, tautx, tauty, taudecaylength)) visibledaughters.push_back(itrack);
+         }
+         if (ientry == 975) cout<<"End of vertex function for event "<<ientry<<" track "<<itrack<<endl;
+
+         itrack++;        
      } //end of track loop
+     if (ientry == 975) cout<<"End track loop "<<endl;
      hdaughters->Fill(daughters.size());
      hvisibledaughters->Fill(visibledaughters.size());
      //decay channel identification
-     whichchannel = DecayChannel(daughters,tracks);
+     whichchannel = DecayChannel(daughters,tracks,nnumu,nnue,ientry);
      //else whichchannel = 3;
      hchannel->Fill(whichchannel);
      hdl->Fill(taudecaylength*10);
@@ -195,7 +218,7 @@ void nutau_event(){
       int NePlate = -1;
       FindBrick(tracks[electronid].GetStartX(), tracks[electronid].GetStartY(), tracks[electronid].GetStartZ(), NeWall, NeRow, NeColumn, NePlate);
       if (NePlate > 0) helectron_NPlate->Fill(NePlate);
-      if (NePlate >0 && NePlate< 20) cout<< "Electron at event "<<ientry<<" track ID "<<electronid<<"with energy "<<tracks[electronid].GetEnergy()<<"  starting at z "<<tracks[electronid].GetStartZ()<<" vz neutrino "<<Vn(2)<<endl;
+      //if (NePlate >0 && NePlate< 20) cout<< "Electron at event "<<ientry<<" track ID "<<electronid<<"with energy "<<tracks[electronid].GetEnergy()<<"  starting at z "<<tracks[electronid].GetStartZ()<<" vz neutrino "<<Vn(2)<<endl;
       //electron energy
       helectron_E->Fill(tracks[electronid].GetEnergy());
       
@@ -281,10 +304,17 @@ void nutau_event(){
  } // end of event loop
  //results
  cout<<"Analying a number of interactions: "<<hvxy->GetEntries()<<endl;
+ cout<<"channel legenda: (1 = mu, 2 = e, 3 = 1h, 4 = 3h)"<<endl;
  for (int ichannel = 0; ichannel < ndecaychannels; ichannel++){
-  cout<<"Fraction within fiducial volume: "<<geometricalweight[ichannel]/totalweight[ichannel]<<endl;
-  cout<<"Fraction of localized vertices: "<<localizedweight[ichannel]/totalweight[ichannel]<<endl;
-  cout<<"Fraction of decay search: "<<decaysearchweight[ichannel]/totalweight[ichannel]<<endl;
+  //computing efficiencies with their values
+  vector<double> geomeff = eff_formula(geometricalweight[ichannel],totalweight[ichannel]);
+  vector<double> localizedeff = eff_formula(localizedweight[ichannel],totalweight[ichannel]);
+  vector<double> decaysearcheff = eff_formula(decaysearchweight[ichannel],totalweight[ichannel]);
+  //reporting values and errors
+  cout<<"Number of interactions in channel "<<ichannel+1<<" is "<<hchannel->GetBinContent(ichannel+1)<<" Total weigth: "<<totalweight[ichannel]<<endl;
+  cout<<"Fraction within fiducial volume: "<<geomeff[0]<<" with error "<<geomeff[1]<<endl;
+  cout<<"Fraction of localized vertices: "<<localizedeff[0]<<" with error "<<localizedeff[1]<<endl;
+  cout<<"Fraction of decay search: "<<decaysearcheff[0]<<" with error "<<decaysearcheff[1]<<endl;
   cout<<endl;
  }
  cout<<"Fractions of muons from tau decays in first rpc: "<<muonacceptance/totalweight[0]<<endl;
@@ -437,7 +467,7 @@ bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &
     else return false;
 }
 
-bool TauDecay(int trackID, int tauid, const ShipMCTrack &track,vector<int> &daughters, vector<int> &visibledaughters, TVector3 Vn, double tautx, double tauty, double& taudecaylength){
+bool TauDecay(int trackID, int tauid, const ShipMCTrack &track, TVector3 Vn, double tautx, double tauty, double& taudecaylength){
     if (tauid < 0) return false; //MCTrackID for tau lepton not yet found, go to next
     //condition for a visible tau decay daughter
     const double maxdl = 0.4;
@@ -457,7 +487,6 @@ bool TauDecay(int trackID, int tauid, const ShipMCTrack &track,vector<int> &daug
     if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge(); 
     //check if it is a tau decay daughter
     if(track.GetMotherId()==tauid && TMath::Abs(charge)>0){  
-          daughters.push_back(trackID);
     
           double tx = track.GetPx()/track.GetPz();
           double ty = track.GetPy()/track.GetPz();
@@ -491,14 +520,12 @@ bool TauDecay(int trackID, int tauid, const ShipMCTrack &track,vector<int> &daug
           if (kinkangle < minkinkangle) return false;
           if (momentum < minmomentum || tantheta > maxtantheta) return false;
           //if the code was not returned by all these checks, add the track to the visible list
-          visibledaughters.push_back(trackID);
-
           return true;
          } 
          else return false;
 }
 
-int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks){
+int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks, int nnumu, int nnue, int ievent){
     //tau decay channel identification
     int nmuons = 0;
     int nhadrons = 0;
@@ -514,9 +541,20 @@ int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks){
      else if (nelectrons == 1) return 2;
      else if (nhadrons == 1) return 3;
      else if (nhadrons > 1) return 4;
-     else{          
-         cout<<"Unexpected channel for tau daughters (muons, electrons, hadrons): "<<nmuons<<" "<<nelectrons<<" "<<nhadrons<<endl;
-         return -1;
+     else{
+        cout<<"At event "<<ievent<<" Unexpected channel for tau daughters (muons, electrons, hadrons): "<<nmuons<<" "<<nelectrons<<" "<<nhadrons<<endl;
+         if (nnumu > 0){          
+          cout<<"At event "<<ievent<<" not stored lepton. Stored to muon channel due to found nu_mu: "<<nnumu<<endl;
+          return 1;
+         }
+         else if (nnue > 0){          
+          cout<<"At event "<<ievent<<" not stored lepton. Stored to electron channel due to found nu_e: "<<nnue<<endl;
+          return 2;
+         }
+         else{         
+          cout<<"No muon/electron neutrino found, associating it to channel 1h"<<endl;
+          return 3;
+        }
      }
      return 0;
 
@@ -529,4 +567,15 @@ void smearing (double &Xpos, double &Ypos, double spaceres){
  //cout<<TX<<endl;
  Xpos = Xpos + deltaX;
  Ypos = Ypos + deltaY;
+}
+//standard (approximate for values close to 0 and 1) efficency formula with error
+vector<double> eff_formula(int found, int total){
+  vector<double> efficiency; //value and error
+  
+  efficiency.push_back((double) found/total);
+  double efferr = TMath::Sqrt(efficiency[0] * (1- efficiency[0])/total);
+  efficiency.push_back(efferr);
+  
+  return efficiency;
+  
 }
