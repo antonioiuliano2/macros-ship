@@ -1,0 +1,8 @@
+executable            = neutrino.sh
+arguments             = $(ClusterID) $(ProcId) $(argument)
+output                = output/neutrino.$(ClusterId).$(ProcId).out
+error                 = error/neutrino.$(ClusterId).$(ProcId).err
+log                   = log/neutrino.$(ClusterId).log
+notification = Never
++JobFlavour             = "nextweek"
+queue 10
