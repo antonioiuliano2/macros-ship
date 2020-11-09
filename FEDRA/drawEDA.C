@@ -144,12 +144,12 @@ if (drawtracks){
  //delete ali;
 }
 
-void drawEDA(bool newversion = true, TString vertexfilename = " vertextree_test.root", TString trackfilename = "linked_tracks.root"){
+void drawEDA(bool newversion = true, TString vertexfilename = " vertextree.root", TString trackfilename = "linked_tracks.root"){
  bool drawvertices = true;
- bool drawtracks = true;
- const int nvertices = 2;
- int vertexlist[nvertices] = {27751,3543};
- int vertexcolors[nvertices] = {kBlue,kGreen};
+ bool drawtracks = false;
+ const int nvertices = 1;
+ int vertexlist[nvertices] = {110827};
+ int vertexcolors[nvertices] = {kBlue};
  const int ntracks = 1;
  int tracklist[ntracks] = {99188}; //87251
  
@@ -167,7 +167,7 @@ void drawEDA(bool newversion = true, TString vertexfilename = " vertextree_test.
   for (int ivtx = 0; ivtx < nvertices; ivtx++){
     int vID = vertexlist[ivtx];
  //f or (int vID: vertexlist){ //range for loop, C++11
-    if (newversion) vertex = GetVertexFromTree(*ali,vertexfilename,vID);
+    if (newversion) vertex = dproc->GetVertexFromTree(*ali,vertexfilename,vID);
     else{ 
       TFile * inputfile = TFile::Open(vertexfilename.Data());
       EdbVertexRec *vertexrec = (EdbVertexRec*) inputfile->Get("EdbVertexRec");
