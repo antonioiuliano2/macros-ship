@@ -38,8 +38,8 @@ vector<double> eff_formula(int found, int total);
  TH1D *helectron_NPlate = new TH1D("helectron_NPlate","Number of plate where the electron is produced;Nplate",57,1,58);
  
  TH1D *hxsagitta = new TH1D("hxsagitta","Sagitta in the xzplane;sxz[cm]",20,-0.1,0.1);
- TH1D *hysagitta_positive = new TH1D("hysagitta_positive","Sagitta for positive particles;syz[cm]",30,-30,30);
- TH1D *hysagitta_negative = new TH1D("hysagitta_negative","Sagitta for negative particles;syz[cm]",30,-30,30);
+ TH1D *hysagitta_positive = new TH1D("hysagitta_positive","Sagitta for positive particles;syz[cm]",30,-15,15);
+ TH1D *hysagitta_negative = new TH1D("hysagitta_negative","Sagitta for negative particles;syz[cm]",30,-15,15);
  
  //**VARIABLES***//
 
@@ -110,7 +110,7 @@ void nutau_event(){
  const int nstations = 5;
  const int maxndaughters = 5;
  double XDT_daughter[maxndaughters][nstations],YDT_daughter[maxndaughters][nstations],ZDT_daughter[maxndaughters][nstations]; 
- const double DTspaceres = 50 * 1e-4; //50 micron in cm
+ const double DTspaceres = 100 * 1e-4; //50 micron in cm
  //muon rpc check
  bool muoninfirstrpc;
 
@@ -274,9 +274,9 @@ void nutau_event(){
      //computing sagitta
      for (int idaughter = 0; idaughter < visibledaughters.size(); idaughter++){
       double particlecharge = pdg->GetParticle(tracks[visibledaughters[idaughter]].GetPdgCode())->Charge();
-      if (ZDT_daughter[idaughter][4] < 100000. && ZDT_daughter[idaughter][2] < 100000. && ZDT_daughter[idaughter][0] < 100000.){
-       double ysagitta = ((YDT_daughter[idaughter][0] + YDT_daughter[idaughter][4])/2.) - YDT_daughter[idaughter][2];
-       double xsagitta = ((XDT_daughter[idaughter][0] + XDT_daughter[idaughter][4])/2.) - XDT_daughter[idaughter][2];
+      if (ZDT_daughter[idaughter][2] < 100000. && ZDT_daughter[idaughter][1] < 100000. && ZDT_daughter[idaughter][0] < 100000.){
+       double ysagitta = ((YDT_daughter[idaughter][0] + YDT_daughter[idaughter][2])/2.) - YDT_daughter[idaughter][1];
+       double xsagitta = ((XDT_daughter[idaughter][0] + XDT_daughter[idaughter][2])/2.) - XDT_daughter[idaughter][1];
        hxsagitta->Fill(xsagitta);
        if (particlecharge > 0.) hysagitta_positive->Fill(ysagitta);
        else hysagitta_negative->Fill(ysagitta);      

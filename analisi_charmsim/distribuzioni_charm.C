@@ -273,6 +273,8 @@ void plotdistributions(){
  TFile *charmfile = TFile::Open("alldistributions_mctrue_withdaughters.root");
  TTree *charmdecays = (TTree*) charmfile->Get("charmdecays");
 
+ TDatabasePDG *pdgdatabase = TDatabasePDG::Instance();
+
  RVec<int> charmpdglist = {421,411,431,4122,4232,4132,4332};
  RVec<int> charmcolors = {kBlack, kRed, kBlue, kYellow, kMagenta, kCyan, kGreen};
  RVec<TString> charmpdgnamelist = {"D0","D#pm","Ds#pm","Lambdac#pm","Sigma_c^#pm","Sigma_c^0","Omega_c^0"};
@@ -280,7 +282,7 @@ void plotdistributions(){
  if ((charmcolors.size() != charmpdglist.size()) || (charmpdgnamelist.size() != charmpdglist.size())) cout<<"Warning: sizes of RVecs not matching, please check!"<<endl;
  
  map<int,int> charmpdgbin; //for histogram of charm variety
- map<int, TH1D*> charmmomentum; //for charm spectrum histogram
+ map<int, TH1D*> charmenergy; //for charm spectrum histogram
  map<int, TH1D*> charmdl; //decay length for each pdg
  
  TH1I *hpdg = new TH1I ("hpdg", "Produced charmed hadron pdg; Particle name", 7,0,7);
@@ -290,7 +292,7 @@ void plotdistributions(){
  for (int icharm = 0; icharm < charmpdglist.size(); icharm++){
   int charmpdg = charmpdglist[icharm];
 
-  charmmomentum[charmpdg] = new TH1D(TString::Format("hp%i",charmpdg), (charmpdgnamelist[icharm]+TString(";GeV/c")).Data(), 40,0,400);
+  charmenergy[charmpdg] = new TH1D(TString::Format("hE%i",charmpdg), (charmpdgnamelist[icharm]+TString(";GeV")).Data(), 40,0,400);
   charmdl[charmpdg] = new TH1D(TString::Format("hdl%i",charmpdg), (charmpdgnamelist[icharm]+TString(";dl[mm]")).Data(), 100,0,100);
 
   charmpdgbin[charmpdg] = icharm;
@@ -301,8 +303,11 @@ void plotdistributions(){
  const int ncharms = 2;
  //defining variables and setting addresses
  int pdg[ncharms];
+ double charge[ncharms];
  double dx[ncharms], dy[ncharms], dz[ncharms];
  double px[ncharms], py[ncharms], pz[ncharms];
+
+ int nocharged = 0, onecharged = 0, bothcharged = 0;
  
  charmdecays->SetBranchAddress("pdgcode",&pdg);
  charmdecays->SetBranchAddress("dx",&dx);
@@ -318,12 +323,23 @@ void plotdistributions(){
   charmdecays->GetEntry(ientry);
   for (int icharm = 0; icharm < ncharms; icharm++){ //2 charms for event
 
+   double momentum = TMath::Sqrt(pow(px[icharm],2)+ pow(py[icharm],2) + pow(pz[icharm],2));
+   double mass = pdgdatabase->GetParticle(pdg[icharm])->Mass();
+
+   charge[icharm] = pdgdatabase->GetParticle(pdg[icharm])->Charge();
+   
+
+   double energy = TMath::Sqrt(momentum * momentum + mass * mass);
+
    hpdg->Fill(charmpdgbin[TMath::Abs(pdg[icharm])]);
    hdl->Fill(TMath::Sqrt(pow(dx[icharm],2)+ pow(dy[icharm],2) + pow(dz[icharm],2))*10.);
 
    charmdl[TMath::Abs(pdg[icharm])]->Fill(TMath::Sqrt(pow(dx[icharm],2)+ pow(dy[icharm],2) + pow(dz[icharm],2))*10.);
-   charmmomentum[TMath::Abs(pdg[icharm])]->Fill(TMath::Sqrt(pow(px[icharm],2)+ pow(py[icharm],2) + pow(pz[icharm],2)));
+   charmenergy[TMath::Abs(pdg[icharm])]->Fill(energy);
   }
+  if (TMath::Abs(charge[0])>0 && TMath::Abs(charge[1])>0) bothcharged++;
+  else if (TMath::Abs(charge[0])>0 || TMath::Abs(charge[1])>0) onecharged++;
+  else nocharged++;
  }
  TCanvas *cpdg = new TCanvas();
  hpdg->Draw();
@@ -333,10 +349,10 @@ void plotdistributions(){
  TCanvas *cspectrum = new TCanvas();
  for (int icharm = 0; icharm < charmpdglist.size(); icharm++){
   int charmpdg = charmpdglist[icharm];
-  charmmomentum[charmpdg]->SetLineColor(charmcolors[icharm]);
+  charmenergy[charmpdg]->SetLineColor(charmcolors[icharm]);
  
-  if (icharm == 0) charmmomentum[charmpdg]->Draw();
-  else charmmomentum[charmpdg]->Draw("SAME");
+  if (icharm == 0) charmenergy[charmpdg]->Draw();
+  else charmenergy[charmpdg]->Draw("SAME");
  
  }
  cspectrum->BuildLegend();
@@ -351,5 +367,8 @@ void plotdistributions(){
  
  }
  cdlpdg->BuildLegend();
+
+ cout<<"Over "<<hdl->GetEntries()/2.<<" events we have "<<endl;
+ cout<<"Both charged "<<bothcharged<<" one charged "<<onecharged<<" no charged "<<nocharged<<endl;
 
 }
