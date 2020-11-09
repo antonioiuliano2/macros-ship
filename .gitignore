@@ -5,3 +5,5 @@
 .ipynb_checkpoints
 *~
 *.root
+Muons_SHiP/Muons_macros/muons.txt
+Muons_SHiP/Muons_macros/muons_entries.txt
