@@ -4,12 +4,19 @@ void set_segments_dz(float dz);
 EdbPVRec *ali = new EdbPVRec();
 
 float CalcIP(EdbTrackP *tr, TVector3 V){
-         //transverse distance (IP) from track to vertex (n.d.r. tranvserse with respect to beam z direction)
-         float dz = V(2) - tr->Z();
-         float ipx = tr->TX() * dz + tr->X() - V(0);
-         float ipy = tr->TY() * dz + tr->Y() - V(1);
-         float imp = TMath::Sqrt(pow(ipx,2)+pow(ipy,2));
-         return imp;
+        //transverse distance (IP) from track to vertex (n.d.r. tranvserse with respect to beam z direction),
+        //taken from nearest upstream segment
+        float imp = 10000.;
+        for (int iseg = 0; iseg < tr->N(); iseg++){
+           EdbSegP *seg = tr->GetSegmentF(iseg);
+           if (seg->Z() <= V(2)){           
+            float dz = V(2) - seg->Z();
+            float ipx = seg->TX() * dz + seg->X() - V(0);
+            float ipy = seg->TY() * dz + seg->Y() - V(1);
+            imp = TMath::Sqrt(pow(ipx,2)+pow(ipy,2));           
+           }
+         } 
+        return imp;
 
 }
 
@@ -35,10 +42,10 @@ bool SplitTrackAtZ( EdbTrackP &t, EdbTrackP &t1, float vz )
   return true;
 }
 
-void addprotons(TString vertexfilename= "vertextree.root"){
+void addprotons(TString vertexfilename= "vertextree_firstquarter.root"){
     //selection which good vertices use as sample
     float dodisplay = false;
-    TCut vertexselection = TCut("n>10");
+    TCut vertexselection = TCut("n>=10");
     const float maximp = 10; //cut on IP to accept the track (to be set  from MC)
     int nfound = 0;
 
@@ -47,11 +54,11 @@ void addprotons(TString vertexfilename= "vertextree.root"){
 
     EdbDataProc *dproc = new EdbDataProc();
 
-    TH1D *hip = new TH1D("hip","IP of vertex with closest passing track;IP[#mum]",20,0,200);
+    TH1D *hip = new TH1D("hip","IP of vertex with closest passing track;IP[#mum]",20,0,20);
     TH1I *hMCcheck = new TH1I("hMCcheck","Did we find the right particle? MC Check",2,0,2);
-    TProfile *hMCcheck_ip = new TProfile("hMCcheck_ip","Did we find the right particle? MC Check vs IP",20,0,200,0,2);
+    TProfile *hMCcheck_ip = new TProfile("hMCcheck_ip","Did we find the right particle? MC Check vs IP",20,0,20,0,2);
     //track subset, 3 micron around it in xy distance
-    TCut tracksel("nseg>5&&t.Theta()<0.05");
+    TCut tracksel("nseg>3&&npl>=5&&t.Theta()<0.05");
     dproc->InitVolume(100, tracksel);
     ali = dproc->PVR();
     ali->FillCell(30,30,0.009,0.009);
@@ -89,6 +96,7 @@ void addprotons(TString vertexfilename= "vertextree.root"){
     map<int,int> frequencyEvent;
 
     cout<<"Start loop on vertices"<<endl;
+    fstream outputlist("10tracksvertices_addedprotons.log",fstream::out);
     for (int ivertex = 0; ivertex < nvertices; ivertex++){
      int foundtrueproton = 0;
      frequencyEvent.clear();
@@ -97,6 +105,8 @@ void addprotons(TString vertexfilename= "vertextree.root"){
      float vx = vertex->X();
      float vy = vertex->Y();
      float vz = vertex->Z();
+
+     int vID = vertex->ID();
 
      //adding vertex and its tracks to be drawn
      drawnvertices->Add(vertex); // assuming the array is filled with EdbVertex.
@@ -171,6 +181,8 @@ void addprotons(TString vertexfilename= "vertextree.root"){
 
             nfound++;                  
             if (protoncandidate->MCEvt() == mostfrequentevent && protoncandidate->GetSegmentFirst()->MCTrack()==0) foundtrueproton = 1;
+          
+            outputlist << vID << " " << protoncandidate->Track() << " "<<endl;
         }
       hMCcheck_ip->Fill(minimp, foundtrueproton);   
       hMCcheck->Fill(foundtrueproton); 
@@ -198,6 +210,8 @@ void addprotons(TString vertexfilename= "vertextree.root"){
 
     TCanvas *ctrackgrid = new TCanvas();
     xygrid.DrawH2("hxygrid","Grid with tracks, from first segment position;x[#mu m];y[#mu m]")->Draw("COLZ");
+
+    outputlist.close();
 }
 
 //---------------------------------------------------------------------
