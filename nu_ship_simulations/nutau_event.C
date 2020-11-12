@@ -18,10 +18,10 @@ vector<double> eff_formula(int found, int total);
  TH1D *htaugamma = new TH1D("htaugamma","Gamma of tau lepton;#gamma",100,0,100);
 
  TH2D *hvxy = new TH2D("hvxy","Transverse position of vertices",80,-40,40,80,-40,40);
- TH1D *hvz =  new TH1D("hvz","Transverse position of vertices",300,-3300,-3000);
+ TH1D *hvz =  new TH1D("hvz","Transverse position of vertices",400,-3400,-3000);
  
- TH1I *hdaughters = new TH1I("hdaughters","Number of daughters per decay", 5, 0,5);
- TH1I *hvisibledaughters = new TH1I("hvisibledaughters","Number of visible daughters per decay", 5, 0,5);
+ TH1I *hdaughters = new TH1I("hdaughters","Number of daughters per decay", 20, 0,20);
+ TH1I *hvisibledaughters = new TH1I("hvisibledaughters","Number of visible daughters per decay", 20, 0,20);
 
  TH1D *hdl = new TH1D("hdl","Tau Decay length;dl[mm]",300,0,30);
  TH1D *hkink = new TH1D("hkink","Kink angle;#Theta[rad]",50,0,0.5);
@@ -42,23 +42,25 @@ vector<double> eff_formula(int found, int total);
  TH1D *hysagitta_negative = new TH1D("hysagitta_negative","Sagitta for negative particles;syz[cm]",30,-15,15);
  
  //**VARIABLES***//
-
+ //maximum dx an dy of vertex to be accepted for efficiency studies
  const double dxtarget = 40.5;
  const double dytarget = 40.5;
 
  TDatabasePDG *pdg = TDatabasePDG::Instance();
 
 //start main script
-void nutau_event(){
+int nutau_event(){
  bool tausim = true;
+ bool doelectron = false; //fills histograms for electron neutrino interactions
+ bool dosagitta = true; //do loop over DTs and sagitta computation
  ROOT::RVec<int> signalpdgs; //particles I want to study the decay
  if (tausim) signalpdgs = {15}; //tau lepton
  else signalpdgs = {411, 431, 4122, 421, 4132, 4232, 4332, 441}; //adding 4122 makes program crash
  //getting tree and defining arrays
  TChain treechain("cbmsim"); //I add a sim of tau and antitaus
  treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
- treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
- 
+ //ìtreechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
+ //treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
  //if (!file) return;
  TTreeReader reader(&treechain);
 
@@ -86,10 +88,11 @@ void nutau_event(){
  double geometricalweight[ndecaychannels] = {0.,0.,0.,0.};
  double localizedweight[ndecaychannels] = {0.,0.,0.,0.};
  double decaysearchweight[ndecaychannels] = {0.,0.,0.,0.};
+ double chargedetweight[ndecaychannels] = {0.,0.,0.,0.};
 
  double muonacceptance = 0;
 
- bool isgeometrical, islocated, decaysearch;
+ bool isgeometrical, islocated, decaysearch, chargeeff;
 
  //IDs of tracks of interest (Tracks at neutrino vertex other than tau and tau daughters)
  vector<int> primaryvisible;
@@ -108,7 +111,7 @@ void nutau_event(){
 
  //DT spectrometer sagitta check
  const int nstations = 5;
- const int maxndaughters = 5;
+ const int maxndaughters = 10;
  double XDT_daughter[maxndaughters][nstations],YDT_daughter[maxndaughters][nstations],ZDT_daughter[maxndaughters][nstations]; 
  const double DTspaceres = 100 * 1e-4; //50 micron in cm
  //muon rpc check
@@ -116,10 +119,11 @@ void nutau_event(){
 
  //***********************************START OF MAIN LOOP*************************//
  for(int ientry = 0;ientry<nentries;ientry++){    
-     //resetting counters
+     //resetting counters and booleans
      isgeometrical = false;
      islocated = false;
      decaysearch = false;
+     chargeeff = false;
 
      nnue = 0;
      nnumu = 0;
@@ -145,8 +149,8 @@ void nutau_event(){
      //if neutrino interacted off of our target, go to next
      if ( (TMath::Abs(Vn(0))>dxtarget) || (TMath::Abs(Vn(1))>dytarget) ) continue;
 
-     hvxy->Fill(Vn(0),Vn(1));
-     hvz->Fill(Vn(2));
+     hvxy->Fill(Vn(0),Vn(1), eventweight);
+     hvz->Fill(Vn(2), eventweight);
 
      //tau lepton variables
 
@@ -157,6 +161,7 @@ void nutau_event(){
      //******************access the array of tracks
      itrack = 0;
      tauid = -1;
+     //*********************************START TRACK LOOP****************************//
      for (const ShipMCTrack& track: tracks){        
          int pdgcode = track.GetPdgCode();
          double charge = 0.;
@@ -181,11 +186,9 @@ void nutau_event(){
            mass = pdg->GetParticle(pdgcode)->Mass();
            htaugamma->Fill(energy/mass);           
          }
-         if (ientry == 975) cout<<"Start of vertex function for event "<<ientry<<" track "<<itrack<<endl;
          //look for charged particles from primary vertex
          NeutrinoVertexLocation(itrack, track, primaryvisible, signalpdgs);
          //look for charged tracks from tau decay lengths
-         if (ientry == 975) cout<<"Start tau decay  function for event "<<ientry<<" track "<<itrack<<endl;
 
          if(track.GetMotherId()==tauid && TMath::Abs(charge)==0){ //counting neutrinos
              if (TMath::Abs(pdgcode) == 12) nnue++;
@@ -194,23 +197,21 @@ void nutau_event(){
          if(track.GetMotherId()==tauid && TMath::Abs(charge)>0){ //daughter of tau/charm particle, adding to daughter list
           daughters.push_back(itrack);
           //check if decay is visible
-          if (TauDecay(itrack, tauid, track, Vn, tautx, tauty, taudecaylength)) visibledaughters.push_back(itrack);
+          if (TauDecay(itrack, tauid, track, Vn, tautx, tauty, taudecaylength)) visibledaughters.push_back(itrack);            
          }
-         if (ientry == 975) cout<<"End of vertex function for event "<<ientry<<" track "<<itrack<<endl;
 
          itrack++;        
      } //end of track loop
-     if (ientry == 975) cout<<"End track loop "<<endl;
      hdaughters->Fill(daughters.size());
      hvisibledaughters->Fill(visibledaughters.size());
      //decay channel identification
-     whichchannel = DecayChannel(daughters,tracks,nnumu,nnue,ientry);
-     //else whichchannel = 3;
+     if (tausim) whichchannel = DecayChannel(daughters,tracks,nnumu,nnue,ientry);
+     else whichchannel = 3;
      hchannel->Fill(whichchannel);
      hdl->Fill(taudecaylength*10);
      
      //a visible electron from tau decay
-     if (whichchannel == 2 && isgeometrical && visibledaughters.size() == 1){
+     if (whichchannel == 2 && isgeometrical && visibledaughters.size() == 1 && doelectron){
 
       int electronid = visibledaughters[0];
       //in which plate the electron was produced?
@@ -236,24 +237,22 @@ void nutau_event(){
      } //end of hit loop
      hnfilmtau->Fill(ntauhits,eventweight);*/
      //somming value, when efficiency is satisfied
-     if (whichchannel > 0){
-      totalweight[whichchannel-1] += eventweight;
-      if (isgeometrical) geometricalweight[whichchannel-1] += eventweight;
-      if (isgeometrical&&islocated) localizedweight[whichchannel-1] += eventweight;
-      if (isgeometrical&&islocated&&decaysearch) decaysearchweight[whichchannel-1] += eventweight;
-     }
-
      //****************************look for tau decay daughters in downstream trackers***//
-     //resetting indeces to be filled with daughters positions in DT stations
-     for (int idaughter = 0; idaughter < visibledaughters.size(); idaughter++){
-      for (int index = 0; index < nstations; index++){
-       XDT_daughter[idaughter][index] = 100000.;
-       YDT_daughter[idaughter][index] = 100000.;
-       ZDT_daughter[idaughter][index] = 100000.;
-      }
+     if (visibledaughters.size() > maxndaughters){ 
+       cout<<"ERROR: number of daughters larger than maximum,exiting"<<endl;
+       return 1;
      }
-     //starting loop
-     for (const HptPoint& dtpoint: dtpoints){
+     if (dosagitta){
+      //resetting indeces to be filled with daughters positions in DT stations
+      for (int idaughter = 0; idaughter < visibledaughters.size(); idaughter++){
+       for (int index = 0; index < nstations; index++){
+        XDT_daughter[idaughter][index] = 100000.;
+        YDT_daughter[idaughter][index] = 100000.;
+        ZDT_daughter[idaughter][index] = 100000.;
+       }
+      }
+      //starting loop
+      for (const HptPoint& dtpoint: dtpoints){
         trackID = dtpoint.GetTrackID();
         detID = dtpoint.GetDetectorID();
         
@@ -271,18 +270,28 @@ void nutau_event(){
         
         }
         
-     //computing sagitta
-     for (int idaughter = 0; idaughter < visibledaughters.size(); idaughter++){
-      double particlecharge = pdg->GetParticle(tracks[visibledaughters[idaughter]].GetPdgCode())->Charge();
-      if (ZDT_daughter[idaughter][2] < 100000. && ZDT_daughter[idaughter][1] < 100000. && ZDT_daughter[idaughter][0] < 100000.){
-       double ysagitta = ((YDT_daughter[idaughter][0] + YDT_daughter[idaughter][2])/2.) - YDT_daughter[idaughter][1];
-       double xsagitta = ((XDT_daughter[idaughter][0] + XDT_daughter[idaughter][2])/2.) - XDT_daughter[idaughter][1];
-       hxsagitta->Fill(xsagitta);
-       if (particlecharge > 0.) hysagitta_positive->Fill(ysagitta);
-       else hysagitta_negative->Fill(ysagitta);      
-      }
+      //computing sagitta
+      for (int idaughter = 0; idaughter < visibledaughters.size(); idaughter++){
+       double sigmasagitta = 0.0172;
+       double particlecharge = pdg->GetParticle(tracks[visibledaughters[idaughter]].GetPdgCode())->Charge();
+       if (ZDT_daughter[idaughter][2] < 100000. && ZDT_daughter[idaughter][1] < 100000. && ZDT_daughter[idaughter][0] < 100000.){
+        double ysagitta = ((YDT_daughter[idaughter][0] + YDT_daughter[idaughter][2])/2.) - YDT_daughter[idaughter][1];
+        double xsagitta = ((XDT_daughter[idaughter][0] + XDT_daughter[idaughter][2])/2.) - XDT_daughter[idaughter][1];
+        hxsagitta->Fill(xsagitta);
+        if (particlecharge > 0.) hysagitta_positive->Fill(ysagitta);
+        else hysagitta_negative->Fill(ysagitta);
+        //I currently accept the decay as kinematically reconstructed if at least one is seen
+        if (TMath::Abs(ysagitta) > (3*sigmasagitta)) chargeeff = true;      
+       } //end condtion of particle passing through first three DTs
+      } //end loop over visible daughters
+     } //end condition if doing or not charge detection efficiency estimation
+     if (whichchannel > 0){
+      totalweight[whichchannel-1] += eventweight;
+      if (isgeometrical) geometricalweight[whichchannel-1] += eventweight;
+      if (isgeometrical&&islocated) localizedweight[whichchannel-1] += eventweight;
+      if (isgeometrical&&islocated&&decaysearch) decaysearchweight[whichchannel-1] += eventweight;
+      if (isgeometrical&&islocated&&decaysearch&&chargeeff) chargedetweight[whichchannel - 1 ] += eventweight;
      }
-
      if (whichchannel == 1){ //only for muon channel,
       //***************************look for muons in downstream detectors****************//
       for (const ShipRpcPoint& rpcpoint: rpcpoints){
@@ -298,23 +307,25 @@ void nutau_event(){
         }
 
       } //end of hit loop
-      if (isgeometrical&&islocated&&decaysearch&&muoninfirstrpc) muonacceptance += eventweight;
+      if (isgeometrical&&islocated&&decaysearch&&muoninfirstrpc) muonacceptance += eventweight; //note, we do not require the muon to transverse the DTs (chargeeff)
      } //end of muon channel check
 
  } // end of event loop
  //results
- cout<<"Analying a number of interactions: "<<hvxy->GetEntries()<<endl;
+ cout<<"Analying a number of interactions: "<<hvz->GetEntries()<<" total weight "<<hvz->Integral()<<endl;
  cout<<"channel legenda: (1 = mu, 2 = e, 3 = 1h, 4 = 3h)"<<endl;
  for (int ichannel = 0; ichannel < ndecaychannels; ichannel++){
   //computing efficiencies with their values
-  vector<double> geomeff = eff_formula(geometricalweight[ichannel],totalweight[ichannel]);
-  vector<double> localizedeff = eff_formula(localizedweight[ichannel],totalweight[ichannel]);
-  vector<double> decaysearcheff = eff_formula(decaysearchweight[ichannel],totalweight[ichannel]);
+  vector<double> vector_geomeff = eff_formula(geometricalweight[ichannel],totalweight[ichannel]);
+  vector<double> vector_localizedeff = eff_formula(localizedweight[ichannel],totalweight[ichannel]);
+  vector<double> vector_decaysearcheff = eff_formula(decaysearchweight[ichannel],totalweight[ichannel]);
+  vector<double> vector_chargedeteff = eff_formula(chargedetweight[ichannel],totalweight[ichannel]);
   //reporting values and errors
   cout<<"Number of interactions in channel "<<ichannel+1<<" is "<<hchannel->GetBinContent(ichannel+1)<<" Total weigth: "<<totalweight[ichannel]<<endl;
-  cout<<"Fraction within fiducial volume: "<<geomeff[0]<<" with error "<<geomeff[1]<<endl;
-  cout<<"Fraction of localized vertices: "<<localizedeff[0]<<" with error "<<localizedeff[1]<<endl;
-  cout<<"Fraction of decay search: "<<decaysearcheff[0]<<" with error "<<decaysearcheff[1]<<endl;
+  cout<<"Fraction within fiducial volume: "<<vector_geomeff[0]<<" with error "<<vector_geomeff[1]<<endl;
+  cout<<"Fraction of localized vertices: "<<vector_localizedeff[0]<<" with error "<<vector_localizedeff[1]<<endl;
+  cout<<"Fraction of decay search: "<<vector_decaysearcheff[0]<<" with error "<<vector_decaysearcheff[1]<<endl;
+  cout<<"Fraction of charge detected (DT trackers): "<<vector_chargedeteff[0]<<" with error "<<vector_chargedeteff[1]<<endl;
   cout<<endl;
  }
  cout<<"Fractions of muons from tau decays in first rpc: "<<muonacceptance/totalweight[0]<<endl;
@@ -383,6 +394,8 @@ void nutau_event(){
  hysagitta_positive->SetLineColor(kRed);
  hysagitta_positive->Draw("SAMES");
  gPad->BuildLegend();
+
+ return 0;
 }
 
 
