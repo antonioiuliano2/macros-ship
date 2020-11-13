@@ -13,13 +13,14 @@ void smearing (double &Xpos, double &Ypos, double spaceres);
 vector<double> eff_formula(int found, int total);
 //GLOBAL VARIABLES AND HISTOGRAMS
  //*********DEFINITION OF HISTOGRAMS*********************//
+ //tau kinematics
  TH1I *hnfilmtau = new TH1I("hnfilmtau","Number of emulsion films passed by a tau lepton;Nfilms",15,0,15);
  TH2D *htauppt = new TH2D("htauppt","Transverse momentum vs momentum of tau lepton;P[GeV/c];Pt[GeV/c]",400,0,400,100,0,10);
  TH1D *htaugamma = new TH1D("htaugamma","Gamma of tau lepton;#gamma",100,0,100);
-
+ //primary vertex position
  TH2D *hvxy = new TH2D("hvxy","Transverse position of vertices",80,-40,40,80,-40,40);
  TH1D *hvz =  new TH1D("hvz","Transverse position of vertices",400,-3400,-3000);
- 
+ //decay parameters
  TH1I *hdaughters = new TH1I("hdaughters","Number of daughters per decay", 20, 0,20);
  TH1I *hvisibledaughters = new TH1I("hvisibledaughters","Number of visible daughters per decay", 20, 0,20);
 
@@ -28,18 +29,23 @@ vector<double> eff_formula(int found, int total);
  TH1D *hip = new TH1D("hip","Impact Parameter;IP[#mum]",100,0,1000);
 
  TH1I *hchannel = new TH1I("hchannel","Tau lepton decay channel;IChannel",4,1,5);
-
+ //muon kinematics
  TH1D *hmuonpall = new TH1D("hmuonpall","Momentum of all muons from tau lepton decay;P[GeV/c]",400,0,400);
  TH1D *hmuonangleall = new TH1D("hmuonangleall","Angle of all muons;#Theta[rad]",100,0,1);
  TH1D *hmuonpentered = new TH1D("hmuonpentered","Momentum of muons entered in first RPC;P[GeV/c]",400,0,400);
  TH1D *hmuonangleentered = new TH1D("hmuonangleentered","Angle muons entered in first RPC;#Theta[rad]",100,0,1);
- 
+ //electron shower 
  TH1D *helectron_E = new TH1D("helectron_E","Energy of electrons from tau decay;E[GeV]",100,0,100);
  TH1D *helectron_NPlate = new TH1D("helectron_NPlate","Number of plate where the electron is produced;Nplate",57,1,58);
  
+ //DT sagitta
+
  TH1D *hxsagitta = new TH1D("hxsagitta","Sagitta in the xzplane;sxz[cm]",20,-0.1,0.1);
  TH1D *hysagitta_positive = new TH1D("hysagitta_positive","Sagitta for positive particles;syz[cm]",30,-15,15);
  TH1D *hysagitta_negative = new TH1D("hysagitta_negative","Sagitta for negative particles;syz[cm]",30,-15,15);
+
+ //muon occupancy
+ TH2D *hoccupancy_rpc_clusters = new TH2D("hoccupancy_rpc_clusters","How many per station?;istation;occupancy",8,0,8,10,0,10);
  
  //**VARIABLES***//
  //maximum dx an dy of vertex to be accepted for efficiency studies
@@ -59,7 +65,7 @@ int nutau_event(){
  //getting tree and defining arrays
  TChain treechain("cbmsim"); //I add a sim of tau and antitaus
  treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
- //ìtreechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
+ //treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
  //treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
  //if (!file) return;
  TTreeReader reader(&treechain);
@@ -69,7 +75,8 @@ int nutau_event(){
  TTreeReaderArray<HptPoint> dtpoints(reader,"HptPoint");
  TTreeReaderArray<ShipRpcPoint> rpcpoints(reader,"ShipRpcPoint");
  
- int trackID, detID, ntauhits;
+ int trackID, detID, pdgcode;
+ int ntauhits;
  double energy, mass;
 
  TGeoManager * tgeom = new TGeoManager("Geometry", "Geane geometry");
@@ -90,7 +97,7 @@ int nutau_event(){
  double decaysearchweight[ndecaychannels] = {0.,0.,0.,0.};
  double chargedetweight[ndecaychannels] = {0.,0.,0.,0.};
 
- double muonacceptance = 0;
+ double muonacceptance = 0., muonefficiency = 0.;
 
  bool isgeometrical, islocated, decaysearch, chargeeff;
 
@@ -115,7 +122,13 @@ int nutau_event(){
  double XDT_daughter[maxndaughters][nstations],YDT_daughter[maxndaughters][nstations],ZDT_daughter[maxndaughters][nstations]; 
  const double DTspaceres = 100 * 1e-4; //50 micron in cm
  //muon rpc check
- bool muoninfirstrpc;
+ const int nrpcstations = 8;
+ double XRPC_muon[nrpcstations], YRPC_muon[nrpcstations], ZRPC_muon[nrpcstations];
+ int occupancy[nrpcstations];
+ bool muoninfirstrpc, muoninrpc;
+ const double clusterradius = 2; //maximum cluster radius
+ int nisolated_rpc_clusters;
+ const double minisolated_rpc_clusters = 4; //how many hits required to be isolated
 
  //***********************************START OF MAIN LOOP*************************//
  for(int ientry = 0;ientry<nentries;ientry++){    
@@ -137,7 +150,9 @@ int nutau_event(){
      taudecaylength = -1000.;
 
      //muon detection variables
-     muoninfirstrpc = false;
+     muoninfirstrpc = false; //at start of rpc
+     muoninrpc = false; //anywhere in rpc
+     nisolated_rpc_clusters = 0;
      //getting entry
 
      if (ientry%10000 == 0) cout<<"arrived at entry" <<ientry<<endl;
@@ -163,7 +178,7 @@ int nutau_event(){
      tauid = -1;
      //*********************************START TRACK LOOP****************************//
      for (const ShipMCTrack& track: tracks){        
-         int pdgcode = track.GetPdgCode();
+         pdgcode = track.GetPdgCode();
          double charge = 0.;
          if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge();
 
@@ -206,7 +221,7 @@ int nutau_event(){
      hvisibledaughters->Fill(visibledaughters.size());
      //decay channel identification
      if (tausim) whichchannel = DecayChannel(daughters,tracks,nnumu,nnue,ientry);
-     else whichchannel = 3;
+     else whichchannel = 1;
      hchannel->Fill(whichchannel);
      hdl->Fill(taudecaylength*10);
      
@@ -285,36 +300,99 @@ int nutau_event(){
        } //end condtion of particle passing through first three DTs
       } //end loop over visible daughters
      } //end condition if doing or not charge detection efficiency estimation
-     if (whichchannel > 0){
-      totalweight[whichchannel-1] += eventweight;
-      if (isgeometrical) geometricalweight[whichchannel-1] += eventweight;
-      if (isgeometrical&&islocated) localizedweight[whichchannel-1] += eventweight;
-      if (isgeometrical&&islocated&&decaysearch) decaysearchweight[whichchannel-1] += eventweight;
-      if (isgeometrical&&islocated&&decaysearch&&chargeeff) chargedetweight[whichchannel - 1 ] += eventweight;
-     }
      if (whichchannel == 1){ //only for muon channel,
+      int muonid;
+      if (tausim) muonid = visibledaughters[0]; //tau 1mu case, first and only charged daughter
+      else muonid = 1; //numu charm case, associated lepton
       //***************************look for muons in downstream detectors****************//
+      //resetting containers
+      for (int index = 0; index < nrpcstations; index++){
+        XRPC_muon[index] = 100000.;
+        YRPC_muon[index] = 100000.;
+        ZRPC_muon[index] = 100000.;
+        occupancy[index] = 0;
+      }
+      //first loop, storing clusters
       for (const ShipRpcPoint& rpcpoint: rpcpoints){
         trackID = rpcpoint.GetTrackID(); 
-        detID = rpcpoint.GetDetectorID();
+        detID = rpcpoint.GetDetectorID();        
        
-        if (trackID == visibledaughters[0] && detID == 10000){ //hit from tau lepton
+        if (trackID == muonid){ //hit from tau lepton
+         int whichstation = detID - 10000; //0, 1, 2, 3, 4, 5, 6, 7
+         if (whichstation >= 0){ //found cluster center with muon, storing position
+            XRPC_muon[whichstation] = rpcpoint.GetX();
+            YRPC_muon[whichstation] = rpcpoint.GetY();
+            ZRPC_muon[whichstation] = rpcpoint.GetZ();
+            occupancy[whichstation]++;
+         }
+         muoninrpc = true;
+         if (detID == 10000){
             muoninfirstrpc = true;
             hmuonpentered->Fill(tracks[trackID].GetP());
             double muonangle = 
              TMath::ATan(TMath::Sqrt(pow(tracks[trackID].GetPx()/tracks[trackID].GetPz(),2)+pow(tracks[trackID].GetPy()/tracks[trackID].GetPz(),2)));
             hmuonangleentered->Fill(muonangle);
+          }
+        }//end condition for muonid
+
+      } //end first rpc hit loop
+      //starting second loop, to look for isolated clusters
+      if (muoninrpc){
+       for (const ShipRpcPoint& rpcpoint: rpcpoints){
+        detID = rpcpoint.GetDetectorID();
+        int whichstation = detID - 10000;   
+        pdgcode = rpcpoint.PdgCode();
+        double charge = 0.;
+        if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge();
+        //if charged, checking for position
+        if (TMath::Abs(charge) > 0. && occupancy[whichstation]>0){
+         double rpcx = rpcpoint.GetX();
+         double rpcy = rpcpoint.GetY();
+         double radius = TMath::Sqrt(pow(rpcx - XRPC_muon[whichstation],2) + pow(rpcy - YRPC_muon[whichstation],2));
+         if(radius > clusterradius) occupancy[whichstation]++;
         }
 
-      } //end of hit loop
-      if (isgeometrical&&islocated&&decaysearch&&muoninfirstrpc) muonacceptance += eventweight; //note, we do not require the muon to transverse the DTs (chargeeff)
+       } //end second rpc hit loop
+      }//end if muoninrpc condition
+      //start loop over stations, checking how many full and outside muon cluster
+      for (int istation = 0; istation < nrpcstations; istation++){
+        hoccupancy_rpc_clusters->Fill(istation,occupancy[istation]);
+        if (occupancy[istation]==1) nisolated_rpc_clusters++;
+      }
+      
+      if (isgeometrical&&islocated&&decaysearch&&muoninfirstrpc) muonacceptance += eventweight; //note, we do not require the muon to transverse the DTs (chargeeff)      
      } //end of muon channel check
+
+    if (whichchannel > 0){
+      totalweight[whichchannel-1] += eventweight;
+      if (isgeometrical){
+        geometricalweight[whichchannel-1] += eventweight;
+        if (islocated){
+          localizedweight[whichchannel-1] += eventweight;
+          if (decaysearch){ 
+            decaysearchweight[whichchannel-1] += eventweight;
+            if (chargeeff){ 
+              chargedetweight[whichchannel - 1 ] += eventweight;
+            }//charge eff
+            if (whichchannel == 1 && nisolated_rpc_clusters >= minisolated_rpc_clusters){
+              muonefficiency += eventweight;
+            } //muon efficiency (does NOT require charge eff)
+          } //decay search
+        } //location
+      }//geometrical
+
+    }
 
  } // end of event loop
  //results
  cout<<"Analying a number of interactions: "<<hvz->GetEntries()<<" total weight "<<hvz->Integral()<<endl;
  cout<<"channel legenda: (1 = mu, 2 = e, 3 = 1h, 4 = 3h)"<<endl;
+ cout<<"Note: charge and muon efficiency are independently computed, but both require decay search to be true "<<endl;
+ double allgeometricalweight, alllocalizedweight,alltotalweight; //not dependant from channel
  for (int ichannel = 0; ichannel < ndecaychannels; ichannel++){
+  alltotalweight+= totalweight[ichannel];
+  allgeometricalweight+=geometricalweight[ichannel];
+  alllocalizedweight+= localizedweight[ichannel];
   //computing efficiencies with their values
   vector<double> vector_geomeff = eff_formula(geometricalweight[ichannel],totalweight[ichannel]);
   vector<double> vector_localizedeff = eff_formula(localizedweight[ichannel],totalweight[ichannel]);
@@ -326,9 +404,19 @@ int nutau_event(){
   cout<<"Fraction of localized vertices: "<<vector_localizedeff[0]<<" with error "<<vector_localizedeff[1]<<endl;
   cout<<"Fraction of decay search: "<<vector_decaysearcheff[0]<<" with error "<<vector_decaysearcheff[1]<<endl;
   cout<<"Fraction of charge detected (DT trackers): "<<vector_chargedeteff[0]<<" with error "<<vector_chargedeteff[1]<<endl;
+  if (ichannel == 0){ //only for tau muon decay channel or charm simulation
+   vector<double> vector_muonacceptance = eff_formula(muonacceptance, totalweight[ichannel]);
+   vector<double> vector_muoneff = eff_formula(muonefficiency, totalweight[ichannel]);
+   cout<<"Fractions of muons from tau decays in first rpc: "<<vector_muonacceptance[0]<<" with error "<<vector_muonacceptance[1]<<endl;
+   cout<<"Fractions of muons from tau decays with at least "<<minisolated_rpc_clusters<<" isolated rpc clusters: "<<vector_muoneff[0]<<" with error "<<vector_muoneff[1]<<endl;
+  }
   cout<<endl;
  }
- cout<<"Fractions of muons from tau decays in first rpc: "<<muonacceptance/totalweight[0]<<endl;
+ vector<double> vector_allgeomeff = eff_formula(allgeometricalweight,alltotalweight);
+ vector<double> vector_alllocalizedeff = eff_formula(alllocalizedweight,alltotalweight);
+ //only for ichannel == 0 (muon)
+ cout<<"Fraction within fiducial volume over all: "<<vector_allgeomeff[0]<<" with error "<<vector_allgeomeff[1]<<endl;
+ cout<<"Fraction of localized vertices over all: "<<vector_alllocalizedeff[0]<<" with error "<<vector_alllocalizedeff[1]<<endl;
  //***********************DRAWING HISTOGRAMS************************//
  /*TCanvas *cnfilm = new TCanvas();
  hnfilmtau->Draw();
@@ -394,6 +482,9 @@ int nutau_event(){
  hysagitta_positive->SetLineColor(kRed);
  hysagitta_positive->Draw("SAMES");
  gPad->BuildLegend();
+
+ TCanvas *coccupancy = new TCanvas();
+ hoccupancy_rpc_clusters->Draw("COLZ");
 
  return 0;
 }
