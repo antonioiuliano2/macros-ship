@@ -5,8 +5,9 @@ Bool_t FindBrick(Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow,
 
 int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks, int nnue, int nnumu, int ievent);
 
+void DecodeBrickID(Int_t detID, Int_t &NWall, Int_t &NRow, Int_t &NColumn, Int_t &NPlate, Bool_t &EmCES, Bool_t &EmBrick, Bool_t &EmTop);
 bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primaryvisible, ROOT::RVec<int> signalpdgs);
-bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates);
+bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates, int &InteractionWall);
 bool TauDecay(int trackID, int tauid, const ShipMCTrack &track, TVector3 Vn, double tautx, double tauty, double& taudecaylength);
 
 void smearing (double &Xpos, double &Ypos, double spaceres);
@@ -40,9 +41,13 @@ vector<double> eff_formula(int found, int total);
  
  //DT sagitta
 
- TH1D *hxsagitta = new TH1D("hxsagitta","Sagitta in the xzplane;sxz[cm]",20,-0.1,0.1);
- TH1D *hysagitta_positive = new TH1D("hysagitta_positive","Sagitta for positive particles;syz[cm]",30,-15,15);
- TH1D *hysagitta_negative = new TH1D("hysagitta_negative","Sagitta for negative particles;syz[cm]",30,-15,15);
+ TH1D *hxsagitta_DT = new TH1D("hxsagitta_DT","Sagitta in the xzplane;sxz[cm]",20,-0.1,0.1);
+ TH1D *hysagitta_DT_positive = new TH1D("hysagitta_DT_positive","Sagitta for positive particles;syz[cm]",30,-15,15);
+ TH1D *hysagitta_DT_negative = new TH1D("hysagitta_DT_negative","Sagitta for negative particles;syz[cm]",30,-15,15);
+
+ TH1D *hxsagitta_CES = new TH1D("hxsagitta_CES","Sagitta in the xzplane;sxz[cm]",20,-0.001,0.001);
+ TH1D *hysagitta_CES_positive = new TH1D("hysagitta_CES_positive","Sagitta for positive particles;syz[cm]",20,-0.01,0.01);
+ TH1D *hysagitta_CES_negative = new TH1D("hysagitta_CES_negative","Sagitta for negative particles;syz[cm]",20,-0.01,0.01);
 
  //muon occupancy
  TH2D *hoccupancy_rpc_clusters = new TH2D("hoccupancy_rpc_clusters","How many per station?;istation;occupancy",8,0,8,10,0,10);
@@ -65,7 +70,7 @@ int nutau_event(){
  //getting tree and defining arrays
  TChain treechain("cbmsim"); //I add a sim of tau and antitaus
  treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
- //treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
+ treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
  //treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
  //if (!file) return;
  TTreeReader reader(&treechain);
@@ -98,6 +103,7 @@ int nutau_event(){
  double chargedetweight[ndecaychannels] = {0.,0.,0.,0.};
 
  double muonacceptance = 0., muonefficiency = 0.;
+ int InteractionWall = 0;
 
  bool isgeometrical, islocated, decaysearch, chargeeff;
 
@@ -117,10 +123,13 @@ int nutau_event(){
  int itrack, tauid;
 
  //DT spectrometer sagitta check
+ const int nCES = 3;
  const int nstations = 5;
  const int maxndaughters = 10;
+ double XCES_daughter[maxndaughters][nCES],YCES_daughter[maxndaughters][nCES],ZCES_daughter[maxndaughters][nCES]; 
  double XDT_daughter[maxndaughters][nstations],YDT_daughter[maxndaughters][nstations],ZDT_daughter[maxndaughters][nstations]; 
- const double DTspaceres = 100 * 1e-4; //50 micron in cm
+ const double DTspaceres = 100 * 1e-4; //100 micron in cm
+ const double CESspaceres = 1.5 * 1e-4; //5 micron in cm
  //muon rpc check
  const int nrpcstations = 8;
  double XRPC_muon[nrpcstations], YRPC_muon[nrpcstations], ZRPC_muon[nrpcstations];
@@ -141,6 +150,7 @@ int nutau_event(){
      nnue = 0;
      nnumu = 0;
 
+     InteractionWall = -1;
      //ntauhits = 0;
      //clearing list of tracks of interest
      primaryvisible.clear();
@@ -171,7 +181,7 @@ int nutau_event(){
 
 
      //********************************FIRST CONDITION: GEOMETRICAL SELECTION********/
-     isgeometrical = GeometricalEfficiency(Vn,trans_mindist, Nminplates);
+     isgeometrical = GeometricalEfficiency(Vn,trans_mindist, Nminplates, InteractionWall);
 
      //******************access the array of tracks
      itrack = 0;
@@ -243,14 +253,6 @@ int nutau_event(){
      if (primaryvisible.size()>0) islocated = true;
      if (visibledaughters.size()>0) decaysearch = true;
      //access the hits: 
-     
-     /*for (const TargetPoint& targetpoint: targetpoints){
-        trackID = targetpoint.GetTrackID(); 
-        if (trackID == 1){ //hit from tau lepton
-            ntauhits++;
-        }
-     } //end of hit loop
-     hnfilmtau->Fill(ntauhits,eventweight);*/
      //somming value, when efficiency is satisfied
      //****************************look for tau decay daughters in downstream trackers***//
      if (visibledaughters.size() > maxndaughters){ 
@@ -261,11 +263,44 @@ int nutau_event(){
       //resetting indeces to be filled with daughters positions in DT stations
       for (int idaughter = 0; idaughter < visibledaughters.size(); idaughter++){
        for (int index = 0; index < nstations; index++){
+        for (int index = 0; index < nCES; index++){
+        XCES_daughter[idaughter][index] = 100000.;
+        YCES_daughter[idaughter][index] = 100000.;
+        ZCES_daughter[idaughter][index] = 100000.;
+       }
         XDT_daughter[idaughter][index] = 100000.;
         YDT_daughter[idaughter][index] = 100000.;
         ZDT_daughter[idaughter][index] = 100000.;
        }
       }
+      //loop over emulsion point to look for CES daughters
+      for (const TargetPoint& targetpoint: targetpoints){
+        trackID = targetpoint.GetTrackID(); 
+        detID = targetpoint.GetDetectorID();
+        if (trackID == 1){ //hit from tau lepton
+            ntauhits++;
+        }
+        for (int idaughter = 0; idaughter < visibledaughters.size(); idaughter++){
+          if (trackID == visibledaughters[idaughter]){//hit of a daughter
+           //resetting counters
+           int NWall = 0;
+           int NRow = 0;
+           int NColumn = 0;
+           int NPlate = 0;
+           bool EmCES = false;
+           bool EmBrick = false;
+           bool EmTop = false;
+           DecodeBrickID(detID, NWall, NRow, NColumn, NPlate, EmCES, EmBrick, EmTop);
+           if (EmCES && ((InteractionWall + 1) == NWall)){ //is the hit from CES detector, is it from the same wall of the neutrino interaction?
+             XCES_daughter[idaughter][NPlate -1] = targetpoint.GetX();
+             YCES_daughter[idaughter][NPlate -1] = targetpoint.GetY();
+             ZCES_daughter[idaughter][NPlate -1] = targetpoint.GetZ();    
+             smearing(XCES_daughter[idaughter][NPlate-1], YCES_daughter[idaughter][NPlate-1], CESspaceres);      
+            }            
+          } //end check for daughter
+        } //end loop over daughters
+      } //end of hit loop
+      hnfilmtau->Fill(ntauhits,eventweight);
       //starting loop
       for (const HptPoint& dtpoint: dtpoints){
         trackID = dtpoint.GetTrackID();
@@ -292,12 +327,25 @@ int nutau_event(){
        if (ZDT_daughter[idaughter][2] < 100000. && ZDT_daughter[idaughter][1] < 100000. && ZDT_daughter[idaughter][0] < 100000.){
         double ysagitta = ((YDT_daughter[idaughter][0] + YDT_daughter[idaughter][2])/2.) - YDT_daughter[idaughter][1];
         double xsagitta = ((XDT_daughter[idaughter][0] + XDT_daughter[idaughter][2])/2.) - XDT_daughter[idaughter][1];
-        hxsagitta->Fill(xsagitta);
-        if (particlecharge > 0.) hysagitta_positive->Fill(ysagitta);
-        else hysagitta_negative->Fill(ysagitta);
+        hxsagitta_DT->Fill(xsagitta);
+        if (particlecharge > 0.) hysagitta_DT_positive->Fill(ysagitta);
+        else hysagitta_DT_negative->Fill(ysagitta);
         //I currently accept the decay as kinematically reconstructed if at least one is seen
         if (TMath::Abs(ysagitta) > (3*sigmasagitta)) chargeeff = true;      
        } //end condtion of particle passing through first three DTs
+
+       if (ZCES_daughter[idaughter][2] < 100000. && ZCES_daughter[idaughter][1] < 100000. && ZCES_daughter[idaughter][0] < 100000.){
+        double sigmasagitta_CES = 1.996e-4;
+
+        double ysagitta = ((YCES_daughter[idaughter][0] + YCES_daughter[idaughter][2])/2.) - YCES_daughter[idaughter][1];
+        double xsagitta = ((XCES_daughter[idaughter][0] + XCES_daughter[idaughter][2])/2.) - XCES_daughter[idaughter][1];
+        hxsagitta_CES->Fill(xsagitta);
+        if (particlecharge > 0.) hysagitta_CES_positive->Fill(ysagitta);
+        else hysagitta_CES_negative->Fill(ysagitta);
+        if (TMath::Abs(ysagitta) > (3*sigmasagitta_CES)) chargeeff = true;
+        //I currently accept the decay as kinematically reconstructed if at least one is seen
+        //if (TMath::Abs(ysagitta) > (3*sigmasagitta)) chargeeff = true;      
+       } //end condtion of particle passing through first three CES
       } //end loop over visible daughters
      } //end condition if doing or not charge detection efficiency estimation
      if (whichchannel == 1){ //only for muon channel,
@@ -373,10 +421,10 @@ int nutau_event(){
             decaysearchweight[whichchannel-1] += eventweight;
             if (chargeeff){ 
               chargedetweight[whichchannel - 1 ] += eventweight;
-            }//charge eff
-            if (whichchannel == 1 && nisolated_rpc_clusters >= minisolated_rpc_clusters){
+              if (whichchannel == 1 && nisolated_rpc_clusters >= minisolated_rpc_clusters){
               muonefficiency += eventweight;
-            } //muon efficiency (does NOT require charge eff)
+              } //muon efficiency (does require charge eff)
+            }//charge eff
           } //decay search
         } //location
       }//geometrical
@@ -403,7 +451,7 @@ int nutau_event(){
   cout<<"Fraction within fiducial volume: "<<vector_geomeff[0]<<" with error "<<vector_geomeff[1]<<endl;
   cout<<"Fraction of localized vertices: "<<vector_localizedeff[0]<<" with error "<<vector_localizedeff[1]<<endl;
   cout<<"Fraction of decay search: "<<vector_decaysearcheff[0]<<" with error "<<vector_decaysearcheff[1]<<endl;
-  cout<<"Fraction of charge detected (DT trackers): "<<vector_chargedeteff[0]<<" with error "<<vector_chargedeteff[1]<<endl;
+  cout<<"Fraction of charge detected: "<<vector_chargedeteff[0]<<" with error "<<vector_chargedeteff[1]<<endl;
   if (ichannel == 0){ //only for tau muon decay channel or charm simulation
    vector<double> vector_muonacceptance = eff_formula(muonacceptance, totalweight[ichannel]);
    vector<double> vector_muoneff = eff_formula(muonefficiency, totalweight[ichannel]);
@@ -472,15 +520,26 @@ int nutau_event(){
  hmuonangleentered->Draw("SAMES");
  gPad->BuildLegend();
  
- TCanvas *csagitta = new TCanvas();
- csagitta->Divide(2,1);
- csagitta->cd(1);
- hxsagitta->Draw();
- hxsagitta->Fit("gaus");
- csagitta->cd(2);
- hysagitta_negative->Draw();
- hysagitta_positive->SetLineColor(kRed);
- hysagitta_positive->Draw("SAMES");
+ TCanvas *csagitta_DT = new TCanvas();
+ csagitta_DT->Divide(2,1);
+ csagitta_DT->cd(1);
+ hxsagitta_DT->Draw();
+ hxsagitta_DT->Fit("gaus");
+ csagitta_DT->cd(2);
+ hysagitta_DT_negative->Draw();
+ hysagitta_DT_positive->SetLineColor(kRed);
+ hysagitta_DT_positive->Draw("SAMES");
+ gPad->BuildLegend();
+
+ TCanvas *csagitta_CES = new TCanvas();
+ csagitta_CES->Divide(2,1);
+ csagitta_CES->cd(1);
+ hxsagitta_CES->Draw();
+ hxsagitta_CES->Fit("gaus");
+ csagitta_CES->cd(2);
+ hysagitta_CES_negative->Draw();
+ hysagitta_CES_positive->SetLineColor(kRed);
+ hysagitta_CES_positive->Draw("SAMES");
  gPad->BuildLegend();
 
  TCanvas *coccupancy = new TCanvas();
@@ -497,6 +556,43 @@ TVector3 NeutrinoVertexCoordinates(const ShipMCTrack &track){
      double vz = track.GetStartZ();
     
      return TVector3(vx,vy,vz);
+}
+
+//decode brick id function by Annarita's Target class
+void DecodeBrickID(Int_t detID, Int_t &NWall, Int_t &NRow, Int_t &NColumn, Int_t &NPlate, Bool_t &EmCES, Bool_t &EmBrick, Bool_t &EmTop)
+{
+  Bool_t BrickorCES = 0, TopBot = 0;
+  
+  NWall = detID/1E7;
+  NRow = (detID - NWall*1E7)/1E6;
+  NColumn = (detID - NWall*1E7 -NRow*1E6)/1E4;
+  Double_t b = (detID - NWall*1E7 -NRow*1E6 - NColumn*1E4)/1.E3;
+  if(b < 1)
+    {
+      BrickorCES = 0;
+      NPlate = (detID - NWall*1E7 -NRow*1E6 - NColumn*1E4 - BrickorCES*1E3)/1E1;
+//      NPlate = detID - NWall*1E7 -NRow*1E6 - NColumn*1E4 - BrickorCES*1E3;
+    }
+  if(b >= 1)
+    {
+      BrickorCES = 1;
+      NPlate = (detID - NWall*1E7 -NRow*1E6 - NColumn*1E4 - BrickorCES*1E3)/1E1;
+//      NPlate = detID - NWall*1E7 -NRow*1E6 - NColumn*1E4 - BrickorCES*1E3;
+    }
+  EmTop = (detID - NWall*1E7 -NRow*1E6 - NColumn*1E4- BrickorCES*1E3- NPlate*1E1)/1E0;
+  if(BrickorCES == 0)
+    {
+      EmCES = 1; EmBrick =0;
+    }
+  if(BrickorCES == 1)
+    {
+      EmBrick = 1; EmCES =0;
+    }
+  
+  // cout << "NPlate = " << NPlate << ";  NColumn = " << NColumn << ";  NRow = " << NRow << "; NWall = " << NWall << endl;
+  // cout << "BrickorCES = " << BrickorCES <<endl;
+  // cout << "EmCES = " << EmCES << ";    EmBrick = " << EmBick << endl;
+  // cout << endl;
 }
 
 //find brick from position in the geometry
@@ -517,7 +613,7 @@ Bool_t FindBrick(Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow,
 }
 
 //*************************************FIRST CONDITION: GEOMETRICAL EFFICIENCY*********************************//
-bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates){
+bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates, int &InteractionWall){
 
     double vx = Vn(0);
     double vy = Vn(1);
@@ -527,10 +623,10 @@ bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates){
     double startbrickx = 0.5;
     double startbricky = 0.5;
 
-    int whichwall, whichrow, whichcolumn; //for findbrick function
+    int whichrow, whichcolumn; //for findbrick function
     int whichplate = 60;
 
-    FindBrick(vx, vy, vz, whichwall, whichrow, whichcolumn, whichplate);
+    FindBrick(vx, vy, vz, InteractionWall, whichrow, whichcolumn, whichplate);
     //longitudinal edge
     if (whichplate > (Ntotplates - Nminplates +1)) return false;
     //upper transverse edges
