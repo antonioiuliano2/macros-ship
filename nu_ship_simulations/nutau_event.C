@@ -11,7 +11,7 @@ bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates, int &In
 bool TauDecay(int trackID, int tauid, const ShipMCTrack &track, TVector3 Vn, double tautx, double tauty, double& taudecaylength);
 
 void smearing (double &Xpos, double &Ypos, double spaceres);
-vector<double> eff_formula(int found, int total);
+vector<double> eff_formula(int foundweight, int totalweight, int Nevents_total);
 //GLOBAL VARIABLES AND HISTOGRAMS
  //*********DEFINITION OF HISTOGRAMS*********************//
  //tau kinematics
@@ -61,7 +61,7 @@ vector<double> eff_formula(int found, int total);
 
 //start main script
 int nutau_event(){
- bool tausim = true;
+ bool tausim = false;
  bool doelectron = false; //fills histograms for electron neutrino interactions
  bool dosagitta = true; //do loop over DTs and sagitta computation
  ROOT::RVec<int> signalpdgs; //particles I want to study the decay
@@ -69,9 +69,9 @@ int nutau_event(){
  else signalpdgs = {411, 431, 4122, 421, 4132, 4232, 4332, 441}; //adding 4122 makes program crash
  //getting tree and defining arrays
  TChain treechain("cbmsim"); //I add a sim of tau and antitaus
- treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
- treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
- //treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
+ //treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
+ //treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
+ treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
  //if (!file) return;
  TTreeReader reader(&treechain);
 
@@ -422,8 +422,9 @@ int nutau_event(){
             if (chargeeff){ 
               chargedetweight[whichchannel - 1 ] += eventweight;
               if (whichchannel == 1 && nisolated_rpc_clusters >= minisolated_rpc_clusters){
-              muonefficiency += eventweight;
+               if (tausim) muonefficiency += eventweight;
               } //muon efficiency (does require charge eff)
+              else if(!tausim) muonefficiency += eventweight; 
             }//charge eff
           } //decay search
         } //location
@@ -433,38 +434,44 @@ int nutau_event(){
 
  } // end of event loop
  //results
- cout<<"Analying a number of interactions: "<<hvz->GetEntries()<<" total weight "<<hvz->Integral()<<endl;
+ int Nevents_total = hvz->GetEntries();
+ cout<<endl;
+ cout<<"****************PRINTING EFFICIENCY ESTIMATIONS*********************"<<endl;
+ cout<<"Analying a number of interactions: "<<Nevents_total<<" total weight "<<hvz->Integral()<<endl;
  cout<<"channel legenda: (1 = mu, 2 = e, 3 = 1h, 4 = 3h)"<<endl;
  cout<<"Note: charge and muon efficiency are independently computed, but both require decay search to be true "<<endl;
  double allgeometricalweight, alllocalizedweight,alltotalweight; //not dependant from channel
  for (int ichannel = 0; ichannel < ndecaychannels; ichannel++){
+  cout<<endl;
   alltotalweight+= totalweight[ichannel];
   allgeometricalweight+=geometricalweight[ichannel];
   alllocalizedweight+= localizedweight[ichannel];
+  int Nevents_ichannel = hchannel->GetBinContent(ichannel+1);
   //computing efficiencies with their values
-  vector<double> vector_geomeff = eff_formula(geometricalweight[ichannel],totalweight[ichannel]);
-  vector<double> vector_localizedeff = eff_formula(localizedweight[ichannel],totalweight[ichannel]);
-  vector<double> vector_decaysearcheff = eff_formula(decaysearchweight[ichannel],totalweight[ichannel]);
-  vector<double> vector_chargedeteff = eff_formula(chargedetweight[ichannel],totalweight[ichannel]);
+  vector<double> vector_geomeff = eff_formula(geometricalweight[ichannel],totalweight[ichannel],Nevents_ichannel);
+  vector<double> vector_localizedeff = eff_formula(localizedweight[ichannel],totalweight[ichannel],Nevents_ichannel);
+  vector<double> vector_decaysearcheff = eff_formula(decaysearchweight[ichannel],totalweight[ichannel],Nevents_ichannel);
+  vector<double> vector_chargedeteff = eff_formula(chargedetweight[ichannel],totalweight[ichannel],Nevents_ichannel);
   //reporting values and errors
-  cout<<"Number of interactions in channel "<<ichannel+1<<" is "<<hchannel->GetBinContent(ichannel+1)<<" Total weigth: "<<totalweight[ichannel]<<endl;
+  cout<<"Number of interactions in channel "<<ichannel+1<<" is "<<Nevents_ichannel<<" Total weigth: "<<totalweight[ichannel]<<endl;
   cout<<"Fraction within fiducial volume: "<<vector_geomeff[0]<<" with error "<<vector_geomeff[1]<<endl;
   cout<<"Fraction of localized vertices: "<<vector_localizedeff[0]<<" with error "<<vector_localizedeff[1]<<endl;
   cout<<"Fraction of decay search: "<<vector_decaysearcheff[0]<<" with error "<<vector_decaysearcheff[1]<<endl;
   cout<<"Fraction of charge detected: "<<vector_chargedeteff[0]<<" with error "<<vector_chargedeteff[1]<<endl;
   if (ichannel == 0){ //only for tau muon decay channel or charm simulation
-   vector<double> vector_muonacceptance = eff_formula(muonacceptance, totalweight[ichannel]);
-   vector<double> vector_muoneff = eff_formula(muonefficiency, totalweight[ichannel]);
+   vector<double> vector_muonacceptance = eff_formula(muonacceptance, totalweight[ichannel],Nevents_ichannel);
+   vector<double> vector_muoneff = eff_formula(muonefficiency, totalweight[ichannel],Nevents_ichannel);
    cout<<"Fractions of muons from tau decays in first rpc: "<<vector_muonacceptance[0]<<" with error "<<vector_muonacceptance[1]<<endl;
    cout<<"Fractions of muons from tau decays with at least "<<minisolated_rpc_clusters<<" isolated rpc clusters: "<<vector_muoneff[0]<<" with error "<<vector_muoneff[1]<<endl;
   }
-  cout<<endl;
  }
- vector<double> vector_allgeomeff = eff_formula(allgeometricalweight,alltotalweight);
- vector<double> vector_alllocalizedeff = eff_formula(alllocalizedweight,alltotalweight);
+ vector<double> vector_allgeomeff = eff_formula(allgeometricalweight,alltotalweight,Nevents_total);
+ vector<double> vector_alllocalizedeff = eff_formula(alllocalizedweight,alltotalweight,Nevents_total);
  //only for ichannel == 0 (muon)
  cout<<"Fraction within fiducial volume over all: "<<vector_allgeomeff[0]<<" with error "<<vector_allgeomeff[1]<<endl;
  cout<<"Fraction of localized vertices over all: "<<vector_alllocalizedeff[0]<<" with error "<<vector_alllocalizedeff[1]<<endl;
+ cout<<"*******ADVICE: IF YOU THINK YOU HAVE CHECKED ENOUGH THIS VALUES...CHECK THEM ONE MORE TIME********"<<endl;
+ cout<<endl;
  //***********************DRAWING HISTOGRAMS************************//
  /*TCanvas *cnfilm = new TCanvas();
  hnfilmtau->Draw();
@@ -769,11 +776,13 @@ void smearing (double &Xpos, double &Ypos, double spaceres){
  Ypos = Ypos + deltaY;
 }
 //standard (approximate for values close to 0 and 1) efficency formula with error
-vector<double> eff_formula(int found, int total){
+vector<double> eff_formula(int foundweight, int totalweight, int Nevents_total){
   vector<double> efficiency; //value and error
   
-  efficiency.push_back((double) found/total);
-  double efferr = TMath::Sqrt(efficiency[0] * (1- efficiency[0])/total);
+  efficiency.push_back((double) foundweight/totalweight);
+
+  //totalweight and foundweight are weighted, I need to divide with the actual number of events simulated!
+  double efferr = TMath::Sqrt(efficiency[0] * (1- efficiency[0])/Nevents_total);
   efficiency.push_back(efferr);
   
   return efficiency;
