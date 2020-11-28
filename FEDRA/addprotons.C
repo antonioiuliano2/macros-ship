@@ -224,3 +224,38 @@ void set_segments_dz(float dz)
     for(int j=0; j<ns; j++) p->GetSegment(j)->SetDZ(dz);
   }
 }
+
+void mergetracks_2prongvertices(TString vertexfilename= "vertextree.root"){
+
+  EdbDataProc *dproc = new EdbDataProc();
+  TCut vertexselection = TCut("n==2&&(flag==1 || flag==4)"); //two back-to-back prongs
+  ali = dproc->PVR();
+
+  const float maxangle = 0.05; //angle condition to merge them back
+  dproc->ReadVertexTree(*ali,vertexfilename,vertexselection);
+  const int nvertices = ali->eVTX->GetEntries();
+
+  //loop on vertices
+  for (int ivertex = 0; ivertex < nvertices; ivertex++){
+    EdbVertex *vertex = (EdbVertex*) ali->eVTX->At(ivertex);
+    vertex->ResetTracks();
+  }
+  for (int ivertex = 0; ivertex < nvertices; ivertex++){
+    EdbVertex *vertex = (EdbVertex*) ali->eVTX->At(ivertex);
+    if (vertex->MaxAperture() < maxangle){ //condition ok, tracks are merged back
+
+     EdbTrackP *firsttrack = (EdbTrackP*) vertex->GetTrack(0); //in two prongs with flag 1, first track is always the most upstream
+     EdbTrackP *secondtrack = (EdbTrackP*) vertex->GetTrack(1);
+
+     cout<<"TEST "<<firsttrack->VertexS()<<" "<<firsttrack->VertexE()<<endl;
+
+     cout<<"in vertex "<<vertex->ID()<<" first track has at the starget # segments "<<firsttrack->N();
+     firsttrack->AddTrack(secondtrack);
+     //then you remove secondtrack and vertex from your list
+     cout<<"after it has # segments "<<firsttrack->N()<<endl;
+    }
+    
+ }
+
+
+}
