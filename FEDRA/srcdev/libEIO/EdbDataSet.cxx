@@ -2659,6 +2659,7 @@ int EdbDataProc::ReadVertexTree( EdbPVRec &ali, const char     *fname, const cha
   if(f.IsZombie()) { Log(1,"EdbDataProc::ReadVertexTree","Error open file %s", fname);  return 0; }
   
   TTree *vtx = (TTree*)f.Get("vtx");
+  map<int, EdbTrackP*> trackID_map;
 
   //vertex variables
   Float_t vx, vy, vz;
@@ -2736,31 +2737,38 @@ int EdbDataProc::ReadVertexTree( EdbPVRec &ali, const char     *fname, const cha
     EdbVertex *v1 = new EdbVertex();
     //loop on all tracks associated to the vertex
     for (int itrk = 0; itrk < n; itrk++){
-     EdbTrackP *tr1 = new EdbTrackP();
-     trk = (EdbSegP*) tracks->At(itrk); //getting track itrk
-     ((EdbSegP*)tr1)->Copy(*trk);
-     tr1->SetM(0.139);                 //TODO
+     EdbTrackP *tr1;
+     if(!trackID_map[TrackID[itrk]]){
+      tr1= new EdbTrackP();
+      trk = (EdbSegP*) tracks->At(itrk); //getting track itrk
+      ((EdbSegP*)tr1)->Copy(*trk);
+      tr1->SetM(0.139);                 //TODO
 
-     for(int i=0; i<nseg[itrk]; i++) {
-      s1 = (EdbSegP*)(seg->At(itotalseg));
-      pat = ali.GetPattern( s1->PID() );
-      if(!pat) { 
-	     Log(1,"EdbDataProc::ReadTracksTree","WARNING: no pattern with pid %d: creating new one!",s1->PID()); 
-	     pat = new EdbPattern( 0., 0., s1->Z() );
-	     pat->SetID(s1->PID());
-	     pat->SetScanID(s1->ScanID());
-	     ali.AddPatternAt(pat,s1->PID());
+      for(int i=0; i<nseg[itrk]; i++) {
+       s1 = (EdbSegP*)(seg->At(itotalseg));
+       pat = ali.GetPattern( s1->PID() );
+       if(!pat) { 
+	      Log(1,"EdbDataProc::ReadTracksTree","WARNING: no pattern with pid %d: creating new one!",s1->PID()); 
+	      pat = new EdbPattern( 0., 0., s1->Z() );
+	      pat->SetID(s1->PID());
+	      pat->SetScanID(s1->ScanID());
+	      ali.AddPatternAt(pat,s1->PID());
       }
 
-       tr1->AddSegment( pat->AddSegment(*s1 ) );
-       tr1->AddSegmentF( new EdbSegP(*((EdbSegP*)(segf->At(itotalseg)))) );
-       itotalseg++; //ALWAYS REMEMBER COUNTERS, YOU IDIOT!
-    }
-     tr1->SetSegmentsTrack(tr1->ID());
-     tr1->SetCounters();
-    //tr1->FitTrackKFS(true);
-     tr1->SetTrack(TrackID[itrk]); //providing trackid to eTrack so it will not be lost when trackID resets
-     ali.AddTrack(tr1);
+        tr1->AddSegment( pat->AddSegment(*s1 ) );
+        tr1->AddSegmentF( new EdbSegP(*((EdbSegP*)(segf->At(itotalseg)))) );
+        itotalseg++; //increasing counter of number of segments
+      }
+      tr1->SetSegmentsTrack(tr1->ID());
+      tr1->SetCounters();
+     //tr1->FitTrackKFS(true);
+      tr1->SetTrack(TrackID[itrk]); //providing trackid to eTrack so it will not be lost when trackID resets
+      ali.AddTrack(tr1);
+      trackID_map[TrackID[itrk]] = tr1;
+     }
+     else{ //track already added to ali, add it only to vertex
+      tr1 = trackID_map[TrackID[itrk]];
+     }
      vertextracks->Add(tr1);     
      //v1 = vertexrec->AddTrackToVertex(v1, tr1, incoming[itrk]);
     }
@@ -2776,7 +2784,7 @@ int EdbDataProc::ReadVertexTree( EdbPVRec &ali, const char     *fname, const cha
      EdbVTA *vta = new EdbVTA(t,v1);
      vta->SetFlag(2);
      v1->AddVTA(vta);
-     (t->Z() >= v1->VZ())? vta->SetZpos(1) : vta->SetZpos(0);
+     (t->Z() >= v1->Z())? vta->SetZpos(1) : vta->SetZpos(0);
      t->AddVTA(vta);
     } 
     
