@@ -715,9 +715,19 @@ void EdbDisplay::VertexDraw(EdbVertex *vv)
       if(eDrawTracks>10)  DrawSegmentExtrapolationLine( *seg, seg->Z(), zv );
     }
     for(int i=0; i<vv->Nn(); i++ ) {    //draw auxillary tracks if any
-      EdbTrackP *t = vv->GetTrackN(i);
-      TrackDraw(t);
-      if(eDrawTracks>10)  DrawSegmentExtrapolationLine( *((EdbSegP *)t), t->Z(), zv );
+      EdbVTA * vtn = vv->GetVTn(i);
+      if (vtn->Flag() < 3){ //neighbor track
+       EdbTrackP *t = vv->GetTrackN(i);
+       TrackDraw(t);
+       if(eDrawTracks>10)  DrawSegmentExtrapolationLine( *((EdbSegP *)t), t->Z(), zv );
+      }
+      else if (vtn->Flag()==3){ //neighbor vertex
+       EdbVertex *neighv = (EdbVertex*) vv->GetTrackN(i);
+       int currentdrawvertexopt = eDrawVertex;
+       eDrawVertex= 0; //do not look for neighbors of this neighbor vertex
+       VertexDraw(neighv);
+       eDrawVertex = currentdrawvertexopt;
+      }
     }
   }
 }
