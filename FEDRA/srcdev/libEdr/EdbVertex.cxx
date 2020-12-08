@@ -866,7 +866,7 @@ EdbVertex *EdbVertexRec::Make1Vertex(TObjArray &tracks, float zexpected)
     EdbVTA *vta = new EdbVTA(t,v);
     vta->SetFlag(2);
     v->AddVTA(vta);
-    (t->Z() >= v->VZ())? vta->SetZpos(1) : vta->SetZpos(0);
+    (t->Z() >= v->Z())? vta->SetZpos(1) : vta->SetZpos(0);
     t->AddVTA(vta);
   }
   if( MakeV(*v) )  AddVertex(v);
