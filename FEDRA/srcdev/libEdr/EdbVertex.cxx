@@ -46,20 +46,13 @@ EdbVTA::EdbVTA()
 EdbVTA::EdbVTA( EdbVTA& vta )
 {
   eTrack=vta.GetTrack();
-  eNeighborVertex=vta.GetNeighborVertex();
   eVertex=vta.GetVertex();
   eZpos=vta.Zpos();
   eFlag=vta.Flag();
   eImp=vta.Imp();
   eDist=vta.Dist();
 }
-//______________________________________________________________________________
-EdbVTA::EdbVTA( EdbVertex *ve, EdbVertex *v )
-{
-  Set0();
-  eNeighborVertex=ve;
-  eVertex=v;
-}
+
 //______________________________________________________________________________
 EdbVTA::EdbVTA( EdbTrackP *tr, EdbVertex *v )
 {
@@ -72,7 +65,6 @@ EdbVTA::EdbVTA( EdbTrackP *tr, EdbVertex *v )
 void EdbVTA::Set0()
 {
   eTrack=0;
-  eNeighborVertex=0;
   eVertex=0;
   eZpos=0;
   eFlag=0;
@@ -168,7 +160,7 @@ EdbSegP   *EdbVertex::GetTrackV(int i, bool usesegpar)
 {
 	EdbTrackP *t = GetTrack(i); if(!t) return 0;
 	EdbSegP *s = t->TrackExtremity(Zpos(i), usesegpar);
-  if( s->P()>=0 && (s->P() != t->P()) ) Log(1,"GetTrackV","Warning! segment momentum=%f is not equal to the track momentum=%f",s->P(), t->P() );
+ // if( s->P()>=0 && (s->P() != t->P()) ) Log(1,"GetTrackV","Warning! segment momentum=%f is not equal to the track momentum=%f",s->P(), t->P() );
 	return s;
 }
 
@@ -2814,7 +2806,7 @@ int EdbVertexRec::VertexNeighbor(EdbVertex *v, float RadMax, int Dpat, float Imp
 		    if (TMath::Sqrt(dx*dx + dy*dy) > RadMax) continue;
 		    dz = ve->VZ() - zvert;
 		    if (TMath::Abs(dz) > Dpat*Zbin) continue;
-		    vta = new EdbVTA(ve, v);
+		    vta = new EdbVTA((EdbTrackP *)ve, v);
 		    vta->SetFlag(3);
 		    vta->SetDist(TMath::Sqrt(dx*dx+dy*dy+dz*dz));
 		    v->AddVTA(vta);
@@ -2892,7 +2884,7 @@ int EdbVertexRec::VertexNeighbor(EdbVertex *v, float RadMax, int Dpat, float Imp
 					if (dz <= Dpat*Zbin)
 					{
 					    ve->SetFlag(-ve->Flag()-200);
-					    vta = new EdbVTA(ve, v);
+					    vta = new EdbVTA((EdbTrackP *)ve, v);
 					    vta->SetFlag(3);
 					    vta->SetDist(TMath::Sqrt(dx*dx+dy*dy+dz*dz));
 					    v->AddVTA(vta);
@@ -2927,7 +2919,7 @@ int EdbVertexRec::VertexNeighbor(EdbVertex *v, float RadMax, int Dpat, float Imp
 					if (dz <= Dpat*Zbin)
 					{
 					    ve->SetFlag(-ve->Flag()-200);
-					    vta = new EdbVTA(ve, v);
+					    vta = new EdbVTA((EdbTrackP *)ve, v);
 					    vta->SetFlag(3);
 					    vta->SetDist(TMath::Sqrt(dx*dx+dy*dy+dz*dz));
 					    v->AddVTA(vta);

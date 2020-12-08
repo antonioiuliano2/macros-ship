@@ -28,7 +28,6 @@ class EdbVTA: public TObject {
 
   EdbTrackP *eTrack;          // pointer to track (or segment)
   EdbVertex *eVertex; 	      // pointer to vertex
-  EdbVertex *eNeighborVertex; // pointer to neighbor vertex
 
   Int_t      eZpos;            // 1-track start, 0-track end connect to the vertex
   Int_t	     eFlag;            // 0-neighbor track;
@@ -42,15 +41,13 @@ class EdbVTA: public TObject {
   EdbVTA();
   EdbVTA(EdbVTA &vta);
   EdbVTA(EdbTrackP *tr, EdbVertex *v );
-  EdbVTA(EdbVertex *ve, EdbVertex *v );
   virtual ~EdbVTA();
 
   Int_t      Zpos()      const  {return eZpos;}
   Int_t      Flag()      const  {return eFlag;}
   Float_t    Imp()       const  {return eImp;}
   Float_t    Dist()      const  {return eDist;}
-  EdbTrackP *GetTrack()  const  {if (eFlag==3 && eNeighborVertex) return (EdbTrackP*) eNeighborVertex; else return eTrack;}
-  EdbVertex *GetNeighborVertex() const  {return eNeighborVertex;}
+  EdbTrackP *GetTrack()  const  {return eTrack;}
   EdbVertex *GetVertex() const  {return eVertex;}
 
   void Set0();
@@ -59,13 +56,12 @@ class EdbVTA: public TObject {
   void SetImp(float imp)       {eImp = imp;}
   void SetDist(float dist)     {eDist = dist;}
   void SetTrack(EdbTrackP *tr) {eTrack = tr;}
-  void SetNeighborVertex(EdbVertex *ve) {eNeighborVertex = ve;}
   void SetVertex(EdbVertex *v) {eVertex = v;}
   void Print();
 
   void AddVandT();
 
-  ClassDef(EdbVTA,2)  // vertex-track association
+  ClassDef(EdbVTA,1)  // vertex-track association
 };
 
 //_________________________________________________________________________
