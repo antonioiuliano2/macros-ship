@@ -1,4 +1,4 @@
-void testgeometry(){
+void testgeometry(double stereoangle){
 
   float cm = 1.;
 
@@ -22,7 +22,6 @@ void testgeometry(){
   const Double_t ironZDIM = 20 *cm;
 
   const int nbars = 77;
-  const double stereoangle = 70.;
   const Double_t overlapbars = 0. *cm;
 
   const Double_t stereoXDIM = mufilterXDIM/TMath::Cos(TMath::DegToRad()*stereoangle);
@@ -72,7 +71,7 @@ void testgeometry(){
     Double_t dy_bar = -stereoYDIM/2. + barYDIM/2. + (barYDIM-overlapbars)/TMath::Cos(TMath::DegToRad()*stereoangle)*ibar; 
     Double_t dz_bar_hor = -stereoZDIM/2. + barZDIM/2. * (2 *(ibar%2) + 1.); //on the left or right side of the volume
 
-    TGeoTranslation *yztrans = new TGeoTranslation(barYDIM/2.,dy_bar,dz_bar_hor);
+    TGeoTranslation *yztrans = new TGeoTranslation(barYDIM*TMath::Cos(TMath::DegToRad()*stereoangle)/2.,dy_bar,dz_bar_hor);
     yztrans->SetName(Form("yztrans[%i]",ibar));
     yztrans->RegisterYourself();
     TGeoCombiTrans *yzstereo = new TGeoCombiTrans(*yztrans, *stereorot);
@@ -94,3 +93,18 @@ void testgeometry(){
 
   gGeoManager->CheckOverlaps(0.001);
 } 
+
+void testallangles(){
+  const double stereomin = 10.;
+  const double stereomax = 80.;
+  const double stereostep = 5.;
+  for (int istep = stereomin; istep<=stereomax;istep++){
+    testgeometry(istep);
+    TGLViewer * v = (TGLViewer *)gPad->GetViewer3D();
+    v->SetCurrentCamera(TGLViewer::kCameraOrthoXOY );
+    v->SetStyle(TGLRnrCtx::kWireFrame);
+    if (istep == stereomin) v->SavePicture("plots/stereoviews.gif");
+    else v->SavePicture("plots/stereoviews.gif+");
+  }
+
+}
