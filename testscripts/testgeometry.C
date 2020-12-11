@@ -22,18 +22,18 @@ void testgeometry(){
   const Double_t ironZDIM = 20 *cm;
 
   const int nbars = 77;
-  const double stereoangle = 45.;
-  const Double_t overlapbars = 0.2 *cm;
+  const double stereoangle = 70.;
+  const Double_t overlapbars = 0. *cm;
 
-  const Double_t stereoXDIM = mufilterXDIM*(1+TMath::Sin(TMath::DegToRad()*stereoangle));
-  const Double_t stereoYDIM = mufilterYDIM+mufilterXDIM*TMath::Sin(TMath::DegToRad()*stereoangle);
+  const Double_t stereoXDIM = mufilterXDIM/TMath::Cos(TMath::DegToRad()*stereoangle);
+  const Double_t stereoYDIM = mufilterYDIM+mufilterXDIM*TMath::Tan(TMath::DegToRad()*stereoangle);
 
   const Double_t stereoZDIM = 2 * cm;
 
   const Double_t stereodiagonalDIM = TMath::Sqrt(stereoXDIM * stereoXDIM + stereoYDIM * stereoYDIM);
   
   const Double_t barXDIM = stereoXDIM; //larger than anywhere around X;
-  const Double_t barYDIM = (stereoYDIM + overlapbars * (nbars - 1))/nbars;
+  const Double_t barYDIM = (stereoYDIM + overlapbars/TMath::Cos(TMath::DegToRad()*stereoangle) * (nbars - 1))/nbars * TMath::Cos(TMath::DegToRad()*stereoangle);
   const Double_t barZDIM = 1*cm;
 
   cout<<barYDIM<<endl;
@@ -69,10 +69,10 @@ void testgeometry(){
  
   for (int ibar = 0; ibar < nbars; ibar++){    
     
-    Double_t dy_bar = -stereoYDIM/2. + barYDIM/2. + (barYDIM - overlapbars)*ibar; 
+    Double_t dy_bar = -stereoYDIM/2. + barYDIM/2. + (barYDIM-overlapbars)/TMath::Cos(TMath::DegToRad()*stereoangle)*ibar; 
     Double_t dz_bar_hor = -stereoZDIM/2. + barZDIM/2. * (2 *(ibar%2) + 1.); //on the left or right side of the volume
 
-    TGeoTranslation *yztrans = new TGeoTranslation(0,dy_bar,dz_bar_hor);
+    TGeoTranslation *yztrans = new TGeoTranslation(barYDIM/2.,dy_bar,dz_bar_hor);
     yztrans->SetName(Form("yztrans[%i]",ibar));
     yztrans->RegisterYourself();
     TGeoCombiTrans *yzstereo = new TGeoCombiTrans(*yztrans, *stereorot);
