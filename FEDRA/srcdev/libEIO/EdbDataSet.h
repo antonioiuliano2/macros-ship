@@ -17,6 +17,7 @@
 #include "EdbPVRec.h"
 #include "EdbLayer.h"
 #include "EdbSegmentCut.h"
+#include "EdbVertex.h"
 #include "TMatrix.h"
 #include "TArrayC.h"
 
@@ -238,8 +239,8 @@ class EdbDataProc : public TObject {
   static int MakeTracksTree(EdbPVRec *ali=0, const char *file="linked_tracks.root");
   static int MakeVertexTree(TObjArray &vtxarr, const char *file);
   static int MakeTracksTree(TObjArray &tracks, float xv=0, float yv=0, const char *file="linked_tracks.root");
-  static int ReadVertexTree( EdbPVRec &ali, const char     *fname, const char *rcut );
-  EdbVertex* GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int vertexID );
+  static int ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname, const char *rcut );
+  EdbVertex* GetVertexFromTree( EdbVertexRec &vertexrec, const char     *fname, const int vertexID );
   static int ReadTracksTree(EdbPVRec &ali,
 			    const char *fname="linked_tracks.root",
 			    //			    int   nsegMin=3,

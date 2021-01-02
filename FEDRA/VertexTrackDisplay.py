@@ -8,6 +8,8 @@ from argparse import ArgumentParser
 
 dproc = ROOT.EdbDataProc()
 gAli = dproc.PVR()
+scancond = ROOT.EdbScanCond()
+gAli.SetScanCond(scancond)
 
 fedratrackslist = []
 #vertexnumberlist = [10, 20]
@@ -64,7 +66,17 @@ proc = ROOT.EdbDataProc()
 
 if (options.new): #new format, vertex information saved in tree
  for vertexnumber in vertexnumberlist:
-  vertex = proc.GetVertexFromTree(gAli,vertexfilename,int(vertexnumber))
+
+  vertexrec = ROOT.EdbVertexRec()
+  vertexrec.SetPVRec(gAli)
+  vertexrec.eDZmax=3000.
+  vertexrec.eProbMin=0.01
+  vertexrec.eImpMax=15.
+  vertexrec.eUseMom=False
+  vertexrec.eUseSegPar=True
+  vertexrec.eQualityMode=0
+
+  vertex = proc.GetVertexFromTree(vertexrec,vertexfilename,int(vertexnumber))
   ntracksfromvertex = vertex.N()
   #adding tracks and vertices to list to be drawn (only one vertex in this case)
   drawnvertices.Add(vertex)

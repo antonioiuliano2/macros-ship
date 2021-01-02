@@ -2609,10 +2609,10 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
     for (int itrk = 0; itrk < n; itrk++){
      //getting track and track variables to fill branches
      track = vertex->GetTrack(itrk);
-     tr->Copy(*track);
-     tr->ForceCOV(track->COV());
+     tr->Copy(*track);     
+//     tr->ForceCOV(track->COV());
      if(tr) new((*tracks)[itrk])  EdbSegP( *tr ); //adding track to trackclonesarray
-
+     ((EdbSegP*) tracks->At(itrk))->ForceCOV(track->COV()); //default copy does NOT save COV corrrectly
      TrackID[itrk] = track->Track(); //the eTrack attribute of EdbSegP now allows association to original root tree
      nseg[itrk] = track->N();
      npl[itrk]  = track->Npl();
@@ -2638,8 +2638,10 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
      for(int is=0; is<nseg[itrk]; is++) {
       s = track->GetSegment(is);     
       if(s) new((*segments)[itotalseg])  EdbSegP( *s );
+      ((EdbSegP*) segments->At(itotalseg))->ForceCOV(s->COV()); //default copy does NOT save COV corrrectly
       sf = track->GetSegmentF(is);
       if(sf) new((*segmentsf)[itotalseg])  EdbSegP( *sf );
+      ((EdbSegP*) segmentsf->At(itotalseg))->ForceCOV(sf->COV()); //default copy does NOT save COV corrrectly
       itotalseg++;
       }
 
@@ -2653,7 +2655,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
   Log(2,"EdbDataProc::MakeVertexTree","%d vertices are written",nvtx);
   return nvtx; 
 }
-int EdbDataProc::ReadVertexTree( EdbPVRec &ali, const char     *fname, const char *rcut )
+int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname, const char *rcut)
 {
   TFile f(fname);
   if(f.IsZombie()) { Log(1,"EdbDataProc::ReadVertexTree","Error open file %s", fname);  return 0; }
@@ -2702,7 +2704,8 @@ int EdbDataProc::ReadVertexTree( EdbPVRec &ali, const char     *fname, const cha
   TClonesArray *segf = new TClonesArray("EdbSegP", 60);
   
   EdbSegP *trk=0;
-  EdbSegP *s1=0;
+  EdbSegP *s1=0; 
+  EdbSegP *s1f=0;
   //vertex variables
   vtx->SetBranchAddress("vID",&vID);
   vtx->SetBranchAddress("flag",&flag);
@@ -2725,8 +2728,8 @@ int EdbDataProc::ReadVertexTree( EdbPVRec &ali, const char     *fname, const cha
 
   TObjArray * vertextracks = new TObjArray(maxdim);
   float expz = 0.;
-  EdbVertexRec *vertexrec = new EdbVertexRec(); //test to use addtrack method
-  vertexrec->SetPVRec(&ali);
+
+  EdbPVRec *ali = vertexrec.ePVR; //I get EdbPVR from EdbVertexRec from now on
   for (int j=0; j<nlst; j++){
     //RESET COUNTERS!
     int itotalseg = 0; //counter for all the segments
@@ -2742,42 +2745,66 @@ int EdbDataProc::ReadVertexTree( EdbPVRec &ali, const char     *fname, const cha
       tr1= new EdbTrackP();
       trk = (EdbSegP*) tracks->At(itrk); //getting track itrk
       ((EdbSegP*)tr1)->Copy(*trk);
+      tr1->ForceCOV(trk->COV());
       tr1->SetM(0.139);                 //TODO
 
       for(int i=0; i<nseg[itrk]; i++) {
        s1 = (EdbSegP*)(seg->At(itotalseg));
-       pat = ali.GetPattern( s1->PID() );
+       s1f = (EdbSegP*)(segf->At(itotalseg));
+       pat = ali->GetPattern( s1->PID() );
        if(!pat) { 
-	      Log(1,"EdbDataProc::ReadTracksTree","WARNING: no pattern with pid %d: creating new one!",s1->PID()); 
+	      Log(1,"EdbDataProc::ReadVertexTree","WARNING: no pattern with pid %d: creating new one!",s1->PID()); 
 	      pat = new EdbPattern( 0., 0., s1->Z() );
 	      pat->SetID(s1->PID());
 	      pat->SetScanID(s1->ScanID());
-	      ali.AddPatternAt(pat,s1->PID());
+	      ali->AddPatternAt(pat,s1->PID());
       }
 
-        tr1->AddSegment( pat->AddSegment(*s1 ) );
-        tr1->AddSegmentF( new EdbSegP(*((EdbSegP*)(segf->At(itotalseg)))) );
+        //This way it should be more clear which segment instance is added to the track
+        EdbSegP *segtobeadded = pat->AddSegment(*s1);
+        EdbSegP *segftobeadded = new EdbSegP(*s1f);
+        segtobeadded->ForceCOV(s1->COV());
+        segftobeadded->ForceCOV(s1f->COV());
+
+        tr1->AddSegment(segtobeadded);
+        tr1->AddSegmentF(segftobeadded);
         itotalseg++; //increasing counter of number of segments
       }
       tr1->SetSegmentsTrack(tr1->ID());
       tr1->SetCounters();
      //tr1->FitTrackKFS(true);
       tr1->SetTrack(TrackID[itrk]); //providing trackid to eTrack so it will not be lost when trackID resets
-      ali.AddTrack(tr1);
+      ali->AddTrack(tr1);
       trackID_map[TrackID[itrk]] = tr1;
      }
      else{ //track already added to ali, add it only to vertex
       tr1 = trackID_map[TrackID[itrk]];
+      itotalseg+= nseg[itrk];
      }
      vertextracks->Add(tr1);     
      //v1 = vertexrec->AddTrackToVertex(v1, tr1, incoming[itrk]);
     }
     //setting vertex parameters and saving vertex
-    //v1 = vertexrec->Make1Vertex(*vertextracks,vz);
-    //make vertex manually, make1Vertex does not work properly (strange positions)
+    v1->SetXYZ( 0,0, vz );
     int ntr = vertextracks->GetEntries();
+    for(int i=0; i<ntr; i++) {
+      EdbTrackP *t = (EdbTrackP*)vertextracks->At(i);
+      EdbVTA *vta = new EdbVTA(t,v1);
+      vta->SetFlag(2);
+      v1->AddVTA(vta);
+      vta->SetZpos(incoming[i]);
+      //(t->Z() >= v->Z())? vta->SetZpos(1) : vta->SetZpos(0);
+      t->AddVTA(vta);
+    }
+    if( vertexrec.MakeV(*v1) )  vertexrec.AddVertex(v1);
+    //else { SafeDelete(v); return 0; }                                // vertex is not valid
+    //return v;
+    //v1 = vertexrec.Make1Vertex(*vertextracks,vz);
+    //make vertex manually, make1Vertex does not work properly (strange positions)
     v1->SetID(vID);
     v1->SetFlag(flag);
+    /*
+    int ntr = vertextracks->GetEntries();
     v1->SetXYZ(vx,vy,vz);  
     for(int i=0; i<ntr; i++) {
      EdbTrackP *t = (EdbTrackP*)vertextracks->At(i);
@@ -2786,24 +2813,25 @@ int EdbDataProc::ReadVertexTree( EdbPVRec &ali, const char     *fname, const cha
      v1->AddVTA(vta);
      (t->Z() >= v1->Z())? vta->SetZpos(1) : vta->SetZpos(0);
      t->AddVTA(vta);
-    } 
+    } */
     
-    ali.AddVertex(v1);
+    ali->AddVertex(v1);
   }
 
   Log(2,"EdbDataProc::ReadVtxTree","%d vertices are read",nlst);
   return nlst;
 }
 
- EdbVertex*  EdbDataProc::GetVertexFromTree( EdbPVRec &ali, const char     *fname, const int vertexID )
+ EdbVertex*  EdbDataProc::GetVertexFromTree( EdbVertexRec &vertexrec, const char     *fname, const int vertexID )
 {
   //reading vertex tree, getting only the vertex I need
-  ReadVertexTree(ali, fname, Form("vID==%i",vertexID)); //vertex is added to EdbPVRec
+  ReadVertexTree(vertexrec, fname, Form("vID==%i",vertexID)); //vertex is added to EdbPVRec
 
   EdbVertex *myvertex;
+  EdbPVRec *ali = vertexrec.ePVR;
   //looking for myvertex (when called more than once, ali keeps adding vertices)
-  for (int ivtx = 0; ivtx<ali.eVTX->GetEntries();ivtx++){
-    EdbVertex *v1 = (EdbVertex*) ali.eVTX->At(ivtx);
+  for (int ivtx = 0; ivtx<ali->eVTX->GetEntries();ivtx++){
+    EdbVertex *v1 = (EdbVertex*) ali->eVTX->At(ivtx);
     if (v1->ID()==vertexID) myvertex = v1;
   }
   
@@ -2904,6 +2932,7 @@ int EdbDataProc::ReadTracksTree( EdbPVRec &ali,
   TClonesArray *segf = new TClonesArray("EdbSegP", 60);
   EdbSegP *trk=0;
   EdbSegP *s1=0;
+  EdbSegP *s1f=0;
 
   tracks->SetBranchAddress("trid", &trid);
   tracks->SetBranchAddress("nseg", &nseg);
@@ -2923,10 +2952,12 @@ int EdbDataProc::ReadTracksTree( EdbPVRec &ali,
 
     EdbTrackP *tr1 = new EdbTrackP();
     ((EdbSegP*)tr1)->Copy(*trk);
+    tr1->ForceCOV(trk->COV());
     tr1->SetM(0.139);                 //TODO
 
     for(int i=0; i<nseg; i++) {
       s1 = (EdbSegP*)(seg->At(i));
+      s1f = (EdbSegP*)(segf->At(i));
       pat = ali.GetPattern( s1->PID() );
       if(!pat) { 
 	Log(1,"EdbDataProc::ReadTracksTree","WARNING: no pattern with pid %d: creating new one!",s1->PID()); 
@@ -2935,9 +2966,14 @@ int EdbDataProc::ReadTracksTree( EdbPVRec &ali,
 	pat->SetScanID(s1->ScanID());
 	ali.AddPatternAt(pat,s1->PID());
       }
+      //This way it should be more clear which segment instance is added to the track
+      EdbSegP *segtobeadded = pat->AddSegment(*s1);
+      EdbSegP *segftobeadded = new EdbSegP(*s1f);
+      segtobeadded->ForceCOV(s1->COV());
+      segftobeadded->ForceCOV(s1f->COV());
 
-      tr1->AddSegment( pat->AddSegment(*s1 ) );
-      tr1->AddSegmentF( new EdbSegP(*((EdbSegP*)(segf->At(i)))) );
+      tr1->AddSegment( segtobeadded );
+      tr1->AddSegmentF( segftobeadded );
     }
     tr1->SetSegmentsTrack(tr1->ID());
     tr1->SetCounters();

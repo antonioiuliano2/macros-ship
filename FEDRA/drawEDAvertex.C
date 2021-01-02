@@ -1,8 +1,19 @@
 //display for vertices, patterns are not drawn
+namespace VERTEX_PAR
+{
+  float DZmax = 3000.;
+  //float ProbMinV   = 0.0001;  // minimum acceptable probability for chi2-distance between tracks
+  float ProbMinV   = 0.01;
+  float ImpMax     = 15.;    // maximal acceptable impact parameter [microns] (for preliminary check)
+  bool  UseMom     = false;  // use or not track momentum for vertex calculations
+  bool  UseSegPar  = true;  // use only the nearest measured segments for vertex fit (as Neuchatel)
+  int   QualityMode= 0;      // vertex quality estimation method (0:=Prob/(sigVX^2+sigVY^2); 1:= inverse average track-vertex distance)
+}
 
-void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree.root"){
+void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree_test.root"){
+ using namespace VERTEX_PAR;
  const int nvertices = 1;
- int vertexlist[nvertices] = {110839};
+ int vertexlist[nvertices] = {7197};
  int vertexcolors[nvertices] = {kRed};
  EdbDataProc *dproc = new EdbDataProc();
 
@@ -15,13 +26,26 @@ void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree.r
 // EdbTrackP *specialtrack = new EdbTrackP();
 
  EdbPVRec *ali = new EdbPVRec();
+ EdbScanCond *scancond = new EdbScanCond();
+ ali->SetScanCond(scancond);
 
  for (int i = 0; i < nvertices; i++){ //range for loop, C++11
   int vID = vertexlist[i];
   
   EdbVertex *vertex = 0;
 
-  if (newversion) vertex = dproc->GetVertexFromTree(*ali,vertexfilename,vID);
+  if (newversion){ 
+    vertexrec = new EdbVertexRec();
+    vertexrec->SetPVRec(ali);
+    vertexrec->eDZmax=DZmax;
+    vertexrec->eProbMin=ProbMinV;
+    vertexrec->eImpMax=ImpMax;
+    vertexrec->eUseMom=UseMom;
+    vertexrec->eUseSegPar=UseSegPar;
+    vertexrec->eQualityMode=QualityMode;
+
+    vertex = dproc->GetVertexFromTree(*vertexrec,vertexfilename,vID);
+  }
   else{
     vertexrec = (EdbVertexRec*) inputfile->Get("EdbVertexRec");
     vertex = (EdbVertex*) vertexrec->eVTX->At(vID);
@@ -48,9 +72,10 @@ void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree.r
 }
 
 void drawEDAvertices(bool newversion = true, TString vertexfilename= "vertextree_firstquarter_noendend.root"){
+ using namespace VERTEX_PAR;
  TFile * inputfile = TFile::Open(vertexfilename.Data());
  TTree *vtxtree = (TTree*) inputfile->Get("vtx");
- EdbVertexRec *vertexrec = (EdbVertexRec*) inputfile->Get("EdbVertexRec");
+ EdbVertexRec *vertexrec;
  EdbDataProc *dproc = new EdbDataProc();
 
 
@@ -60,6 +85,8 @@ void drawEDAvertices(bool newversion = true, TString vertexfilename= "vertextree
 // EdbTrackP *specialtrack = new EdbTrackP();
 
  EdbPVRec *ali = new EdbPVRec();
+ EdbScanCond *scancond = new EdbScanCond();
+ ali->SetScanCond(scancond);
 
  const int nvertices = 10000;
  cout<<"Reading number of vertices: "<<nvertices<<endl;
@@ -68,9 +95,21 @@ void drawEDAvertices(bool newversion = true, TString vertexfilename= "vertextree
   
   EdbVertex *vertex = 0;
 
-  if (newversion) vertex = dproc->GetVertexFromTree(*ali,vertexfilename,vID);
-  else vertex = (EdbVertex*) vertexrec->eVTX->At(vID);
-
+  if (newversion){
+    vertexrec = new EdbVertexRec();
+    vertexrec->SetPVRec(ali);
+    vertexrec->eDZmax=DZmax;
+    vertexrec->eProbMin=ProbMinV;
+    vertexrec->eImpMax=ImpMax;
+    vertexrec->eUseMom=UseMom;
+    vertexrec->eUseSegPar=UseSegPar;
+    vertexrec->eQualityMode=QualityMode;
+    vertex = dproc->GetVertexFromTree(*vertexrec,vertexfilename,vID);
+  } 
+  else{ 
+    vertexrec = (EdbVertexRec*) inputfile->Get("EdbVertexRec");
+    vertex = (EdbVertex*) vertexrec->eVTX->At(vID);
+  }
   if (vertex->N()< 4) continue;
   drawnvertices->Add(vertex); // assuming the array is filled with EdbVertex.
   for (int itrk = 0; itrk < vertex->N(); itrk++){
