@@ -2785,6 +2785,7 @@ int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname,
      //v1 = vertexrec->AddTrackToVertex(v1, tr1, incoming[itrk]);
     }
     //setting vertex parameters and saving vertex
+    //v1 = vertexrec.Make1Vertex(*vertextracks,vz) (copied here instead, by putting zpos directly as for in vertexing);
     v1->SetXYZ( 0,0, vz );
     int ntr = vertextracks->GetEntries();
     for(int i=0; i<ntr; i++) {
@@ -2793,17 +2794,14 @@ int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname,
       vta->SetFlag(2);
       v1->AddVTA(vta);
       vta->SetZpos(incoming[i]);
-      //(t->Z() >= v->Z())? vta->SetZpos(1) : vta->SetZpos(0);
       t->AddVTA(vta);
     }
     if( vertexrec.MakeV(*v1) )  vertexrec.AddVertex(v1);
     //else { SafeDelete(v); return 0; }                                // vertex is not valid
     //return v;
-    //v1 = vertexrec.Make1Vertex(*vertextracks,vz);
-    //make vertex manually, make1Vertex does not work properly (strange positions)
     v1->SetID(vID);
     v1->SetFlag(flag);
-    /*
+    /* make vertex manually, old version
     int ntr = vertextracks->GetEntries();
     v1->SetXYZ(vx,vy,vz);  
     for(int i=0; i<ntr; i++) {
