@@ -2655,13 +2655,12 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
   Log(2,"EdbDataProc::MakeVertexTree","%d vertices are written",nvtx);
   return nvtx; 
 }
-int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname, const char *rcut)
+int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname, const char *rcut, map<int,EdbTrackP*> trackID_map)
 {
   TFile f(fname);
   if(f.IsZombie()) { Log(1,"EdbDataProc::ReadVertexTree","Error open file %s", fname);  return 0; }
   
   TTree *vtx = (TTree*)f.Get("vtx");
-  map<int, EdbTrackP*> trackID_map;
 
   //vertex variables
   Float_t vx, vy, vz;
