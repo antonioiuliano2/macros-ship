@@ -2819,10 +2819,28 @@ int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname,
   return nlst;
 }
 
+
+ int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname, const char *rcut,TObjArray *builttracks){
+
+  map<int,EdbTrackP*>emptymap;
+  if (builttracks){
+   int ntracks = builttracks->GetEntries();
+  
+   for (int itrk = 0; itrk < ntracks; itrk++){
+        EdbTrackP * track = (EdbTrackP*) builttracks->At(itrk);
+        emptymap[track->Track()] = track; //adding this trackID to map
+    }
+  }
+
+  int nlst = ReadVertexTree( vertexrec, fname, rcut,emptymap);
+  return nlst;
+ }
+
  EdbVertex*  EdbDataProc::GetVertexFromTree( EdbVertexRec &vertexrec, const char     *fname, const int vertexID )
 {
   //reading vertex tree, getting only the vertex I need
-  ReadVertexTree(vertexrec, fname, Form("vID==%i",vertexID)); //vertex is added to EdbPVRec
+  map<int,EdbTrackP*>emptymap;
+  ReadVertexTree(vertexrec, fname, Form("vID==%i",vertexID),emptymap); //vertex is added to EdbPVRec
 
   EdbVertex *myvertex;
   EdbPVRec *ali = vertexrec.ePVR;
