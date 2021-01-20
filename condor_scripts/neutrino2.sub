@@ -1,10 +1,9 @@
-executable            = neutrino.sh
-arguments             = $(ClusterID) $(ProcId)
+executable            = neutrino2.sh
+arguments             = $(ClusterID) $(ProcId) $(run)
 output                = output/neutrino.$(ClusterId).$(ProcId).out
 error                 = error/neutrino.$(ClusterId).$(ProcId).err
 log                   = log/neutrino.$(ClusterId).log
 getenv = False
 notification = Never
 +JobFlavour             ="testmatch"
-queue 10
-
+queue run in 0, 4
