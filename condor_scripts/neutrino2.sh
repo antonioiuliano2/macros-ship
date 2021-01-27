@@ -1,9 +1,10 @@
 #!/bin/bash
 #launched with deepcopy option in run_simScript.py
 ProcId=$2
+Run=$3
 NEVENTS=10000
-STARTEVENT=$((ProcId*NEVENTS))
-LSB_JOBINDEX=$((ProcId+1))
+STARTEVENT=$((Run*NEVENTS))
+LSB_JOBINDEX=$((Run+1))
 echo $LSB_JOBINDEX
 
 sleep $ProcId
