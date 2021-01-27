@@ -10,10 +10,10 @@ namespace VERTEX_PAR
   int   QualityMode= 0;      // vertex quality estimation method (0:=Prob/(sigVX^2+sigVY^2); 1:= inverse average track-vertex distance)
 }
 
-void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree_test.root"){
+void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree.root"){
  using namespace VERTEX_PAR;
  const int nvertices = 1;
- int vertexlist[nvertices] = {7197};
+ int vertexlist[nvertices] = {112283};
  int vertexcolors[nvertices] = {kRed};
  EdbDataProc *dproc = new EdbDataProc();
 
