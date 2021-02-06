@@ -50,15 +50,9 @@ using namespace std;
 void Loop()
 {
 
-  int cut_ntrk;
-  cout << "Insert cut on ntracks ";
-  cin >> cut_ntrk;
-  cout << endl;
+  int cut_ntrk = 4;
 
-  int cut_vz_min;
-  cout << "Insert cut on vz_min ";
-  cin >> cut_vz_min;
-  cout << endl;
+  int cut_vz_min = -80000;
 
   ofstream log_vtx;
   log_vtx.open("log_vtx_search.txt",ios::out);
@@ -70,7 +64,7 @@ void Loop()
 
   TFile * fedrafile = TFile::Open("vertextree.root");  // full
   //TFile * simulationfile = TFile::Open("../ship.conical.Pythia8CharmOnly-TGeant4_dig.root");
-  TFile * simulationfile = TFile::Open("../../pythia8_Geant4_1000_0.1.root");
+  TFile * simulationfile = TFile::Open("../../../pythia8_Geant4_1000_0.1.root");
 
   //TFile * bdtfile = TFile::Open("vtx_BDT_data_evaluated.root");  // full
   //TTree * bdttree = (TTree*) bdtfile->Get("bdt");
