@@ -1,4 +1,7 @@
 //studio sulla simulazione di produzione di charm in cascata (riscritto il 22 Marzo 2020 per salvare un tree invece di istogrammi)
+//distribtuzioni_charm() to create a new file
+//plotdistributions() to plot the distrivurions from the file
+
 bool ischarm(Int_t PdgCode);
 bool isintermediate(Int_t PdgCode);
 
@@ -77,7 +80,7 @@ void distribuzioni_charm(TString filename = "" ){
  vector<Int_t> recognizedpdg;
 
  //****************PREPARING TREE BRANCHES************************//
- TFile *distfile = new TFile("distributions_mctrue_withdaughters.root","RECREATE");
+ TFile *distfile = new TFile("distributions_mctrue_withdaughters_safetyname.root","RECREATE"); //I DO NOT WANT TO RISK OVERWRITING ROOT FILES FOR MY PHD THESIS
  TTree *charmlongntuple = new TTree("charmdecays","Charm Decays");//tree structure, arrays containing the information for the two charm decays
  //charm branches
  charmlongntuple->Branch("pdgcode",pdgcharm,"pdgcode[2]/I"); //charm identity
@@ -277,7 +280,7 @@ void plotdistributions(){
 
  RVec<int> charmpdglist = {421,411,431,4122,4232,4132,4332};
  RVec<int> charmcolors = {kBlack, kRed, kBlue, kYellow, kMagenta, kCyan, kGreen};
- RVec<TString> charmpdgnamelist = {"D0","D#pm","Ds#pm","Lambdac#pm","Sigma_c^#pm","Sigma_c^0","Omega_c^0"};
+ RVec<TString> charmpdgnamelist = {"D^{0}","D^{#pm}","D_{s}^{#pm}","#Lambda_{c}^{#pm}","#Sigma_{c}^{#pm}","#Sigma_{c}^{0}","#Omega_{c}^{0}"};
 
  if ((charmcolors.size() != charmpdglist.size()) || (charmpdgnamelist.size() != charmpdglist.size())) cout<<"Warning: sizes of RVecs not matching, please check!"<<endl;
  
