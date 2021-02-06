@@ -1,3 +1,4 @@
+'''print geometry information according to loaded fairship geometry'''
 import ROOT as r
 from ShipGeoConfig import ConfigRegistry
 globalDesigns = {'2016':{'dy':10.,'dv':5,'ds':7,'nud':1,'caloDesign':0,'strawDesign':4},\

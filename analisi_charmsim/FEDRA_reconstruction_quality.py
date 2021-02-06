@@ -75,7 +75,7 @@ def vertexquality(vertexfilepath):
 hevent = r.TH1F("hevent","Most common Event frequency in vertices",110,0,1.1)
 hmothertrack = r.TH1F("hmothertrack","Most common mother track ID frequency in vertices",110,0,1.1)
 
-vertexquality("verticesandtracks_2500events.root")
+vertexquality("vertextree.root")
 cvertexquality = r.TCanvas()
 cvertexquality.Divide(1,2)
 cvertexquality.cd(1)
