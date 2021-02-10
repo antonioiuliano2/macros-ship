@@ -19,9 +19,9 @@
 
 // VTX TREE
 
-static constexpr Int_t kMaxt_ = 69;
-static constexpr Int_t kMaxs = 1315;
-static constexpr Int_t kMaxsf = 1315;
+static constexpr Int_t kMaxt_ = 1000;
+static constexpr Int_t kMaxs = 10000;
+static constexpr Int_t kMaxsf = 10000;
 
    // Declaration of leaf types
    Int_t           vID;
@@ -110,16 +110,16 @@ static constexpr Int_t kMaxsf = 1315;
    Int_t           sf__eMCTrack[kMaxsf];   //[sf__]
    Int_t           sf__eMCEvt[kMaxsf];   //[sf__]
    EdbID           sf__eScanID[kMaxsf];
-   Int_t           TrackID[69];   //[n]
-   Int_t           nseg[69];   //[n]
-   Int_t           npl[69];   //[n]
-   Int_t           nholes[69];   //[n]
-   Int_t           maxgap[69];   //[n]
-   Int_t           incoming[69];   //[n]
-   Float_t         impactparameter[69];   //[n]
-   Int_t           MCEventID[69];   //[n]
-   Int_t           MCTrackID[69];   //[n]
-   Int_t           MCMotherID[69];   //[n]
+   Int_t           TrackID[kMaxt_];   //[n]
+   Int_t           nseg[kMaxt_];   //[n]
+   Int_t           npl[kMaxt_];   //[n]
+   Int_t           nholes[kMaxt_];   //[n]
+   Int_t           maxgap[kMaxt_];   //[n]
+   Int_t           incoming[kMaxt_];   //[n]
+   Float_t         impactparameter[kMaxt_];   //[n]
+   Int_t           MCEventID[kMaxt_];   //[n]
+   Int_t           MCTrackID[kMaxt_];   //[n]
+   Int_t           MCMotherID[kMaxt_];   //[n]
 
    // List of branches
    TBranch        *b_vID;   //!
