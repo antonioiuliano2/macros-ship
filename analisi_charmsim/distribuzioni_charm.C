@@ -102,7 +102,7 @@ void distribuzioni_charm(TString filename = "" ){
  
  charmlongntuple->Branch("massinv",massinv,"massinv[2]/D");
  charmlongntuple->Branch("approxmassinv",approxmassinv,"approxmassinv[2]/D");
- charmlongntuple->Branch("longdecay",longdecay,'longdecay[2]/I'); //decay in same plate as production
+ charmlongntuple->Branch("longdecay",longdecay,"longdecay[2]/I"); //decay in same plate as production
  
  charmlongntuple->Branch("nprong",nprong,"nprong[2]/I");
  charmlongntuple->Branch("nvisible",nvisible,"nvisible[2]/I");
