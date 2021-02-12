@@ -61,7 +61,7 @@ vector<double> eff_formula(int foundweight, int totalweight, int Nevents_total);
 
 //start main script
 int nutau_event(){
- bool tausim = false;
+ bool tausim = true;
  bool doelectron = false; //fills histograms for electron neutrino interactions
  bool dosagitta = true; //do loop over DTs and sagitta computation
  ROOT::RVec<int> signalpdgs; //particles I want to study the decay
@@ -69,9 +69,9 @@ int nutau_event(){
  else signalpdgs = {411, 431, 4122, 421, 4132, 4232, 4332, 441}; //adding 4122 makes program crash
  //getting tree and defining arrays
  TChain treechain("cbmsim"); //I add a sim of tau and antitaus
- //treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
- //treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
- treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
+ treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
+ treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
+ //treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
  //if (!file) return;
  TTreeReader reader(&treechain);
 

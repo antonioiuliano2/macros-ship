@@ -58,6 +58,12 @@ void distribuzioni_charm(TString filename = "" ){
  Int_t nprong[2]; //numero prong dei 2 charm
  Int_t nvisible[2]; 
  Int_t ntotaldaughters[2]; //numero totale figlie dei 2 charm, anche neutri
+ Int_t longdecay[2]; //did it decay in a plate after the production?
+ //histogram to know plate from z position
+ const Double_t zstart =  121.8880;
+ const Double_t zend =  125.5620;
+ const Int_t nplates = 28;
+ TH1D *hplatez = new TH1D("hplatez","z Positions, bins as different plates",nplates,  zstart,  zend);
  //variables for charm daughters
  /*const int maxndaughters = 1000;
  Int_t daughpdg[maxndaughters];
@@ -80,7 +86,7 @@ void distribuzioni_charm(TString filename = "" ){
  vector<Int_t> recognizedpdg;
 
  //****************PREPARING TREE BRANCHES************************//
- TFile *distfile = new TFile("distributions_mctrue_withdaughters_safetyname.root","RECREATE"); //I DO NOT WANT TO RISK OVERWRITING ROOT FILES FOR MY PHD THESIS
+ TFile *distfile = new TFile("distributions_mctrue_withdaughters_longshort.root","RECREATE");
  TTree *charmlongntuple = new TTree("charmdecays","Charm Decays");//tree structure, arrays containing the information for the two charm decays
  //charm branches
  charmlongntuple->Branch("pdgcode",pdgcharm,"pdgcode[2]/I"); //charm identity
@@ -96,7 +102,7 @@ void distribuzioni_charm(TString filename = "" ){
  
  charmlongntuple->Branch("massinv",massinv,"massinv[2]/D");
  charmlongntuple->Branch("approxmassinv",approxmassinv,"approxmassinv[2]/D");
- //charmlongntuple->Branch("longdecay",longdecay,'longdecay[2]/I'); //decay in same plate as production
+ charmlongntuple->Branch("longdecay",longdecay,'longdecay[2]/I'); //decay in same plate as production
  
  charmlongntuple->Branch("nprong",nprong,"nprong[2]/I");
  charmlongntuple->Branch("nvisible",nvisible,"nvisible[2]/I");
@@ -213,6 +219,11 @@ void distribuzioni_charm(TString filename = "" ){
           dx[whichcharm-1] = endx - startx;
           dy[whichcharm-1] = endy - starty;
           dz[whichcharm-1] = endz - startz;
+
+          //is it long or short?
+          int startplate = hplatez->FindBin(startz);
+          int endplate = hplatez->FindBin(endz);
+          longdecay[whichcharm - 1] = (startplate == endplate)? 0 : 1;
 
 	       // length = TMath::Sqrt(pow(dz,2) + pow(dy,2) + pow(dx,2));
 

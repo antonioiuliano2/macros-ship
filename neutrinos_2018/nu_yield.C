@@ -120,7 +120,7 @@ for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
 
   start[0] = txnu * deltaz; //projecting produced neutrinos to neutrino detector, aggiungere x e y non cambia significativamente il risultato
   start[1] = tynu * deltaz;
-  start[2] = -3259;
+  start[2] = -deltaz;
 
   nall[neu] +=w;
 
@@ -347,7 +347,8 @@ void nu_yield(){ //passing neutrino types and interaction mode to nu_yield_gener
 }
 //general layout with FORM to estimate number of neutrino interactions 
 Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = ""){     
-  TFile *xsec = TFile::Open("Nu_xsec_full.root"); //normal splines are cut at 350 GeV
+  TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP.root");
+  //TFile *xsec = TFile::Open("Nu_xsec_full.root"); //normal splines are cut at 350 GeV
   TFile *flux = TFile::Open("neutrinos_detector.root");
 
   //const char* nu = "nu_mu"; //neutrino type
@@ -358,19 +359,25 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   TH1D *hfluxnu = (TH1D*) flux->Get(Form("h%s",nu));
 
   bool nullp = false, nulln = false, nullother = false; //for DIS both are possible, but not for other interactions
-  TGraph *hxsec_p = (TGraph*) xsec->Get(Form("%s_Pb208/%s_p%s",nu,intmode,charmmode));   
-  TGraph *hxsec_n = (TGraph*) xsec->Get(Form("%s_Pb208/%s_n%s",nu,intmode,charmmode));
-  TGraph *hxsec_other = (TGraph*) xsec->Get(Form("%s_Pb208/%s%s",nu,intmode,charmmode));
+  //TGraph *hxsec_p = (TGraph*) xsec->Get(Form("%s_Pb208/%s_p%s",nu,intmode,charmmode));   
+  //TGraph *hxsec_n = (TGraph*) xsec->Get(Form("%s_Pb208/%s_n%s",nu,intmode,charmmode));
+  //TGraph *hxsec_other = (TGraph*) xsec->Get(Form("%s_Pb208/%s%s",nu,intmode,charmmode));
+  TGraph *hxsec_p = (TGraph*) xsec->Get(Form("%s_W184/%s_p%s",nu,intmode,charmmode));   
+  TGraph *hxsec_n = (TGraph*) xsec->Get(Form("%s_W184/%s_n%s",nu,intmode,charmmode));
+  TGraph *hxsec_other = (TGraph*) xsec->Get(Form("%s_W184/%s%s",nu,intmode,charmmode));
   if (hxsec_p == NULL) nullp = true;
   if (hxsec_n == NULL) nulln = true;
   if (hxsec_other == NULL) nullother = true;
   
-  const Int_t A = 208; //initial approximation, only pb208 considered
-  const Int_t Z = 82;
+  //const Int_t A = 208; //initial approximation, only pb208 considered
+  // const Int_t Z = 82;
+
+  const Int_t A = 184; //initial approximation, only pb208 considered
+  const Int_t Z = 74;
 
   Float_t Ninteracting = 0.;
-  Double_t mass = 8183*1e+3; //mass in grams
-  //Double_t surface = 90.3 * 74.9; //surface in square centimetres (rectangular configuration)
+  //Double_t mass = 8183*1e+3; //mass in grams
+  Double_t mass = 8352*1e+3; //mass in grams
   Double_t surface = 80. * 80.; //surface in square centimetres (squared configuration)
   //Double_t surface = 1.4e+4;
   
