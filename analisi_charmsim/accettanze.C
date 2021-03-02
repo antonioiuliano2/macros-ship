@@ -23,10 +23,10 @@ void accettanze(TString filename = "" ){
  TH2D *hvxy = new TH2D("hvxy","Primary event distribution;x[cm];y[cm]",60,-3,3,60,-3,3);
  TH1D *hvz = new TH1D("hvz","Primary event distribution;z[cm]",50,121,126);
 
- TH1D *hchargeddaughterP = new TH1D("hchargeddaughterP","All visible charged daughters;P[GeV/c]",100,0,100);
- TH1D *hfoundpixelP = new TH1D("hfoundpixelP","Charged daughters found in pixel;P[GeV/c]",100,0,100);
- TH1D *hfoundscifiP = new TH1D("hfoundscifiP","Charged daughters found in SciFi;P[GeV/c]",100,0,100);
- TH1D *hfoundmufluxP = new TH1D("hfoundmufluxP","Charged daughters found in Drift Tubes or SciFi;P[GeV/c]",100,0,100);
+ TH1D *hchargeddaughterP = new TH1D("hchargeddaughterP","All visible charged daughters;P[GeV/c]",50,0,50);
+ TH1D *hfoundpixelP = new TH1D("hfoundpixelP","Charged daughters found in pixel;P[GeV/c]",50,0,50);
+ TH1D *hfoundscifiP = new TH1D("hfoundscifiP","Charged daughters found in SciFi;P[GeV/c]",50,0,50);
+ TH1D *hfoundmufluxP = new TH1D("hfoundmufluxP","Charged daughters found in Drift Tubes or SciFi;P[GeV/c]",50,0,50);
  
  //molteplicities
  TH1I *hnvisible = new TH1I("nvisible","Number of visible daughters per decay;N",10,0,10);
