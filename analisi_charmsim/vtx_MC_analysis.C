@@ -2,7 +2,7 @@
 // Training per analisi multivariata
 // V. Gentile 2019
 
-#include "Definitions.h"
+#include "newDefinitions.h"
 #include <TH2.h>
 #include <TH3F.h>
 #include <TStyle.h>
@@ -62,9 +62,9 @@ void Loop()
   log_decay.open("log_data_search.txt",ios::out);
   log_decay << "//----V. GENTILE ------// \n VERTEX SEARCH ON DATA" << endl;
 
-  TFile * fedrafile = TFile::Open("vertextree.root");  // full
+  TFile * fedrafile = TFile::Open("vertextree_correctvz.root");  // full
   //TFile * simulationfile = TFile::Open("../ship.conical.Pythia8CharmOnly-TGeant4_dig.root");
-  TFile * simulationfile = TFile::Open("../../../pythia8_Geant4_1000_0.1.root");
+  TFile * simulationfile = TFile::Open("../../../pythia8_Geant4_1000_0.1_dig.root");
 
   //TFile * bdtfile = TFile::Open("vtx_BDT_data_evaluated.root");  // full
   //TTree * bdttree = (TTree*) bdtfile->Get("bdt");
