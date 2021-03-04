@@ -1,4 +1,6 @@
 //code for studing tau neutrino simulation and evaluating efficiencies for my PhD thesis (created on 22 June 2020 by A.Iuliano)
+//usage: set tausim = true and uncomment nutau and anutau CCDIS files for nutau signal sim
+//.....  set tausim = false and uncomment numu CharmCCDIS file for bkg sim
 //defined functions
 TVector3 NeutrinoVertexCoordinates(const ShipMCTrack &track);
 Bool_t FindBrick(Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow, Int_t &NColumn, Int_t &NPlate);
@@ -12,6 +14,16 @@ bool TauDecay(int trackID, int tauid, const ShipMCTrack &track, TVector3 Vn, dou
 
 void smearing (double &Xpos, double &Ypos, double spaceres);
 vector<double> eff_formula(int foundweight, int totalweight, int Nevents_total);
+
+double angledifference(double ang1, double ang2){
+  //it cannot go over pi, I need to take the shortest one
+  double delta = ang1 - ang2;
+  double pi = TMath::Pi();
+  if (delta < pi && delta > (-1 * pi)) delta = delta; //do nothing
+  else if (delta > pi) delta = 2 * pi - delta; //positive, but more than 180°
+  else delta = -2 * pi - delta; //negative, but less than 180°
+  return delta;
+}
 //GLOBAL VARIABLES AND HISTOGRAMS
  //*********DEFINITION OF HISTOGRAMS*********************//
  //tau kinematics
@@ -52,6 +64,9 @@ vector<double> eff_formula(int foundweight, int totalweight, int Nevents_total);
  //muon occupancy
  TH2D *hoccupancy_rpc_clusters = new TH2D("hoccupancy_rpc_clusters","How many per station?;istation;occupancy",8,0,8,10,0,10);
  
+ //deltaphi between primary lepton and hadronic system
+ TH1D *hdeltaphi = new TH1D("hdeltaphi","Phi difference between primary lepton and hadronic system;#Delta#phi",70,-3.5,3.5);
+
  //**VARIABLES***//
  //maximum dx an dy of vertex to be accepted for efficiency studies
  const double dxtarget = 40.5;
@@ -252,6 +267,25 @@ int nutau_event(){
      
      if (primaryvisible.size()>0) islocated = true;
      if (visibledaughters.size()>0) decaysearch = true;
+
+     if (islocated && decaysearch){ //it has sense only for good DS events
+       //loop over primary tracks (hadrons only), total momentum and phi
+       //Nota Bene: primaryivisible contains all charged tracks with mumID 0 (tantheta < 1, P > 1 GeV), except tau/charm
+       double pxhad =0., pyhad = 0., pzhad =0.;
+       for (int &primaryID:primaryvisible){
+         int primarypdgcode = tracks[primaryID].GetPdgCode();
+        if (TMath::Abs(primarypdgcode) != 13){ //I want to sum over the hadronic system, not the initial muon;
+         pxhad += tracks[primaryID].GetPx();
+         pyhad += tracks[primaryID].GetPy();
+         pzhad += tracks[primaryID].GetPz();
+        }
+      }
+      double phihad = TMath::ATan2(pyhad, pxhad);
+      double phitau = TMath::ATan2(tracks[tauid].GetPy(), tracks[tauid].GetPx());
+      double deltaphi = angledifference(phitau, phihad);
+      //cout<<phihad<<" "<<phitau<<" "<<deltaphi<<endl;
+      hdeltaphi->Fill(deltaphi);
+     }//end deltaphi section
      //access the hits: 
      //somming value, when efficiency is satisfied
      //****************************look for tau decay daughters in downstream trackers***//
@@ -553,6 +587,9 @@ int nutau_event(){
 
  TCanvas *coccupancy = new TCanvas();
  hoccupancy_rpc_clusters->Draw("COLZ");
+
+ TCanvas *cdeltaphi = new TCanvas();
+ hdeltaphi->Draw();
 
  return 0;
 }
