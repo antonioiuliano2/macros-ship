@@ -2,7 +2,9 @@
 #include "GenieGenerator.h"
 #include "TGeoBBox.h"
 #include <map>
-//when you discover the difficulty of copying from the masters. Trying to replicate Annarita's studies on neutrino fluxes
+//launch with root -l
+//>>.L nu_yield.C
+//generate_neutrinos()
 
 void generate_neutrinos(){ //generate neutrino produced spectra according to Thomas histograms
 
@@ -16,7 +18,8 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
  hnu_p[-14] =  (TH1D*) fInputFile->Get("2014");
  hnu_p[-16] =  (TH1D*) fInputFile->Get("2016");
 
- Float_t deltaz = 3969.; //distance between center of proton target and start of neutrino target
+ Float_t deltaz = 3969.; //distance between center of proton target and center of neutrino target
+ //Float_t deltaz = 4039.; //distance between start of proton target and center of neutrino target
  Double_t targetdx = 40., targetdy = 40.; //for geometrical acceptance requirement
 
  Float_t pzv;
@@ -27,6 +30,9 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
  TH1D* pxhist[3000];//!
  TH1D* pyslice[3000][100];//!
  printf("Reading (log10(p),log10(pt)) Hists from file: %s\n",fInputFile->GetName());
+
+//gRandom->SetSeed(0); //set 0 to make it change everytime
+
  for (Int_t idnu=12;idnu<17;idnu+=2){
     for (Int_t idadd=-1;idadd<2;idadd+=2){
   	  Int_t idhnu=idbase+idnu;
@@ -73,6 +79,9 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
 
 for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
  int Nentries = hnu_p[neu]->GetEntries();
+ Int_t idhnu=TMath::Abs(neu)+idbase;
+ if (neu<0) idhnu+=1000;
+ cout<<neu<<" "<<idhnu<<endl;
  cout<<"Nentries totali: "<<Nentries<<endl;
  Double_t w = hnu_p[neu]->Integral()/hnu_p[neu]->GetEntries(); //i assume each neutrino to have the same weight (I cannot infer the original weights)
  
@@ -87,8 +96,9 @@ for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
   Double_t tynu=0;
   while (pout[2]<0.) {
       //Get pt of this neutrino from 2D hists.
-      Int_t idhnu=TMath::Abs(neu)+idbase;
-      if (neu<0) idhnu+=1000;
+      //Int_t idhnu=TMath::Abs(neu)+idbase;
+     // if (neu<0) idhnu+=1000;
+      //cout<<neu<<" "<<idhnu<<endl;
       Int_t nbinmx=pxhist[idhnu]->GetNbinsX();
       Double_t pl10=log10(pzv);
       Int_t nbx=pxhist[idhnu]->FindBin(pl10);
