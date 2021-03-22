@@ -6,26 +6,26 @@ from ROOT.TMath import Sqrt, Cos, Sin, ATan2
 #degradation functions
 def SigmaX(ax):
   '''computing angular degradation of error in x position'''
-  eSigmaX0 = 3
-  eDegrad = 4    
+  eSigmaX0 = 5
+  eDegrad = 5    
   return eSigmaX0*(1. + np.abs(ax)*eDegrad)
 
 def SigmaY(ay):
   '''computing angular degradation of error in y position'''
-  eSigmaY0 = 3
-  eDegrad = 4  
+  eSigmaY0 = 5
+  eDegrad = 5  
   return eSigmaY0*(1. + np.abs(ay)*eDegrad)
 
 def SigmaTX(ax):
   '''computing angular degradation of error in y position'''
-  eSigmaTX0 = 0.005
-  eDegrad = 4  
+  eSigmaTX0 = 0.003
+  eDegrad = 5  
   return eSigmaTX0*(1. + np.abs(ax)*eDegrad)
 
 def SigmaTY(ay):
   '''computing angular degradation of error in y position'''
-  eSigmaTY0 = 0.005
-  eDegrad = 4    
+  eSigmaTY0 = 0.003
+  eDegrad = 5    
   return eSigmaTY0*(1. + np.abs(ay)*eDegrad)
 
 def getcovmatrix(tx,ty):
