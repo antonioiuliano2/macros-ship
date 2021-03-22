@@ -79,7 +79,7 @@ def CHI2(itrack, df,trackdf):
   '''compute CHI2 for track itrack in dataframe df'''
   chi2 = 0
 
-  dftracked = df.query("TrackID=={}".format(itrack))
+  dftracked = df.query("FEDRATrackID=={}".format(itrack))
   dftracked = dftracked.sort_values("PID",ascending=False)
   dftracked = dftracked.reset_index()
   #computing chisquare with respect to each base-track
@@ -99,22 +99,24 @@ def CHI2(itrack, df,trackdf):
   return chi2/len(dftracked)
 
 df = pd.read_csv("b000001_withvertices.csv")
-df = df.query("TrackID>=0") #only segments associated with volume tracks
+df = df.query("FEDRATrackID>=0") #only segments associated with volume tracks
 
 quarterfilenames = ["firstquarter","secondquarter","thirdquarter","fourthquarter"]
+trackdflist = []
+for filename in quarterfilenames:
+ trackdflist.append(pd.read_csv("trackdf_"+filename+".csv"))
 
-#output histogram to check computed chi square values
-hchi2 = r.TH1D("hchi2","Computed chi for each track;#chi",1000,0,100)
-for iquarter,quarterfilename in enumerate(quarterfilenames):
- trackdf = pd.read_csv("trackdf_"+quarterfilename+".csv") #track information (fitted positions and angles)
- trackindexes = trackdf["TrackID"].to_numpy()
+def CHI2_quarter(quarter, itrack, df, trackdflist):
+    '''
+    retrieve chi2 of a track with id itrack
+    taking into account different quarters.
+    quarter: quarter you are referring to (1,2,3,4)
+    itrack: Track reconstruction index
+    df: big dataframe with all segments associated to a volume track
+    trackdflist: list of dataframes with track reconstruction
+    '''
+    trackdf = trackdflist[quarter-1]
+    return CHI2(itrack, df, trackdf)
+#example
 
- trackdf = trackdf.set_index("TrackID")#retrieve trackinfo according to index
- dfquarter = df.query("quarter=={}".format(iquarter+1)) #1,2,3,4
- print("Start loop over tracks for quarter {}".format(iquarter))
- for trid in trackindexes:
-  #starting actual chi square computation
-  hchi2.Fill(CHI2(trid,dfquarter,trackdf))
-
-c = r.TCanvas()
-hchi2.Draw()
+examplechi = CHI2_quarter(1,61,df,trackdflist)
