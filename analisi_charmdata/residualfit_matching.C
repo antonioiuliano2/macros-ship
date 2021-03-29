@@ -48,6 +48,43 @@ void residualfit_matching()
   c.SaveAs("polfit.png");
   cout << "chi^2 = " << xFrame->chiSquare(6) << endl;
 
+  //redoing AGAIN fkit on y side
+
+  TTree *goodtree2 = inputtree->CopyTree("TMath::Abs(scaled_dxr)<40");
+
+  RooRealVar dyr("scaled_dyr", "match_dyr[#mum]", -0.025*cm2micron, 0.025*cm2micron);
+  RooDataSet matcheddata_y("matcheddata","dataset with match_dyr",goodtree2,dyr) ;
+
+  //define parameters and PDFs 
+  RooRealVar mu_y("mu_y", "average", 0, -1000, 1000);
+  RooRealVar sigma_y("sigma_y", "sigma",40, 0, 100);
+  RooGaussian gauss_y("gauss_y","gaussian PDF", dyr, mu, sigma);
+
+  RooRealVar mu2_y("mu2_y", "average of second gaussian", 0, -1000, 1000);
+  RooRealVar sigma2_y("sigma2_y", "sigma of second gaussian", 20, 0, 100);
+  RooGaussian gauss2_y("gauss2_y","Second gaussian PDF", dyr, mu2_y, sigma2_y);
+
+  RooRealVar s_y("s_y", "signal yield", 1000, 0, 10000);
+  RooRealVar s2_y("s2_y", "signal yield", 1000, 0, 10000);
+  RooRealVar b_y("b_y", "background yield", 100, 0, 200);
+
+  RooAddPdf sum_y("sum_y","Total distribution",RooArgList(gauss_y,gauss2_y),RooArgList(s_y,s2_y));
+
+  RooFitResult *r_y = sum_y.fitTo(matcheddata_y, RooFit::Save());
+  //RooFitResult *r = sum.fitTo(binnedData, RooFit::Save());
+  //summary printing
+  r_y->Print();
+  //TH2* hcorr = r->correlationHist() ;
+  //plot the result
+  RooPlot * yFrame = dyr.frame() ;
+  //binnedData.plotOn(xFrame) ;
+  matcheddata_y.plotOn(yFrame);
+  sum_y.plotOn(yFrame) ;
+  sum_y.plotOn(yFrame, RooFit::Components(gauss2_y), RooFit::LineStyle(kDashed)) ;
+  TCanvas c_y;
+  yFrame->Draw();
+  c_y.SaveAs("polfit_y.png");
+  cout << "chi^2 = " << yFrame->chiSquare(6) << endl;
 }
 
 void scaletree(){
