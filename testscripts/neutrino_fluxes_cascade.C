@@ -53,6 +53,10 @@ void neutrino_fluxes_cascade(){ //projecting neutrino fluxes to the target
  hspectrumdet_cascade[12] = new TH1D("hnu_e_cascade","Spectrum electron neutrinos arrived at detector",400,0,400);
  hspectrumdet_cascade[-12] = new TH1D("hnu_e_bar_cascade","Spectrum electron antineutrinos arrived at detector",400,0,400);
  
+ //1D spectrum nutau (included taubar)
+ TH1D *hr_nutau_primary = new TH1D("hr_nutau_primary","Beam profile of tau nu and antinu;r[cm]",200,0,2000);
+ TH1D *hr_nutau_cascade = new TH1D("hr_nutau_cascade","Beam profile of tau nu and antinu;r[cm]",200,0,2000);
+
  Double_t targetdx = 40., targetdy = 40.;
  //Double_t targetdx = 55, targetdy = 55;
  cout<<"N NEUTRINOS AND MUONS: "<<nneutrinos<<endl;
@@ -70,6 +74,10 @@ void neutrino_fluxes_cascade(){ //projecting neutrino fluxes to the target
  start[1] = tany * deltaz;
  start[2] = -3259;
 
+ if (TMath::Abs(id)==16){ 
+    if(Cascadek==1) hr_nutau_primary->Fill(TMath::Sqrt(start[0]*start[0]+start[1]*start[1]),w);
+    else hr_nutau_cascade->Fill(TMath::Sqrt(start[0]*start[0]+start[1]*start[1]),w);
+ }
  nallneutrinos += w;
 
  nall[id] +=w;
@@ -127,6 +135,9 @@ void drawhistos(){
 
  TH1D* hnutaubar_projprimary = (TH1D*) projectedspectra->Get("hnu_tau_bar_primary");
  TH1D* hnutaubar_projcascade = (TH1D*) projectedspectra->Get("hnu_tau_bar_cascade");
+
+ TH1D* hr_nutau_primary = (TH1D*) projectedspectra->Get("hr_nutau_primary");
+ TH1D* hr_nutau_cascade = (TH1D*) projectedspectra->Get("hr_nutau_cascade");
  hnutau_projcascade->SetLineColor(kRed);
 
  gStyle->SetOptStat(1111);
@@ -142,6 +153,9 @@ void drawhistos(){
  hnutaubar_projprimary->Scale(fDs);
  hnutaubar_projcascade->Scale(fDs);
 
+ hr_nutau_primary->Scale(fDs);
+ hr_nutau_cascade->Scale(fDs);
+
  //report number neutrinos
  cout<<"In one spill of 5e+15 protons"<<endl;
  cout<<"# tau neutrinos are produced: "<<hnutau_primary->Integral()<<" directly  and "<<hnutau_cascade->Integral()<<" from cascade total: "<< hnutau_primary->Integral() + hnutau_cascade->Integral()<<endl;
@@ -154,8 +168,8 @@ void drawhistos(){
  TCanvas *cproduced = new TCanvas();
  hnutau_primary->Add(hnutaubar_primary);
  hnutau_cascade->Add(hnutaubar_cascade);
- hnutau_cascade->Draw();
- hnutau_primary->Draw("SAMES");
+ hnutau_cascade->Draw("histo");
+ hnutau_primary->Draw("histo && SAMES");
  hnutau_primary->SetTitle("Produced nutau and antinutau, primary");
  hnutau_cascade->SetTitle("Produced nutau and antinutau, cascade");
  cproduced->SetLogy();
@@ -164,8 +178,8 @@ void drawhistos(){
  TCanvas *cprojected = new TCanvas();
  hnutau_projprimary->Add(hnutaubar_projprimary);
  hnutau_projcascade->Add(hnutaubar_projcascade);
- hnutau_projprimary->Draw();
- hnutau_projcascade->Draw("SAMES");
+ hnutau_projprimary->Draw("histo");
+ hnutau_projcascade->Draw("histo && SAMES");
  hnutau_projprimary->SetTitle("At detector nutau and antinutau, primary");
  hnutau_projcascade->SetTitle("At detector nutau and antinutau, cascade");
  cprojected->SetLogy();
@@ -200,10 +214,22 @@ void drawhistos(){
  hspectrum_nutaubar_primary->Add(hspectrum_nutaubar_cascade);
 
  TCanvas *cdis = new TCanvas();
+ //hspectrum_nutau_primary->Rebin(4);
  hspectrum_nutau_primary->Draw("histo");
  hspectrum_nutau_cascade->SetLineColor(kRed);
- hspectrum_nutau_cascade->Draw("histo &&SAMES");
+ //hspectrum_nutau_cascade->Rebin(4);
+ hspectrum_nutau_cascade->Draw("histo && SAMES");
+ hspectrum_nutau_primary->SetTitle("Primary production");
+ hspectrum_nutau_cascade->SetTitle("Cascade production");
+ cdis->BuildLegend();
 
+ TCanvas *cr = new TCanvas();
+ hr_nutau_primary->Draw("histo");
+ hr_nutau_cascade->SetLineColor(kRed);
+ hr_nutau_cascade->Draw("histo && SAMES");
+ hr_nutau_primary->SetTitle("Primary production");
+ hr_nutau_cascade->SetTitle("Cascade production");
+ cr->BuildLegend();
  cout<<hspectrum_nutau_primary->Integral(0,400)<<" "<<hspectrum_nutau_cascade->Integral(0,400)<<endl;
 }
 
