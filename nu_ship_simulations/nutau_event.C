@@ -8,21 +8,18 @@ Bool_t FindBrick(Double_t x, Double_t y, Double_t z, Int_t &NWall,  Int_t &NRow,
 int DecayChannel(vector<int> &daughters,TTreeReaderArray<ShipMCTrack> &tracks, int nnue, int nnumu, int ievent);
 
 void DecodeBrickID(Int_t detID, Int_t &NWall, Int_t &NRow, Int_t &NColumn, Int_t &NPlate, Bool_t &EmCES, Bool_t &EmBrick, Bool_t &EmTop);
-bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primaryvisible, ROOT::RVec<int> signalpdgs);
+bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primary, vector<int> &primaryvisible, ROOT::RVec<int> signalpdgs);
 bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates, int &InteractionWall);
 bool TauDecay(int trackID, int tauid, const ShipMCTrack &track, TVector3 Vn, double tautx, double tauty, double& taudecaylength);
 
 void smearing (double &Xpos, double &Ypos, double spaceres);
 vector<double> eff_formula(int foundweight, int totalweight, int Nevents_total);
 
-double angledifference(double ang1, double ang2){
-  //it cannot go over pi, I need to take the shortest one
-  double delta = ang1 - ang2;
-  double pi = TMath::Pi();
-  if (delta < pi && delta > (-1 * pi)) delta = delta; //do nothing
-  else if (delta > pi) delta = 2 * pi - delta; //positive, but more than 180°
-  else delta = -2 * pi - delta; //negative, but less than 180°
-  return delta;
+double phiangle(TVector3 p1, TVector3 p2){
+  //angle between the two vectors in the transverse plane (with respect to the beam direction, i.e. z)
+  double transverse_dotproduct = p1.X() * p2.X() + p1.Y() * p2.Y();
+  double phi = TMath::ACos(transverse_dotproduct/(p1.Pt()*p2.Pt()));
+  return phi;
 }
 //GLOBAL VARIABLES AND HISTOGRAMS
  //*********DEFINITION OF HISTOGRAMS*********************//
@@ -64,8 +61,8 @@ double angledifference(double ang1, double ang2){
  //muon occupancy
  TH2D *hoccupancy_rpc_clusters = new TH2D("hoccupancy_rpc_clusters","How many per station?;istation;occupancy",8,0,8,10,0,10);
  
- //deltaphi between primary lepton and hadronic system
- TH1D *hdeltaphi = new TH1D("hdeltaphi","Phi difference between primary lepton and hadronic system;#Delta#phi",70,-3.5,3.5);
+ //phi angle between primary lepton and hadronic system
+ TH1D *hphi = new TH1D("hphi","Phi angle between primary lepton and hadronic system;#phi[rad]",22,-1,3.4);
 
  //**VARIABLES***//
  //maximum dx an dy of vertex to be accepted for efficiency studies
@@ -76,7 +73,7 @@ double angledifference(double ang1, double ang2){
 
 //start main script
 int nutau_event(){
- bool tausim = true;
+ bool tausim = false;
  bool doelectron = true; //fills histograms for electron neutrino interactions
  bool dosagitta = true; //do loop over DTs and sagitta computation
  ROOT::RVec<int> signalpdgs; //particles I want to study the decay
@@ -84,9 +81,10 @@ int nutau_event(){
  else signalpdgs = {411, 431, 4122, 421, 4132, 4232, 4332, 441}; //adding 4122 makes program crash
  //getting tree and defining arrays
  TChain treechain("cbmsim"); //I add a sim of tau and antitaus
- treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
- treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
- //treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
+ //treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
+ //treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
+ treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
+ const double phimin = 2.2; //minimum phi to accept selection
  //if (!file) return;
  TTreeReader reader(&treechain);
 
@@ -115,14 +113,17 @@ int nutau_event(){
  double geometricalweight[ndecaychannels] = {0.,0.,0.,0.};
  double localizedweight[ndecaychannels] = {0.,0.,0.,0.};
  double decaysearchweight[ndecaychannels] = {0.,0.,0.,0.};
+ double largephiweight[ndecaychannels] = {0.,0.,0.,0.};
  double chargedetweight[ndecaychannels] = {0.,0.,0.,0.};
 
  double muonacceptance = 0., muonefficiency = 0.;
  int InteractionWall = 0;
 
  bool isgeometrical, islocated, decaysearch, chargeeff;
+ bool largephi;
 
  //IDs of tracks of interest (Tracks at neutrino vertex other than tau and tau daughters)
+ vector<int> primary;
  vector<int> primaryvisible;
  vector<int> daughters;
  vector<int> visibledaughters;
@@ -160,6 +161,7 @@ int nutau_event(){
      isgeometrical = false;
      islocated = false;
      decaysearch = false;
+     largephi = false;
      chargeeff = false;
 
      nnue = 0;
@@ -169,6 +171,7 @@ int nutau_event(){
      //ntauhits = 0;
      //clearing list of tracks of interest
      primaryvisible.clear();
+     primary.clear();
      daughters.clear();
      visibledaughters.clear();
 
@@ -227,7 +230,7 @@ int nutau_event(){
            htaugamma->Fill(energy/mass);           
          }
          //look for charged particles from primary vertex
-         NeutrinoVertexLocation(itrack, track, primaryvisible, signalpdgs);
+         NeutrinoVertexLocation(itrack, track, primary, primaryvisible, signalpdgs);
          //look for charged tracks from tau decay lengths
 
          if(track.GetMotherId()==tauid && TMath::Abs(charge)==0){ //counting neutrinos
@@ -271,20 +274,32 @@ int nutau_event(){
      if (islocated && decaysearch){ //it has sense only for good DS events
        //loop over primary tracks (hadrons only), total momentum and phi
        //Nota Bene: primaryivisible contains all charged tracks with mumID 0 (tantheta < 1, P > 1 GeV), except tau/charm
-       double pxhad =0., pyhad = 0., pzhad =0.;
-       for (int &primaryID:primaryvisible){
-         int primarypdgcode = tracks[primaryID].GetPdgCode();
-        if (TMath::Abs(primarypdgcode) != 13){ //I want to sum over the hadronic system, not the initial muon;
-         pxhad += tracks[primaryID].GetPx();
-         pyhad += tracks[primaryID].GetPy();
-         pzhad += tracks[primaryID].GetPz();
+       TVector3 p3tothad(0., 0., 0.);
+       TVector3 p3tau(tracks[tauid].GetPx(), tracks[tauid].GetPy(), tracks[tauid].GetPz());
+       double phimax = 0.;
+       TVector3 p3maxhad(0., 0., 0.); //I need to find the hadron with maximum phi (to remove it later)
+       for (int &primaryID:primary){
+         int primarypdgcode = tracks[primaryID].GetPdgCode();      
+         double pxhad = tracks[primaryID].GetPx();
+         double pyhad = tracks[primaryID].GetPy();
+         double pzhad = tracks[primaryID].GetPz();
+
+         TVector3 p3had(pxhad, pyhad, pzhad);
+         p3tothad = p3tothad + p3had;
+         
+         double phi = phiangle(p3had, p3tau);
+         if (phi > phimax){ //if it has phi with tau/charm larger than current maximum, I overwrite it
+           phimax = phi;
+           p3maxhad = p3had;
+         }
         }
-      }
-      double phihad = TMath::ATan2(pyhad, pxhad);
-      double phitau = TMath::ATan2(tracks[tauid].GetPy(), tracks[tauid].GetPx());
-      double deltaphi = angledifference(phitau, phihad);
-      //cout<<phihad<<" "<<phitau<<" "<<deltaphi<<endl;
-      hdeltaphi->Fill(deltaphi);
+      //removing maximum from total momentum and computing phi angle with tau/charm
+       p3tothad = p3tothad - p3maxhad;
+       double phitau; //nonsense value larger than pi, for safety
+       if (primary.size()==1) phitau = -0.9;
+       else phitau = phiangle(p3tothad, p3tau);
+       hphi->Fill(phitau);
+       if (phitau > phimin) largephi = true;
      }//end deltaphi section
      //access the hits: 
      //somming value, when efficiency is satisfied
@@ -452,7 +467,9 @@ int nutau_event(){
         if (islocated){
           localizedweight[whichchannel-1] += eventweight;
           if (decaysearch){ 
-            decaysearchweight[whichchannel-1] += eventweight;
+           decaysearchweight[whichchannel-1] += eventweight;
+           if(largephi){
+            largephiweight[whichchannel-1]+=eventweight;
             if (chargeeff){ 
               chargedetweight[whichchannel - 1 ] += eventweight;
               if (whichchannel == 1 && nisolated_rpc_clusters >= minisolated_rpc_clusters){
@@ -461,6 +478,7 @@ int nutau_event(){
               else if(!tausim) muonefficiency += eventweight; 
             }//charge eff
           } //decay search
+         }//large phi
         } //location
       }//geometrical
 
@@ -487,12 +505,14 @@ int nutau_event(){
   vector<double> vector_geomeff = eff_formula(geometricalweight[ichannel],totalweight[ichannel],Nevents_ichannel);
   vector<double> vector_localizedeff = eff_formula(localizedweight[ichannel],totalweight[ichannel],Nevents_ichannel);
   vector<double> vector_decaysearcheff = eff_formula(decaysearchweight[ichannel],totalweight[ichannel],Nevents_ichannel);
+  vector<double> vector_largephieff = eff_formula(largephiweight[ichannel],totalweight[ichannel],Nevents_ichannel);
   vector<double> vector_chargedeteff = eff_formula(chargedetweight[ichannel],totalweight[ichannel],Nevents_ichannel);
   //reporting values and errors
   cout<<"Number of interactions in channel "<<ichannel+1<<" is "<<Nevents_ichannel<<" Total weigth: "<<totalweight[ichannel]<<endl;
   cout<<"Fraction within fiducial volume: "<<vector_geomeff[0]<<" with error "<<vector_geomeff[1]<<endl;
   cout<<"Fraction of localized vertices: "<<vector_localizedeff[0]<<" with error "<<vector_localizedeff[1]<<endl;
   cout<<"Fraction of decay search: "<<vector_decaysearcheff[0]<<" with error "<<vector_decaysearcheff[1]<<endl;
+  cout<<"Fraction of large phi events: "<<vector_largephieff[0]<<" with error "<<vector_largephieff[1]<<endl;
   cout<<"Fraction of charge detected: "<<vector_chargedeteff[0]<<" with error "<<vector_chargedeteff[1]<<endl;
   if (ichannel == 0){ //only for tau muon decay channel or charm simulation
    vector<double> vector_muonacceptance = eff_formula(muonacceptance, totalweight[ichannel],Nevents_ichannel);
@@ -589,7 +609,7 @@ int nutau_event(){
  hoccupancy_rpc_clusters->Draw("COLZ");
 
  TCanvas *cdeltaphi = new TCanvas();
- hdeltaphi->Draw();
+ hphi->Draw();
 
  return 0;
 }
@@ -686,7 +706,7 @@ bool GeometricalEfficiency(TVector3 Vn, double offsetxy, int Nminplates, int &In
 
 }
 
-bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primaryvisible, ROOT::RVec<int> signalpdgs){
+bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &primary, vector<int> &primaryvisible, ROOT::RVec<int> signalpdgs){
      //********************************SECOND CONDITION: VERTEX LOCATION********/
     const double maxtantheta = 1.;
     const double minmomentum = 1.;
@@ -702,6 +722,7 @@ bool NeutrinoVertexLocation(int trackID, const ShipMCTrack& track, vector<int> &
     //is it from the primary neutrino interaction?
     if(track.GetMotherId()==0 && TMath::Abs(charge)>0){
           
+          if(signalpdgs[signalpdgs==TMath::Abs(pdgcode)].size() == 0) primary.push_back(trackID);
           //is it visible?      
           if(tantheta<maxtantheta && momentum > minmomentum){ 
             if (signalpdgs[signalpdgs==TMath::Abs(pdgcode)].size() == 0) primaryvisible.push_back(trackID); //I do not add the tau lepton or charmed hadron since it decays too soon
