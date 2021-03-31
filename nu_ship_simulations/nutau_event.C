@@ -73,17 +73,17 @@ double phiangle(TVector3 p1, TVector3 p2){
 
 //start main script
 int nutau_event(){
- bool tausim = false;
- bool doelectron = true; //fills histograms for electron neutrino interactions
+ bool tausim = true;
+ bool doelectron = false; //fills histograms for electron neutrino interactions
  bool dosagitta = true; //do loop over DTs and sagitta computation
  ROOT::RVec<int> signalpdgs; //particles I want to study the decay
  if (tausim) signalpdgs = {15}; //tau lepton
  else signalpdgs = {411, 431, 4122, 421, 4132, 4232, 4332, 441}; //adding 4122 makes program crash
  //getting tree and defining arrays
  TChain treechain("cbmsim"); //I add a sim of tau and antitaus
- //treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
- //treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
- treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
+ treechain.Add("/home/utente/Simulations/tauneutrino_19June2020/ship.conical.Genie-TGeant4.root"); 
+ treechain.Add("/home/utente/Simulations/tauantineutrino_22September2020/ship.conical.Genie-TGeant4.root");
+ //treechain.Add("/home/utente/Simulations/muneutrino_charm_05September2020/ship.conical.Genie-TGeant4.root"); 
  const double phimin = 2.2; //minimum phi to accept selection
  //if (!file) return;
  TTreeReader reader(&treechain);
@@ -518,7 +518,8 @@ int nutau_event(){
    vector<double> vector_muonacceptance = eff_formula(muonacceptance, totalweight[ichannel],Nevents_ichannel);
    vector<double> vector_muoneff = eff_formula(muonefficiency, totalweight[ichannel],Nevents_ichannel);
    cout<<"Fractions of muons from tau decays in first rpc: "<<vector_muonacceptance[0]<<" with error "<<vector_muonacceptance[1]<<endl;
-   cout<<"Fractions of muons from tau decays with at least "<<minisolated_rpc_clusters<<" isolated rpc clusters: "<<vector_muoneff[0]<<" with error "<<vector_muoneff[1]<<endl;
+   if (tausim) cout<<"Fractions of muons from tau decays with at least "<<minisolated_rpc_clusters<<" isolated rpc clusters: "<<vector_muoneff[0]<<" with error "<<vector_muoneff[1]<<endl;
+   else cout<<"Fractions of events WITHOUT muons from tau decays with at least "<<minisolated_rpc_clusters<<" isolated rpc clusters: "<<vector_muoneff[0]<<" with error "<<vector_muoneff[1]<<endl;
   }
  }
  vector<double> vector_allgeomeff = eff_formula(allgeometricalweight,alltotalweight,Nevents_total);
