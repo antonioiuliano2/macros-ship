@@ -40,13 +40,13 @@ void residualfit_matching()
   //plot the result
   RooPlot * xFrame = dxr.frame() ;
   //binnedData.plotOn(xFrame) ;
-  matcheddata.plotOn(xFrame);
-  sum.plotOn(xFrame) ;
+  matcheddata.plotOn(xFrame,RooFit::Name("matcheddatax"));
+  sum.plotOn(xFrame,RooFit::Name("totalx")) ;
   sum.plotOn(xFrame, RooFit::Components(gauss2), RooFit::LineStyle(kDashed)) ;
   TCanvas c;
   xFrame->Draw();
   c.SaveAs("polfit.png");
-  cout << "chi^2 = " << xFrame->chiSquare(6) << endl;
+  cout << "chi^2/ndf = " << xFrame->chiSquare("totalx","matcheddatax",6) << endl;
 
   //redoing AGAIN fkit on y side
 
@@ -78,13 +78,13 @@ void residualfit_matching()
   //plot the result
   RooPlot * yFrame = dyr.frame() ;
   //binnedData.plotOn(xFrame) ;
-  matcheddata_y.plotOn(yFrame);
-  sum_y.plotOn(yFrame) ;
+  matcheddata_y.plotOn(yFrame,RooFit::Name("matcheddatay"));
+  sum_y.plotOn(yFrame,RooFit::Name("totaly")) ;
   sum_y.plotOn(yFrame, RooFit::Components(gauss2_y), RooFit::LineStyle(kDashed)) ;
   TCanvas c_y;
   yFrame->Draw();
   c_y.SaveAs("polfit_y.png");
-  cout << "chi^2 = " << yFrame->chiSquare(6) << endl;
+  cout << "chi^2/ndf = " << yFrame->chiSquare("totaly","matcheddatay",6) << endl;
 }
 
 void scaletree(){
