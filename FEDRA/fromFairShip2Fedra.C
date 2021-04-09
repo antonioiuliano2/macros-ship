@@ -51,11 +51,11 @@ void set_default(TEnv &cenv){ //setting default parameters, if not presents from
 
 //#include "/home/utente/fedra/include/EdbCouplesTree.h"
 using namespace TMath;
-TRandom *grandom = new TRandom3(); //creating every time a TRandom3 is a bad idea
+TRandom3 *grandom = new TRandom3(); //creating every time a TRandom3 is a bad idea
 TFile *file = NULL;
 TH1D *heff = NULL ; //efficiency at different angles
 void fromFairShip2Fedra(TString filename){
-
+ grandom->SetSeed(0);
  TEnv cenv("FairShip2Fedra");
  set_default(cenv);
  cenv.ReadFile("FairShip2Fedra.rootrc" ,kEnvLocal);
