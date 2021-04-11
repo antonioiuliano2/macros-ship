@@ -1,9 +1,9 @@
 void drawphihistograms(){
     //opening files
     const double phimin = 2.2; //minimum phi to accept selection
-    TFile *signalfile = TFile::Open("$HOME/cernbox/Synched/Archivio_cronologico/Marzo_2021/testdeltaphi_sig.root");
+    TFile *signalfile = TFile::Open("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/nutau2020/testdeltaphi_sig.root");
     TCanvas *csignal = (TCanvas*) signalfile->Get("c1_n12");
-    TFile *bkgfile = TFile::Open("$HOME/cernbox/Synched/Archivio_cronologico/Marzo_2021/testdeltaphi_bkg.root");
+    TFile *bkgfile = TFile::Open("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/nutau2020/testdeltaphi_bkg.root");
     TCanvas *cbkg = (TCanvas*) bkgfile->Get("c1_n12");
     //retrieving histograms
     csignal->Draw();
