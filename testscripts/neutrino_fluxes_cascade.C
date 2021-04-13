@@ -1,5 +1,6 @@
 #include <map>
 //projecting neutrino spectra at detector z, now separately for primary and cascade charm production (15 Giugno 2020)
+//launch with drawhistos()
 void neutrino_fluxes_cascade(){ //projecting neutrino fluxes to the target
  TFile * f = TFile::Open("Decay-Cascade10M-parp16-MSTP82-1-MSEL4-ntuple.root");
  TTree *tree = (TTree*) f->Get("Decay");
@@ -211,7 +212,8 @@ void drawhistos(){
 
  //summing nutau and nutaubar
  hspectrum_nutau_primary->Add(hspectrum_nutaubar_primary);
- hspectrum_nutaubar_primary->Add(hspectrum_nutaubar_cascade);
+ // hspectrum_nutaubar_primary->Add(hspectrum_nutaubar_cascade);
+ hspectrum_nutau_cascade->Add(hspectrum_nutaubar_cascade);
 
  TCanvas *cdis = new TCanvas();
  //hspectrum_nutau_primary->Rebin(4);
