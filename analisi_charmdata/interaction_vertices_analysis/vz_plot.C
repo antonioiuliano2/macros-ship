@@ -33,8 +33,8 @@ void vz_plot(){
 
    in.close();
 
-  TFile *f = new TFile("full_vz.root","READ");
-  TFile *fb = new TFile("with_bkg_full_vz.root","READ");
+  TFile *f = new TFile("full_vz.root","READ"); //simulazione
+  TFile *fb = new TFile("with_bkg_full_vz.root","READ"); //dati
 
   TH1F* hvz1 = (TH1F*)f->Get("vz_ch1");
   TH1F* hvz2 = (TH1F*)f->Get("vz_ch2");
@@ -83,7 +83,7 @@ void vz_plot(){
   hvz4->Rebin(3);
   hvz5->Rebin(3);
   hvz6->Rebin(3); 
-  
+  // rapportare il numero di protoni alla configurazione CH1
   hvz1MCpr->Scale(1);    // C_mc = MCPOT_CH1 / MCPOT_CHX    135000
   hvz2MCpr->Scale(1);                              //135000
   hvz3MCpr->Scale(3.86);                           //40000
@@ -91,12 +91,12 @@ void vz_plot(){
   hvz5MCpr->Scale(3.75);           // err MC = C_mc * rad(N)
   hvz6MCpr->Scale(6.0);             
   
-  hvz1MCpr->Rebin(3);
-  hvz2MCpr->Rebin(3);
-  hvz3MCpr->Rebin(3);
-  hvz4MCpr->Rebin(3);
-  hvz5MCpr->Rebin(3);
-  hvz6MCpr->Rebin(3);
+  hvz1MCpr->Rebin(3); //5 bin
+  hvz2MCpr->Rebin(3); //5 bin
+  hvz3MCpr->Rebin(3); //10 bin
+  hvz4MCpr->Rebin(3); //10 bin
+  hvz5MCpr->Rebin(3); //10 bin
+  hvz6MCpr->Rebin(3); //10 bin
   
   hvz1MChd->Scale(1);
   hvz2MChd->Scale(1);
@@ -113,9 +113,9 @@ void vz_plot(){
   hvz5MChd->Rebin(3);
   hvz6MChd->Rebin(3);
 
-  hvz1wb->Scale(0.25);
+  hvz1wb->Scale(0.25); //abbiamo solo 4 run di CH1 e 3 run di CH2
   hvz2wb->Scale(0.33);
-  hvz3wb->Scale(3.86);
+  hvz3wb->Scale(3.86); //abbiamo 1 run per CH3, CH4, CH5, CH6
   hvz4wb->Scale(4.91);
   hvz5wb->Scale(3.75);
   hvz6wb->Scale(6.0);
@@ -151,7 +151,7 @@ void vz_plot(){
   hvz6MCfull->Add(hvz6MChd);
 
 
-
+  //graph calcolato a mano, tenendo conto delle posizioni dei bin (il rebin)
   TGraphErrors *grMCpr = new TGraphErrors();
 
   grMCpr->SetPoint(0,3,hvz1MCpr->GetBinContent(1));
@@ -210,7 +210,7 @@ void vz_plot(){
   grMCpr->SetPoint(48,356,hvz6MCpr->GetBinContent(9));
   grMCpr->SetPoint(49,362,hvz6MCpr->GetBinContent(10));
 
-  // ERRORS
+  // ERRORS (letti da un altro file)
   for(int i=0;i<50;i++){
     grMCpr->SetPointError(i,0,err_MC_pr[i]);
   }

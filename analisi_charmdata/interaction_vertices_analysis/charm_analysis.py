@@ -66,9 +66,10 @@ today = date.today()
 print("Today's date:", today)
 
 # work directory
-file_dir = "/home/vale/Desktop/SHiP/analysis/20200610_proton_study/cut_0.05_with_tracks/vz_not_scaled/"
+#file_dir = "/home/vale/Desktop/SHiP/analysis/20200610_proton_study/cut_0.05_with_tracks/vz_not_scaled/"
+file_dir = "/home/utente/Lavoro/BDT_vertices_Valerio/afterBDT_plots/"
 
-out_file = open("log_charm_errors.txt", "w")
+out_file = open(file_dir+"log_charm_errors.txt", "w")
 out_file.write(f"Log file - Stima degli errori (V.G. {today})")
 
 # RUN available for each configuration
@@ -123,7 +124,7 @@ tot_points = 0
 hCH_DT = []
 hCH_MC = []
 
-MC_file_name = "full_vz_1quarter.root"
+MC_file_name = "full_vz.root" #era full_vz_1quarter.root
 MC_file_in = TFile(file_dir + MC_file_name)
 
 for index, conf_number in enumerate(conf_file):
@@ -172,7 +173,7 @@ for index, conf_number in enumerate(conf_file):
             hDT.Rebin(6)
             hMC.Rebin(6)
         hDT.Scale(run_scale_factor[index][irun])
-        hMC.Fit("pol0", "Q")
+        hMC.Fit("pol0", "Q") #Q is for quiet (no printout)
         hDT.Fit("pol0", "Q")
         print("run_scale_factor ", run_scale_factor[index][irun])
         const_MC = hMC.GetFunction("pol0").GetParameter(0)

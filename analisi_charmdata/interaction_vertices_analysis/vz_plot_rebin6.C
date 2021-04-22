@@ -6,12 +6,14 @@
 
 void vz_plot_rebin6(){
 
-   TString dir = gSystem->UnixPathName(gInterpreter->GetCurrentMacroName());
-   dir.ReplaceAll("vz_plot_rebin6.C","");
-   dir.ReplaceAll("/./","/");
+   //TString dir = gSystem->UnixPathName(gInterpreter->GetCurrentMacroName());
+   //dir.ReplaceAll("vz_plot_rebin6.C","");
+   //dir.ReplaceAll("/./","/");
+   TString dir = TString("/home/utente/Lavoro/BDT_vertices_Valerio/afterBDT_plots/");
    ifstream in;
-   in.open(Form("%serrors_rebin6_1quarter.dat",dir.Data()));
+   in.open(Form("%serrors.dat",dir.Data()));
 
+   Int_t iline;
    Float_t x,y,z,u,v;
    Int_t nlines = 0;
    Float_t err_MC[30]={};
@@ -26,15 +28,16 @@ void vz_plot_rebin6(){
      err_MC_pr[nlines]=u;
      err_MC_hd[nlines]=v;
      if (!in.good()) break;
-     if (nlines < 5) printf("x=%8f, y=%8f, z=%8f, u=%8f, v=%8f\n",x,y,z,u,v);
+     printf("x=%8f, y=%8f, z=%8f, u=%8f, v=%8f\n",x,y,z,u,v);
      nlines++;
    }
    printf(" found %d points\n",nlines);
 
    in.close();
 
-  TFile *f = new TFile("full_vz_1quarter.root","READ");
-  TFile *fb = new TFile("with_bkg_full_vz_1quarter.root","READ");
+  TFile *f = new TFile((dir+TString("full_vz.root")).Data(),"READ"); //full_vz_1quarter.root
+  //TFile *fb = new TFile("with_bkg_full_vz_1quarter.root","READ");
+  TFile *fb = new TFile((dir+TString("with_bkg_full_vz.root")).Data(),"READ"); //dati
 
   TH1F* hvz1 = (TH1F*)f->Get("vz_ch1");
   TH1F* hvz2 = (TH1F*)f->Get("vz_ch2");
@@ -67,7 +70,7 @@ void vz_plot_rebin6(){
 
 
   ofstream log_file("vz_global.txt");
-  
+  /*
   hvz1MCpr->Scale(4); 
   hvz1MChd->Scale(4); 
   hvz2MCpr->Scale(4); 
@@ -87,7 +90,7 @@ void vz_plot_rebin6(){
   hvz4wb->Scale(4);
   hvz5wb->Scale(4);
   hvz6wb->Scale(4);
-  
+  */
   
   // ARTEFACTS
   //hvz2MCpr->Scale(2); // per rebin6
@@ -523,10 +526,14 @@ void vz_plot_rebin6(){
   //fit->SetParLimits(3, -1.62,-1.22);
   //fit->FixParameter(4, -170);
 
-  TF1 *fit = new TF1("fit","expo + pol3",0,365);
+  TF1 *fit = new TF1("fit","expo(0) + pol3(2)",0,365);
   fit->SetParameter(0, 8.5);
   fit->SetParameter(1, -0.0061);
   fit->SetParLimits(2, 135,145);
+//  fit->SetParameter(2,155);
+  fit->SetParameter(3,23);
+  fit->SetParameter(4, -0.109);
+  fit->SetParameter(5, -0.00016);
 
   grMC->SetLineWidth(2);
   grMC->SetLineColor(1);
@@ -561,8 +568,8 @@ void vz_plot_rebin6(){
   mgr->GetYaxis()->SetTitle("FULL DATA");
   mgr->Draw("AP");
 
-  /*
-  TCanvas *c1 = new TCanvas();
+  
+  /*TCanvas *c1 = new TCanvas();
   grMCpr->GetYaxis()->SetRangeUser(0,3500);
   grMCpr->GetXaxis()->SetLimits(0,365);
   grMCpr->GetXaxis()->SetTitle("vz [mm]");
