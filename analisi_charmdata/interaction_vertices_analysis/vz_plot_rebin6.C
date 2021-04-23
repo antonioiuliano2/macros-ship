@@ -482,8 +482,8 @@ void vz_plot_rebin6(){
   // ERRORS
 
   for(int i=0;i<30;i++){
-    if(i<10)grwb->SetPointError(i,0,4*2*err_DT[i]);
-    else grwb->SetPointError(i,0,4*err_DT[i]);
+    if(i<10)grwb->SetPointError(i,0,2*err_DT[i]);
+    else grwb->SetPointError(i,0,err_DT[i]);
   }
 
   
@@ -499,10 +499,10 @@ void vz_plot_rebin6(){
   grMCpr->Fit("expo");
   grMCpr->SetTitle("MC protons");
 
-  ////TF1 *hd_fit = new TF1("hd_fit","[0]*TMath::Log(x)",0,365);
-  ////hd_fit->SetParameter(0, 180);
-  //hd_fit->SetParameter(1, 0.79);
-  //hd_fit->SetParameter(2, -170);
+/* TF1 *hd_fit = new TF1("hd_fit","[0]*TMath::Log(x)",0,365);
+  hd_fit->SetParameter(0, 180);
+  hd_fit->SetParameter(1, 0.79);
+  hd_fit->SetParameter(2, -170);*/
 
   TF1 *hd_fit = new TF1("hd_fit","pol3",0,365);
   hd_fit->SetParameter(0, 155);
@@ -530,7 +530,7 @@ void vz_plot_rebin6(){
   fit->SetParameter(0, 8.5);
   fit->SetParameter(1, -0.0061);
   fit->SetParLimits(2, 135,145);
-//  fit->SetParameter(2,155);
+  //fit->SetParameter(2,155);
   fit->SetParameter(3,23);
   fit->SetParameter(4, -0.109);
   fit->SetParameter(5, -0.00016);
@@ -546,7 +546,7 @@ void vz_plot_rebin6(){
   fit->SetParameter(0, 7.8);
   fit->SetParameter(1, -0.0058);
   fit->SetParLimits(2, 135,145);
-  
+  //fit->SetParameter(2,155);
   grwb->SetLineWidth(2);
   //grwb->SetLineColor(4);
   grwb->SetMarkerStyle(20);

@@ -98,7 +98,7 @@ MC_norm_const = [(nPOT_MC[0] / iPOT)  for iPOT, iFile in zip(nPOT_MC, CH_file)]
 print(MC_norm_const)
 norm_const = [(nPOT_MC[0] / iPOT) / len(iFile) for iPOT, iFile in zip(nPOT_MC, CH_file)]
 print(norm_const)
-MC_tot_quarter_over_nquarter = [4, 4, 4, 4, 4, 4]
+MC_tot_quarter_over_nquarter = [1, 1, 1, 1, 1, 1]
 # DT POT PER CONF
 DT_POT = [[136270, 110352, 76307, 73575], [35763, 38853, 43131], [29586], [24578], [25593], [20443]]
 for ich, ipot_mc in enumerate(nPOT_MC):
