@@ -139,7 +139,7 @@ void vz_plot_rebin6(){
   hvz2MCpr->Scale(1);                              //135000
   hvz3MCpr->Scale(3.86);                           //40000
   hvz4MCpr->Scale(4.91);
-  hvz5MCpr->Scale(3.75);           // err MC = C_mc * rad(N)
+  hvz5MCpr->Scale(3.375);           // err MC = C_mc * rad(N)
   hvz6MCpr->Scale(6.0);             
   
   hvz1MCpr->Rebin(3);
@@ -161,7 +161,7 @@ void vz_plot_rebin6(){
   hvz2MChd->Scale(1);
   hvz3MChd->Scale(3.86);
   hvz4MChd->Scale(4.91);
-  hvz5MChd->Scale(3.75);
+  hvz5MChd->Scale(3.375);
   hvz6MChd->Scale(6.0);
   
   
@@ -176,7 +176,7 @@ void vz_plot_rebin6(){
   hvz2wb->Scale(0.33);
   hvz3wb->Scale(3.86);
   hvz4wb->Scale(4.91);
-  hvz5wb->Scale(3.75);
+  hvz5wb->Scale(3.375);
   hvz6wb->Scale(6.0);
 
   // AGGIUNGERE SCALE FACTOR
