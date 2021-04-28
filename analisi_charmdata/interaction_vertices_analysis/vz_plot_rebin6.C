@@ -100,7 +100,7 @@ void vz_plot_rebin6(){
   //hvz1wb->Scale(2); // per rebin6
   //hvz2wb->Scale(2); // per rebin6
 
-  float eff_pr_ch1 = 0.896;
+  /*float eff_pr_ch1 = 0.896;
   float eff_hd_ch1 = 0.691;
   float eff_pr_ch2 = 0.795;
   float eff_hd_ch2 = 0.528;
@@ -111,7 +111,7 @@ void vz_plot_rebin6(){
   float eff_pr_ch5 = 0.744;
   float eff_hd_ch5 = 0.348;
   float eff_pr_ch6 = 0.722;
-  float eff_hd_ch6 = 0.295;
+  float eff_hd_ch6 = 0.295;*/
     
   hvz1->Scale(0.25);
   hvz2->Scale(0.33);
@@ -447,7 +447,7 @@ void vz_plot_rebin6(){
   
 
 
-  ofstream out("errors_filips.dat");
+  ofstream out(Form("%serrors_filips.dat",dir.Data()));
 
   for(int i=0;i<30;i++){
 
@@ -499,10 +499,10 @@ void vz_plot_rebin6(){
   grMCpr->Fit("expo");
   grMCpr->SetTitle("MC protons");
 
-/* TF1 *hd_fit = new TF1("hd_fit","[0]*TMath::Log(x)",0,365);
+ /*TF1 *hd_fit = new TF1("hd_fit","[0]*TMath::Log([1]*x)",0,365);
   hd_fit->SetParameter(0, 180);
   hd_fit->SetParameter(1, 0.79);
-  hd_fit->SetParameter(2, -170);*/
+ // hd_fit->SetParameter(2, -170);*/
 
   TF1 *hd_fit = new TF1("hd_fit","pol3",0,365);
   hd_fit->SetParameter(0, 155);
@@ -518,22 +518,23 @@ void vz_plot_rebin6(){
   grMChd->Fit("hd_fit");
   grMChd->SetTitle("MC hadrons");
 
-  //TF1 *fit = new TF1("fit","expo + [2]*TMath::Log(x)",0,365);
-  //fit->SetParameter(0, 7.8);
-  //fit->SetParameter(1, -0.0058);
-  //fit->SetParLimits(2, 135,145);
-
+/*  TF1 *fit = new TF1("fit","expo(0) + [2]*TMath::Log([3]*x)",0,365);
+  fit->SetParameter(0, grMCpr->GetFunction("expo")->GetParameter(0));
+  fit->SetParameter(1, grMCpr->GetFunction("expo")->GetParameter(1));;
+  fit->FixParameter(2, hd_fit->GetParameter(0));
+  fit->FixParameter(3, hd_fit->GetParameter(1));
+*/
   //fit->SetParLimits(3, -1.62,-1.22);
   //fit->FixParameter(4, -170);
 
   TF1 *fit = new TF1("fit","expo(0) + pol3(2)",0,365);
-  fit->SetParameter(0, 8.5);
-  fit->SetParameter(1, -0.0061);
-  fit->SetParLimits(2, 135,145);
+  fit->SetParameter(0, grMCpr->GetFunction("expo")->GetParameter(0));
+  fit->SetParameter(1, grMCpr->GetFunction("expo")->GetParameter(1));;
+  fit->FixParameter(2, hd_fit->GetParameter(0));
   //fit->SetParameter(2,155);
-  fit->SetParameter(3,23);
-  fit->SetParameter(4, -0.109);
-  fit->SetParameter(5, -0.00016);
+  fit->FixParameter(3,hd_fit->GetParameter(1));
+  fit->FixParameter(4,hd_fit->GetParameter(2));
+  fit->FixParameter(5,hd_fit->GetParameter(3));
 
   grMC->SetLineWidth(2);
   grMC->SetLineColor(1);
@@ -543,9 +544,9 @@ void vz_plot_rebin6(){
   grMC->Fit(fit);
   grMC->SetTitle("Full MC");
 
-  fit->SetParameter(0, 7.8);
-  fit->SetParameter(1, -0.0058);
-  fit->SetParLimits(2, 135,145);
+  //fit->SetParameter(0, 7.8);
+  //fit->SetParameter(1, -0.0058);
+  //fit->SetParLimits(2, 135,145);
   //fit->SetParameter(2,155);
   grwb->SetLineWidth(2);
   //grwb->SetLineColor(4);
