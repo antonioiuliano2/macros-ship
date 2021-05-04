@@ -39,12 +39,12 @@ void vz_plot_rebin6(){
   //TFile *fb = new TFile("with_bkg_full_vz_1quarter.root","READ");
   TFile *fb = new TFile((dir+TString("with_bkg_full_vz.root")).Data(),"READ"); //dati
 
-  TH1F* hvz1 = (TH1F*)f->Get("vz_ch1");
+  /*TH1F* hvz1 = (TH1F*)f->Get("vz_ch1");
   TH1F* hvz2 = (TH1F*)f->Get("vz_ch2");
   TH1F* hvz3 = (TH1F*)f->Get("vz_ch3");
   TH1F* hvz4 = (TH1F*)f->Get("vz_ch4");
   TH1F* hvz5 = (TH1F*)f->Get("vz_ch5");
-  TH1F* hvz6 = (TH1F*)f->Get("vz_ch6");
+  TH1F* hvz6 = (TH1F*)f->Get("vz_ch6");*/
 
   TH1F* hvz1MCpr = (TH1F*)f->Get("vz_ch1_pr");
   TH1F* hvz2MCpr = (TH1F*)f->Get("vz_ch2_pr");
@@ -113,11 +113,11 @@ void vz_plot_rebin6(){
   float eff_pr_ch6 = 0.722;
   float eff_hd_ch6 = 0.295;*/
     
-  hvz1->Scale(0.25);
+/*  hvz1->Scale(0.25);
   hvz2->Scale(0.33);
   hvz3->Scale(3.86);
   hvz4->Scale(4.91);
-  hvz5->Scale(3.75);
+  hvz5->Scale(3.375);
   hvz6->Scale(6.0);
 
   hvz1->Rebin(3);
@@ -126,7 +126,7 @@ void vz_plot_rebin6(){
   hvz4->Rebin(6);
   hvz5->Rebin(6);
   hvz6->Rebin(6);
-
+*/
   /*
   hvz1MCpr->Scale(1./eff_pr_ch1);
   hvz2MCpr->Scale(1./eff_pr_ch2);
@@ -499,7 +499,7 @@ void vz_plot_rebin6(){
   grMCpr->Fit("expo");
   grMCpr->SetTitle("MC protons");
 
- /*TF1 *hd_fit = new TF1("hd_fit","[0]*TMath::Log([1]*x)",0,365);
+/* TF1 *hd_fit = new TF1("hd_fit","[0]*TMath::Log([1]*x)",0,365);
   hd_fit->SetParameter(0, 180);
   hd_fit->SetParameter(1, 0.79);
  // hd_fit->SetParameter(2, -170);*/
