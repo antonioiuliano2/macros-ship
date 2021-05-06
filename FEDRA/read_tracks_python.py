@@ -1,5 +1,5 @@
 import ROOT as r
-import rootlogon
+import fedrarootlogon
 c = r.TCanvas()
 
 #opening the file
