@@ -488,6 +488,7 @@ void vz_plot_rebin6(){
 
   
   
+  TF1 * proton_fit = new TF1("proton_fit","expo",30,365);
 
   gStyle->SetOptFit(1111);
   
@@ -496,7 +497,7 @@ void vz_plot_rebin6(){
   //grMCpr->SetMarkerStyle(21);
   grMCpr->SetMarkerColor(4);
   //grMCpr->Draw("APL && same");
-  grMCpr->Fit("expo");
+  grMCpr->Fit(proton_fit,"R");
   grMCpr->SetTitle("MC protons");
 
 /* TF1 *hd_fit = new TF1("hd_fit","[0]*TMath::Log([1]*x)",0,365);
@@ -504,7 +505,7 @@ void vz_plot_rebin6(){
   hd_fit->SetParameter(1, 0.79);
  // hd_fit->SetParameter(2, -170);*/
 
-  TF1 *hd_fit = new TF1("hd_fit","pol3",0,365);
+  TF1 *hd_fit = new TF1("hd_fit","pol3",30,365);
   hd_fit->SetParameter(0, 155);
   hd_fit->SetParameter(1, 23);
   hd_fit->SetParameter(2, -0.109);
@@ -515,7 +516,7 @@ void vz_plot_rebin6(){
   //grMChd->SetMarkerStyle(22);
   grMChd->SetMarkerColor(3);
   //grMChd->Fit("expo");
-  grMChd->Fit("hd_fit");
+  grMChd->Fit("hd_fit","R");
   grMChd->SetTitle("MC hadrons");
 
 /*  TF1 *fit = new TF1("fit","expo(0) + [2]*TMath::Log([3]*x)",0,365);
@@ -527,9 +528,9 @@ void vz_plot_rebin6(){
   //fit->SetParLimits(3, -1.62,-1.22);
   //fit->FixParameter(4, -170);
 
-  TF1 *fit = new TF1("fit","expo(0) + pol3(2)",0,365);
-  fit->SetParameter(0, grMCpr->GetFunction("expo")->GetParameter(0));
-  fit->SetParameter(1, grMCpr->GetFunction("expo")->GetParameter(1));;
+  TF1 *fit = new TF1("fit","expo(0) + pol3(2)",30,365);
+  fit->SetParameter(0, proton_fit->GetParameter(0));
+  fit->SetParameter(1, proton_fit->GetParameter(1));;
   fit->FixParameter(2, hd_fit->GetParameter(0));
   //fit->SetParameter(2,155);
   fit->FixParameter(3,hd_fit->GetParameter(1));
@@ -541,8 +542,16 @@ void vz_plot_rebin6(){
   grMC->SetMarkerStyle(20);
   grMC->SetMarkerColor(1);
   //grMChd->Fit("expo");
-  grMC->Fit(fit);
+  grMC->Fit(fit,"R");
   grMC->SetTitle("Full MC");
+
+  float slope = fit->GetParameter(1);
+  float slopeerror = fit->GetParError(1);
+
+  float lambda = -1./slope;
+  float lambdaerror = 1./(slope*slope) * slopeerror;  //error propagation of (1/x)
+
+  cout<<"For Monte Carlo: resulting lambda is "<<lambda<<" pm "<<lambdaerror;
 
   //fit->SetParameter(0, 7.8);
   //fit->SetParameter(1, -0.0058);
@@ -554,11 +563,16 @@ void vz_plot_rebin6(){
   grwb->SetMarkerColor(3);
   //grwb->Draw("AP");
   //grwb->Fit("expo");
-  grwb->Fit(fit);
+  grwb->Fit(fit,"R");
   grwb->SetTitle("Full data");
 
-  
-  
+  slope = fit->GetParameter(1);
+  slopeerror = fit->GetParError(1);  
+ 
+  lambda = -1./slope;
+  lambdaerror = 1./(slope*slope) * slopeerror; //error propagation of (1/x)
+
+  cout<<"For Monte Carlo: resulting lambda is "<<lambda<<" pm "<<lambdaerror;
  
   TMultiGraph *mgr = new TMultiGraph();
   mgr->Add(grwb);
@@ -569,7 +583,6 @@ void vz_plot_rebin6(){
   mgr->GetYaxis()->SetTitle("FULL DATA");
   mgr->Draw("AP");
 
-  
   /*TCanvas *c1 = new TCanvas();
   grMCpr->GetYaxis()->SetRangeUser(0,3500);
   grMCpr->GetXaxis()->SetLimits(0,365);
