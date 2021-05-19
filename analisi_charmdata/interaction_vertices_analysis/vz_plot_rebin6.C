@@ -70,28 +70,7 @@ void vz_plot_rebin6(){
 
 
   ofstream log_file("vz_global.txt");
-  /*
-  hvz1MCpr->Scale(4); 
-  hvz1MChd->Scale(4); 
-  hvz2MCpr->Scale(4); 
-  hvz2MChd->Scale(4);
-  hvz3MCpr->Scale(4); 
-  hvz3MChd->Scale(4); 
-  hvz4MCpr->Scale(4); 
-  hvz4MChd->Scale(4);
-  hvz5MCpr->Scale(4); 
-  hvz5MChd->Scale(4); 
-  hvz6MCpr->Scale(4); 
-  hvz6MChd->Scale(4);
 
-  hvz1wb->Scale(4);
-  hvz2wb->Scale(4);
-  hvz3wb->Scale(4);
-  hvz4wb->Scale(4);
-  hvz5wb->Scale(4);
-  hvz6wb->Scale(4);
-  */
-  
   // ARTEFACTS
   //hvz2MCpr->Scale(2); // per rebin6
   //hvz2MChd->Scale(2); // per rebin6
@@ -211,169 +190,143 @@ void vz_plot_rebin6(){
 
   int rebin_factor = 2;
 
- 
-
   TGraphErrors *grMCpr = new TGraphErrors();
 
-  grMCpr->SetPoint(0,3,rebin_factor*hvz1MCpr->GetBinContent(1));
-  grMCpr->SetPoint(1,9,rebin_factor*hvz1MCpr->GetBinContent(2));
-  grMCpr->SetPoint(2,15,rebin_factor*hvz1MCpr->GetBinContent(3));
-  grMCpr->SetPoint(3,21,rebin_factor*hvz1MCpr->GetBinContent(4));
-  grMCpr->SetPoint(4,27,rebin_factor*hvz1MCpr->GetBinContent(5));
 
-  grMCpr->SetPoint(5,38,rebin_factor*hvz2MCpr->GetBinContent(1));
-  grMCpr->SetPoint(6,44,rebin_factor*hvz2MCpr->GetBinContent(2));
-  grMCpr->SetPoint(7,50,rebin_factor*hvz2MCpr->GetBinContent(3));
-  grMCpr->SetPoint(8,56,rebin_factor*hvz2MCpr->GetBinContent(4));
-  grMCpr->SetPoint(9,62,rebin_factor*hvz2MCpr->GetBinContent(5));
+  grMCpr->SetPoint(0,6,hvz1MCpr->GetBinContent(1)+hvz1MCpr->GetBinContent(2));
+  grMCpr->SetPoint(1,18,hvz1MCpr->GetBinContent(3)+hvz1MCpr->GetBinContent(4));
+  grMCpr->SetPoint(2,32.5,hvz1MCpr->GetBinContent(5)+hvz2MCpr->GetBinContent(1));
+  grMCpr->SetPoint(3,47,hvz2MCpr->GetBinContent(2)+hvz2MCpr->GetBinContent(3));
+  grMCpr->SetPoint(4,59,hvz2MCpr->GetBinContent(4)+hvz2MCpr->GetBinContent(5));
 
-
-  grMCpr->SetPoint(10,89,hvz3MCpr->GetBinContent(1));
-  grMCpr->SetPoint(11,101,hvz3MCpr->GetBinContent(2));
-  grMCpr->SetPoint(12,113,hvz3MCpr->GetBinContent(3));
-  grMCpr->SetPoint(13,125,hvz3MCpr->GetBinContent(4));
-  grMCpr->SetPoint(14,137,hvz3MCpr->GetBinContent(5));
+  grMCpr->SetPoint(5,89,hvz3MCpr->GetBinContent(1));
+  grMCpr->SetPoint(6,101,hvz3MCpr->GetBinContent(2));
+  grMCpr->SetPoint(7,113,hvz3MCpr->GetBinContent(3));
+  grMCpr->SetPoint(8,125,hvz3MCpr->GetBinContent(4));
+  grMCpr->SetPoint(9,137,hvz3MCpr->GetBinContent(5));
 
 
-  grMCpr->SetPoint(15,164,hvz4MCpr->GetBinContent(1));
-  grMCpr->SetPoint(16,176,hvz4MCpr->GetBinContent(2));
-  grMCpr->SetPoint(17,188,hvz4MCpr->GetBinContent(3));
-  grMCpr->SetPoint(18,200,hvz4MCpr->GetBinContent(4));
-  grMCpr->SetPoint(19,212,hvz4MCpr->GetBinContent(5));
+  grMCpr->SetPoint(10,164,hvz4MCpr->GetBinContent(1));
+  grMCpr->SetPoint(11,176,hvz4MCpr->GetBinContent(2));
+  grMCpr->SetPoint(12,188,hvz4MCpr->GetBinContent(3));
+  grMCpr->SetPoint(13,200,hvz4MCpr->GetBinContent(4));
+  grMCpr->SetPoint(14,212,hvz4MCpr->GetBinContent(5));
   
-  grMCpr->SetPoint(20,239,hvz5MCpr->GetBinContent(1));
-  grMCpr->SetPoint(21,251,hvz5MCpr->GetBinContent(2));
-  grMCpr->SetPoint(22,263,hvz5MCpr->GetBinContent(3));
-  grMCpr->SetPoint(23,275,hvz5MCpr->GetBinContent(4));
-  grMCpr->SetPoint(24,287,hvz5MCpr->GetBinContent(5));
+  grMCpr->SetPoint(15,239,hvz5MCpr->GetBinContent(1));
+  grMCpr->SetPoint(16,251,hvz5MCpr->GetBinContent(2));
+  grMCpr->SetPoint(17,263,hvz5MCpr->GetBinContent(3));
+  grMCpr->SetPoint(18,275,hvz5MCpr->GetBinContent(4));
+  grMCpr->SetPoint(19,287,hvz5MCpr->GetBinContent(5));
   
-  grMCpr->SetPoint(25,314,hvz6MCpr->GetBinContent(1));
-  grMCpr->SetPoint(26,326,hvz6MCpr->GetBinContent(2));
-  grMCpr->SetPoint(27,338,hvz6MCpr->GetBinContent(3));
-  grMCpr->SetPoint(28,350,hvz6MCpr->GetBinContent(4));
-  grMCpr->SetPoint(29,362,hvz6MCpr->GetBinContent(5));
+  grMCpr->SetPoint(20,314,hvz6MCpr->GetBinContent(1));
+  grMCpr->SetPoint(21,326,hvz6MCpr->GetBinContent(2));
+  grMCpr->SetPoint(22,338,hvz6MCpr->GetBinContent(3));
+  grMCpr->SetPoint(23,350,hvz6MCpr->GetBinContent(4));
+  grMCpr->SetPoint(24,362,hvz6MCpr->GetBinContent(5));
 
 
   
   
   TGraphErrors *grMChd = new TGraphErrors();
 
-  grMChd->SetPoint(0,3,rebin_factor*hvz1MChd->GetBinContent(1));
-  grMChd->SetPoint(1,9,rebin_factor*hvz1MChd->GetBinContent(2));
-  grMChd->SetPoint(2,15,rebin_factor*hvz1MChd->GetBinContent(3));
-  grMChd->SetPoint(3,21,rebin_factor*hvz1MChd->GetBinContent(4));
-  grMChd->SetPoint(4,27,rebin_factor*hvz1MChd->GetBinContent(5));
+  grMChd->SetPoint(0,6,hvz1MChd->GetBinContent(1)+hvz1MChd->GetBinContent(2));
+  grMChd->SetPoint(1,18,hvz1MChd->GetBinContent(3)+hvz1MChd->GetBinContent(4));
+  grMChd->SetPoint(2,32.5,hvz1MChd->GetBinContent(5)+hvz2MChd->GetBinContent(1));
+  grMChd->SetPoint(3,47,hvz2MChd->GetBinContent(2)+hvz2MChd->GetBinContent(3));
+  grMChd->SetPoint(4,59,hvz2MChd->GetBinContent(4)+hvz2MChd->GetBinContent(5));
 
-  grMChd->SetPoint(5,38,rebin_factor*hvz2MChd->GetBinContent(1));
-  grMChd->SetPoint(6,44,rebin_factor*hvz2MChd->GetBinContent(2));
-  grMChd->SetPoint(7,50,rebin_factor*hvz2MChd->GetBinContent(3));
-  grMChd->SetPoint(8,56,rebin_factor*hvz2MChd->GetBinContent(4));
-  grMChd->SetPoint(9,62,rebin_factor*hvz2MChd->GetBinContent(5));
-
-  grMChd->SetPoint(10,89,hvz3MChd->GetBinContent(1));
-  grMChd->SetPoint(11,101,hvz3MChd->GetBinContent(2));
-  grMChd->SetPoint(12,113,hvz3MChd->GetBinContent(3));
-  grMChd->SetPoint(13,125,hvz3MChd->GetBinContent(4));
-  grMChd->SetPoint(14,137,hvz3MChd->GetBinContent(5));
+  grMChd->SetPoint(5,89,hvz3MChd->GetBinContent(1));
+  grMChd->SetPoint(6,101,hvz3MChd->GetBinContent(2));
+  grMChd->SetPoint(7,113,hvz3MChd->GetBinContent(3));
+  grMChd->SetPoint(8,125,hvz3MChd->GetBinContent(4));
+  grMChd->SetPoint(9,137,hvz3MChd->GetBinContent(5));
 
 
-  grMChd->SetPoint(15,164,hvz4MChd->GetBinContent(1));
-  grMChd->SetPoint(16,176,hvz4MChd->GetBinContent(2));
-  grMChd->SetPoint(17,188,hvz4MChd->GetBinContent(3));
-  grMChd->SetPoint(18,200,hvz4MChd->GetBinContent(4));
-  grMChd->SetPoint(19,212,hvz4MChd->GetBinContent(5));
+  grMChd->SetPoint(10,164,hvz4MChd->GetBinContent(1));
+  grMChd->SetPoint(11,176,hvz4MChd->GetBinContent(2));
+  grMChd->SetPoint(12,188,hvz4MChd->GetBinContent(3));
+  grMChd->SetPoint(13,200,hvz4MChd->GetBinContent(4));
+  grMChd->SetPoint(14,212,hvz4MChd->GetBinContent(5));
   
-  grMChd->SetPoint(20,239,hvz5MChd->GetBinContent(1));
-  grMChd->SetPoint(21,251,hvz5MChd->GetBinContent(2));
-  grMChd->SetPoint(22,263,hvz5MChd->GetBinContent(3));
-  grMChd->SetPoint(23,275,hvz5MChd->GetBinContent(4));
-  grMChd->SetPoint(24,287,hvz5MChd->GetBinContent(5));
+  grMChd->SetPoint(15,239,hvz5MChd->GetBinContent(1));
+  grMChd->SetPoint(16,251,hvz5MChd->GetBinContent(2));
+  grMChd->SetPoint(17,263,hvz5MChd->GetBinContent(3));
+  grMChd->SetPoint(18,275,hvz5MChd->GetBinContent(4));
+  grMChd->SetPoint(19,287,hvz5MChd->GetBinContent(5));
   
-  grMChd->SetPoint(25,314,hvz6MChd->GetBinContent(1));
-  grMChd->SetPoint(26,326,hvz6MChd->GetBinContent(2));
-  grMChd->SetPoint(27,338,hvz6MChd->GetBinContent(3));
-  grMChd->SetPoint(28,350,hvz6MChd->GetBinContent(4));
-  grMChd->SetPoint(29,362,hvz6MChd->GetBinContent(5));
+  grMChd->SetPoint(20,314,hvz6MChd->GetBinContent(1));
+  grMChd->SetPoint(21,326,hvz6MChd->GetBinContent(2));
+  grMChd->SetPoint(22,338,hvz6MChd->GetBinContent(3));
+  grMChd->SetPoint(23,350,hvz6MChd->GetBinContent(4));
+  grMChd->SetPoint(24,362,hvz6MChd->GetBinContent(5));
 
 
   TGraphErrors *grMC = new TGraphErrors();
 
-  grMC->SetPoint(0,3,rebin_factor*hvz1MCfull->GetBinContent(1));
-  grMC->SetPoint(1,9,rebin_factor*hvz1MCfull->GetBinContent(2));
-  grMC->SetPoint(2,15,rebin_factor*hvz1MCfull->GetBinContent(3));
-  grMC->SetPoint(3,21,rebin_factor*hvz1MCfull->GetBinContent(4));
-  grMC->SetPoint(4,27,rebin_factor*hvz1MCfull->GetBinContent(5));
+  grMC->SetPoint(0,6,hvz1MCfull->GetBinContent(1)+hvz1MCfull->GetBinContent(2));
+  grMC->SetPoint(1,18,hvz1MCfull->GetBinContent(3)+hvz1MCfull->GetBinContent(4));
+  grMC->SetPoint(2,32.5,hvz1MCfull->GetBinContent(5)+hvz2MCfull->GetBinContent(1));
+  grMC->SetPoint(3,47,hvz2MCfull->GetBinContent(2)+hvz2MCfull->GetBinContent(3));
+  grMC->SetPoint(4,59,hvz2MCfull->GetBinContent(4)+hvz2MCfull->GetBinContent(5));
 
-  grMC->SetPoint(5,38,rebin_factor*hvz2MCfull->GetBinContent(1));
-  grMC->SetPoint(6,44,rebin_factor*hvz2MCfull->GetBinContent(2));
-  grMC->SetPoint(7,50,rebin_factor*hvz2MCfull->GetBinContent(3));
-  grMC->SetPoint(8,56,rebin_factor*hvz2MCfull->GetBinContent(4));
-  grMC->SetPoint(9,62,rebin_factor*hvz2MCfull->GetBinContent(5));
-
-  grMC->SetPoint(10,89,hvz3MCfull->GetBinContent(1));
-  grMC->SetPoint(11,101,hvz3MCfull->GetBinContent(2));
-  grMC->SetPoint(12,113,hvz3MCfull->GetBinContent(3));
-  grMC->SetPoint(13,125,hvz3MCfull->GetBinContent(4));
-  grMC->SetPoint(14,137,hvz3MCfull->GetBinContent(5));
+  grMC->SetPoint(5,89,hvz3MCfull->GetBinContent(1));
+  grMC->SetPoint(6,101,hvz3MCfull->GetBinContent(2));
+  grMC->SetPoint(7,113,hvz3MCfull->GetBinContent(3));
+  grMC->SetPoint(8,125,hvz3MCfull->GetBinContent(4));
+  grMC->SetPoint(9,137,hvz3MCfull->GetBinContent(5));
 
 
-  grMC->SetPoint(15,164,hvz4MCfull->GetBinContent(1));
-  grMC->SetPoint(16,176,hvz4MCfull->GetBinContent(2));
-  grMC->SetPoint(17,188,hvz4MCfull->GetBinContent(3));
-  grMC->SetPoint(18,200,hvz4MCfull->GetBinContent(4));
-  grMC->SetPoint(19,212,hvz4MCfull->GetBinContent(5));
+  grMC->SetPoint(10,164,hvz4MCfull->GetBinContent(1));
+  grMC->SetPoint(11,176,hvz4MCfull->GetBinContent(2));
+  grMC->SetPoint(12,188,hvz4MCfull->GetBinContent(3));
+  grMC->SetPoint(13,200,hvz4MCfull->GetBinContent(4));
+  grMC->SetPoint(14,212,hvz4MCfull->GetBinContent(5));
   
-  grMC->SetPoint(20,239,hvz5MCfull->GetBinContent(1));
-  grMC->SetPoint(21,251,hvz5MCfull->GetBinContent(2));
-  grMC->SetPoint(22,263,hvz5MCfull->GetBinContent(3));
-  grMC->SetPoint(23,275,hvz5MCfull->GetBinContent(4));
-  grMC->SetPoint(24,287,hvz5MCfull->GetBinContent(5));
+  grMC->SetPoint(15,239,hvz5MCfull->GetBinContent(1));
+  grMC->SetPoint(16,251,hvz5MCfull->GetBinContent(2));
+  grMC->SetPoint(17,263,hvz5MCfull->GetBinContent(3));
+  grMC->SetPoint(18,275,hvz5MCfull->GetBinContent(4));
+  grMC->SetPoint(19,287,hvz5MCfull->GetBinContent(5));
   
-  grMC->SetPoint(25,314,hvz6MCfull->GetBinContent(1));
-  grMC->SetPoint(26,326,hvz6MCfull->GetBinContent(2));
-  grMC->SetPoint(27,338,hvz6MCfull->GetBinContent(3));
-  grMC->SetPoint(28,350,hvz6MCfull->GetBinContent(4));
-  grMC->SetPoint(29,362,hvz6MCfull->GetBinContent(5));
+  grMC->SetPoint(20,314,hvz6MCfull->GetBinContent(1));
+  grMC->SetPoint(21,326,hvz6MCfull->GetBinContent(2));
+  grMC->SetPoint(22,338,hvz6MCfull->GetBinContent(3));
+  grMC->SetPoint(23,350,hvz6MCfull->GetBinContent(4));
+  grMC->SetPoint(24,362,hvz6MCfull->GetBinContent(5));
 
 
   TGraphErrors *grwb = new TGraphErrors();
 
-  grwb->SetPoint(0,3,rebin_factor*hvz1wb->GetBinContent(1));
-  grwb->SetPoint(1,9,rebin_factor*hvz1wb->GetBinContent(2));
-  grwb->SetPoint(2,15,rebin_factor*hvz1wb->GetBinContent(3));
-  grwb->SetPoint(3,21,rebin_factor*hvz1wb->GetBinContent(4));
-  grwb->SetPoint(4,27,rebin_factor*hvz1wb->GetBinContent(5));
+  grwb->SetPoint(0,6,hvz1wb->GetBinContent(1)+hvz1wb->GetBinContent(2));
+  grwb->SetPoint(1,18,hvz1wb->GetBinContent(3)+hvz1wb->GetBinContent(4));
+  grwb->SetPoint(2,32.5,hvz1wb->GetBinContent(5)+hvz2wb->GetBinContent(1));
+  grwb->SetPoint(3,47,hvz2wb->GetBinContent(2)+hvz2wb->GetBinContent(3));
+  grwb->SetPoint(4,59,hvz2wb->GetBinContent(4)+hvz2wb->GetBinContent(5));
 
-  grwb->SetPoint(5,38,rebin_factor*hvz2wb->GetBinContent(1));
-  grwb->SetPoint(6,44,rebin_factor*hvz2wb->GetBinContent(2));
-  grwb->SetPoint(7,50,rebin_factor*hvz2wb->GetBinContent(3));
-  grwb->SetPoint(8,56,rebin_factor*hvz2wb->GetBinContent(4));
-  grwb->SetPoint(9,62,rebin_factor*hvz2wb->GetBinContent(5));
-
-  grwb->SetPoint(10,89,hvz3wb->GetBinContent(1));
-  grwb->SetPoint(11,101,hvz3wb->GetBinContent(2));
-  grwb->SetPoint(12,113,hvz3wb->GetBinContent(3));
-  grwb->SetPoint(13,125,hvz3wb->GetBinContent(4));
-  grwb->SetPoint(14,137,hvz3wb->GetBinContent(5));
+  grwb->SetPoint(5,89,hvz3wb->GetBinContent(1));
+  grwb->SetPoint(6,101,hvz3wb->GetBinContent(2));
+  grwb->SetPoint(7,113,hvz3wb->GetBinContent(3));
+  grwb->SetPoint(8,125,hvz3wb->GetBinContent(4));
+  grwb->SetPoint(9,137,hvz3wb->GetBinContent(5));
 
 
-  grwb->SetPoint(15,164,hvz4wb->GetBinContent(1));
-  grwb->SetPoint(16,176,hvz4wb->GetBinContent(2));
-  grwb->SetPoint(17,188,hvz4wb->GetBinContent(3));
-  grwb->SetPoint(18,200,hvz4wb->GetBinContent(4));
-  grwb->SetPoint(19,212,hvz4wb->GetBinContent(5));
+  grwb->SetPoint(10,164,hvz4wb->GetBinContent(1));
+  grwb->SetPoint(11,176,hvz4wb->GetBinContent(2));
+  grwb->SetPoint(12,188,hvz4wb->GetBinContent(3));
+  grwb->SetPoint(13,200,hvz4wb->GetBinContent(4));
+  grwb->SetPoint(14,212,hvz4wb->GetBinContent(5));
   
-  grwb->SetPoint(20,239,hvz5wb->GetBinContent(1));
-  grwb->SetPoint(21,251,hvz5wb->GetBinContent(2));
-  grwb->SetPoint(22,263,hvz5wb->GetBinContent(3));
-  grwb->SetPoint(23,275,hvz5wb->GetBinContent(4));
-  grwb->SetPoint(24,287,hvz5wb->GetBinContent(5));
+  grwb->SetPoint(15,239,hvz5wb->GetBinContent(1));
+  grwb->SetPoint(16,251,hvz5wb->GetBinContent(2));
+  grwb->SetPoint(17,263,hvz5wb->GetBinContent(3));
+  grwb->SetPoint(18,275,hvz5wb->GetBinContent(4));
+  grwb->SetPoint(19,287,hvz5wb->GetBinContent(5));
   
-  grwb->SetPoint(25,314,hvz6wb->GetBinContent(1));
-  grwb->SetPoint(26,326,hvz6wb->GetBinContent(2));
-  grwb->SetPoint(27,338,hvz6wb->GetBinContent(3));
-  grwb->SetPoint(28,350,hvz6wb->GetBinContent(4));
-  grwb->SetPoint(29,362,hvz6wb->GetBinContent(5));
+  grwb->SetPoint(20,314,hvz6wb->GetBinContent(1));
+  grwb->SetPoint(21,326,hvz6wb->GetBinContent(2));
+  grwb->SetPoint(22,338,hvz6wb->GetBinContent(3));
+  grwb->SetPoint(23,350,hvz6wb->GetBinContent(4));
+  grwb->SetPoint(24,362,hvz6wb->GetBinContent(5));
 
 
   float xgraph[30] = {3,9,15,21,27,38,44,50,56,62,89,101,113,125,137,164,176,188,200,212,239,251,263,275,287,314,326,338,350,362};
@@ -460,35 +413,32 @@ void vz_plot_rebin6(){
 
   // ERRORS
   for(int i=0;i<30;i++){
-    if(i<10)grMCpr->SetPointError(i,0,2*err_MC_pr[i]);
-    else grMCpr->SetPointError(i,0,err_MC_pr[i]);
-  }
+    if(i<10 && i%2==0)grMCpr->SetPointError(i/2,0,TMath::Sqrt(err_MC_pr[i]*err_MC_pr[i]+err_MC_pr[i+1]*err_MC_pr[i+1]));
+    if(i>=10)grMCpr->SetPointError(i-5,0,err_MC_pr[i]);
+  } 
 
    // ERRORS
+   for(int i=0;i<30;i++){
+     if(i<10 && i%2==0)grMChd->SetPointError(i/2,0,TMath::Sqrt(err_MC_hd[i]*err_MC_hd[i]+err_MC_hd[i+1]*err_MC_hd[i+1]));
+     if(i>=10)grMChd->SetPointError(i-5,0,err_MC_hd[i]);
+  } // ERRORS
 
-  for(int i=0;i<30;i++){
-    if(i<10)grMChd->SetPointError(i,0,2*err_MC_hd[i]);
-    else grMChd->SetPointError(i,0,err_MC_hd[i]);
-  }
-
-  // ERRORS
-
-  for(int i=0;i<30;i++){
-    if(i<10)grMC->SetPointError(i,0,2*err_MC[i]);
-    else grMC->SetPointError(i,0,err_MC[i]);
-  }
+   for(int i=0;i<30;i++){
+     if(i<10 && i%2==0)grMC->SetPointError(i/2,0,TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1]));
+     if(i>=10)grMC->SetPointError(i-5,0,err_MC[i]);
+   }
  
-
+  
   // ERRORS
-
+  
   for(int i=0;i<30;i++){
-    if(i<10)grwb->SetPointError(i,0,2*err_DT[i]);
-    else grwb->SetPointError(i,0,err_DT[i]);
+    if(i<10 && i%2==0)grwb->SetPointError(i/2,0,TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]));
+    if(i>=10)grwb->SetPointError(i-5,0,err_DT[i]);
   }
 
   
   
-  TF1 * proton_fit = new TF1("proton_fit","expo",30,365);
+  TF1 * proton_fit = new TF1("proton_fit","expo",0,365);
 
   gStyle->SetOptFit(1111);
   
@@ -505,7 +455,7 @@ void vz_plot_rebin6(){
   hd_fit->SetParameter(1, 0.79);
  // hd_fit->SetParameter(2, -170);*/
 
-  TF1 *hd_fit = new TF1("hd_fit","pol3",30,365);
+  TF1 *hd_fit = new TF1("hd_fit","pol3",0,365);
   hd_fit->SetParameter(0, 155);
   hd_fit->SetParameter(1, 23);
   hd_fit->SetParameter(2, -0.109);
@@ -528,7 +478,7 @@ void vz_plot_rebin6(){
   //fit->SetParLimits(3, -1.62,-1.22);
   //fit->FixParameter(4, -170);
 
-  TF1 *fit = new TF1("fit","expo(0) + pol3(2)",30,365);
+  TF1 *fit = new TF1("fit","expo(0) + pol3(2)",0,365);
   fit->SetParameter(0, proton_fit->GetParameter(0));
   fit->SetParameter(1, proton_fit->GetParameter(1));;
   fit->FixParameter(2, hd_fit->GetParameter(0));
@@ -572,7 +522,7 @@ void vz_plot_rebin6(){
   lambda = -1./slope;
   lambdaerror = 1./(slope*slope) * slopeerror; //error propagation of (1/x)
 
-  cout<<"For Monte Carlo: resulting lambda is "<<lambda<<" pm "<<lambdaerror;
+  cout<<"For data: resulting lambda is "<<lambda<<" pm "<<lambdaerror;
  
   TMultiGraph *mgr = new TMultiGraph();
   mgr->Add(grwb);
