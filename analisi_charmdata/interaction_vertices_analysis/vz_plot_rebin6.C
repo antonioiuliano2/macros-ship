@@ -9,7 +9,7 @@ void vz_plot_rebin6(){
    //TString dir = gSystem->UnixPathName(gInterpreter->GetCurrentMacroName());
    //dir.ReplaceAll("vz_plot_rebin6.C","");
    //dir.ReplaceAll("/./","/");
-   TString dir = TString("/home/utente/Lavoro/BDT_vertices_Valerio/afterBDT_plots/");
+   TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/");
    ifstream in;
    in.open(Form("%serrors.dat",dir.Data()));
 
@@ -413,17 +413,20 @@ void vz_plot_rebin6(){
 
   // ERRORS
   for(int i=0;i<30;i++){
+  //  if (i==2) continue;
     if(i<10 && i%2==0)grMCpr->SetPointError(i/2,0,TMath::Sqrt(err_MC_pr[i]*err_MC_pr[i]+err_MC_pr[i+1]*err_MC_pr[i+1]));
     if(i>=10)grMCpr->SetPointError(i-5,0,err_MC_pr[i]);
   } 
 
    // ERRORS
    for(int i=0;i<30;i++){
+   //  if (i==2) continue;
      if(i<10 && i%2==0)grMChd->SetPointError(i/2,0,TMath::Sqrt(err_MC_hd[i]*err_MC_hd[i]+err_MC_hd[i+1]*err_MC_hd[i+1]));
      if(i>=10)grMChd->SetPointError(i-5,0,err_MC_hd[i]);
   } // ERRORS
 
    for(int i=0;i<30;i++){
+    // if (i==2) continue;
      if(i<10 && i%2==0)grMC->SetPointError(i/2,0,TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1]));
      if(i>=10)grMC->SetPointError(i-5,0,err_MC[i]);
    }
@@ -432,6 +435,7 @@ void vz_plot_rebin6(){
   // ERRORS
   
   for(int i=0;i<30;i++){
+   // if (i==2) continue;
     if(i<10 && i%2==0)grwb->SetPointError(i/2,0,TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]));
     if(i>=10)grwb->SetPointError(i-5,0,err_DT[i]);
   }
@@ -486,6 +490,13 @@ void vz_plot_rebin6(){
   fit->FixParameter(3,hd_fit->GetParameter(1));
   fit->FixParameter(4,hd_fit->GetParameter(2));
   fit->FixParameter(5,hd_fit->GetParameter(3));
+
+  fit->SetParName(0,"Constant");
+  fit->SetParName(1,"Slope");
+  fit->SetParName(2,"p0");
+  fit->SetParName(3,"p1");
+  fit->SetParName(4,"p2");
+  fit->SetParName(5,"p3");
 
   grMC->SetLineWidth(2);
   grMC->SetLineColor(1);

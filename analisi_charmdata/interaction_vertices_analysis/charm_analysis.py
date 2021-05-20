@@ -67,7 +67,7 @@ print("Today's date:", today)
 
 # work directory
 #file_dir = "/home/vale/Desktop/SHiP/analysis/20200610_proton_study/cut_0.05_with_tracks/vz_not_scaled/"
-file_dir = "/home/utente/Lavoro/BDT_vertices_Valerio/afterBDT_plots/"
+file_dir = "/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/"
 
 out_file = open(file_dir+"log_charm_errors.txt", "w")
 out_file.write(f"Log file - Stima degli errori (V.G. {today})")

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-filepath="/home/utente/Lavoro/BDT_vertices_Valerio/afterBDT_plots"
+filepath="$HOME/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots"
 
 hadd $filepath/full_vz.root $filepath/full_vz_CH*.root
 
