@@ -189,144 +189,147 @@ void vz_plot_rebin6(){
   hvz6MCfull->Add(hvz6MChd);
 
   int rebin_factor = 2;
-
+  //MC proton interaction vertices
   TGraphErrors *grMCpr = new TGraphErrors();
 
-
+  //CHARM1 configuration
   grMCpr->SetPoint(0,6,hvz1MCpr->GetBinContent(1)+hvz1MCpr->GetBinContent(2));
   grMCpr->SetPoint(1,18,hvz1MCpr->GetBinContent(3)+hvz1MCpr->GetBinContent(4));
-  grMCpr->SetPoint(2,32.5,hvz1MCpr->GetBinContent(5)+hvz2MCpr->GetBinContent(1));
-  grMCpr->SetPoint(3,47,hvz2MCpr->GetBinContent(2)+hvz2MCpr->GetBinContent(3));
-  grMCpr->SetPoint(4,59,hvz2MCpr->GetBinContent(4)+hvz2MCpr->GetBinContent(5));
+  grMCpr->SetPoint(2,27,rebin_factor*hvz1MCpr->GetBinContent(5));
+  //CHARM2 configuration
+  grMCpr->SetPoint(3,38,rebin_factor*hvz2MCpr->GetBinContent(1));
+  grMCpr->SetPoint(4,47,hvz2MCpr->GetBinContent(2)+hvz2MCpr->GetBinContent(3));
+  grMCpr->SetPoint(5,59,hvz2MCpr->GetBinContent(4)+hvz2MCpr->GetBinContent(5));
+  //CHARM3 configuration
+  grMCpr->SetPoint(6,89,hvz3MCpr->GetBinContent(1));
+  grMCpr->SetPoint(7,101,hvz3MCpr->GetBinContent(2));
+  grMCpr->SetPoint(8,113,hvz3MCpr->GetBinContent(3));
+  grMCpr->SetPoint(9,125,hvz3MCpr->GetBinContent(4));
+  grMCpr->SetPoint(10,137,hvz3MCpr->GetBinContent(5));
+  //CHARM4 configuration
+  grMCpr->SetPoint(11,164,hvz4MCpr->GetBinContent(1));
+  grMCpr->SetPoint(12,176,hvz4MCpr->GetBinContent(2));
+  grMCpr->SetPoint(13,188,hvz4MCpr->GetBinContent(3));
+  grMCpr->SetPoint(14,200,hvz4MCpr->GetBinContent(4));
+  grMCpr->SetPoint(15,212,hvz4MCpr->GetBinContent(5));
+  //CHARM5 configuration  
+  grMCpr->SetPoint(16,239,hvz5MCpr->GetBinContent(1));
+  grMCpr->SetPoint(17,251,hvz5MCpr->GetBinContent(2));
+  grMCpr->SetPoint(18,263,hvz5MCpr->GetBinContent(3));
+  grMCpr->SetPoint(19,275,hvz5MCpr->GetBinContent(4));
+  grMCpr->SetPoint(20,287,hvz5MCpr->GetBinContent(5));
+  //CHARM6 configuration  
+  grMCpr->SetPoint(21,314,hvz6MCpr->GetBinContent(1));
+  grMCpr->SetPoint(22,326,hvz6MCpr->GetBinContent(2));
+  grMCpr->SetPoint(23,338,hvz6MCpr->GetBinContent(3));
+  grMCpr->SetPoint(24,350,hvz6MCpr->GetBinContent(4));
+  grMCpr->SetPoint(25,362,hvz6MCpr->GetBinContent(5));
 
-  grMCpr->SetPoint(5,89,hvz3MCpr->GetBinContent(1));
-  grMCpr->SetPoint(6,101,hvz3MCpr->GetBinContent(2));
-  grMCpr->SetPoint(7,113,hvz3MCpr->GetBinContent(3));
-  grMCpr->SetPoint(8,125,hvz3MCpr->GetBinContent(4));
-  grMCpr->SetPoint(9,137,hvz3MCpr->GetBinContent(5));
 
-
-  grMCpr->SetPoint(10,164,hvz4MCpr->GetBinContent(1));
-  grMCpr->SetPoint(11,176,hvz4MCpr->GetBinContent(2));
-  grMCpr->SetPoint(12,188,hvz4MCpr->GetBinContent(3));
-  grMCpr->SetPoint(13,200,hvz4MCpr->GetBinContent(4));
-  grMCpr->SetPoint(14,212,hvz4MCpr->GetBinContent(5));
-  
-  grMCpr->SetPoint(15,239,hvz5MCpr->GetBinContent(1));
-  grMCpr->SetPoint(16,251,hvz5MCpr->GetBinContent(2));
-  grMCpr->SetPoint(17,263,hvz5MCpr->GetBinContent(3));
-  grMCpr->SetPoint(18,275,hvz5MCpr->GetBinContent(4));
-  grMCpr->SetPoint(19,287,hvz5MCpr->GetBinContent(5));
-  
-  grMCpr->SetPoint(20,314,hvz6MCpr->GetBinContent(1));
-  grMCpr->SetPoint(21,326,hvz6MCpr->GetBinContent(2));
-  grMCpr->SetPoint(22,338,hvz6MCpr->GetBinContent(3));
-  grMCpr->SetPoint(23,350,hvz6MCpr->GetBinContent(4));
-  grMCpr->SetPoint(24,362,hvz6MCpr->GetBinContent(5));
-
-
-  
-  
+  //MC hadron interaction vertices
   TGraphErrors *grMChd = new TGraphErrors();
-
+  //CHARM1 configuration
   grMChd->SetPoint(0,6,hvz1MChd->GetBinContent(1)+hvz1MChd->GetBinContent(2));
   grMChd->SetPoint(1,18,hvz1MChd->GetBinContent(3)+hvz1MChd->GetBinContent(4));
-  grMChd->SetPoint(2,32.5,hvz1MChd->GetBinContent(5)+hvz2MChd->GetBinContent(1));
-  grMChd->SetPoint(3,47,hvz2MChd->GetBinContent(2)+hvz2MChd->GetBinContent(3));
-  grMChd->SetPoint(4,59,hvz2MChd->GetBinContent(4)+hvz2MChd->GetBinContent(5));
+  grMChd->SetPoint(2,27,rebin_factor*hvz1MChd->GetBinContent(5));
+  //CHARM2 configuration
+  grMChd->SetPoint(3,38,rebin_factor*hvz2MChd->GetBinContent(1));
+  grMChd->SetPoint(4,47,hvz2MChd->GetBinContent(2)+hvz2MChd->GetBinContent(3));
+  grMChd->SetPoint(5,59,hvz2MChd->GetBinContent(4)+hvz2MChd->GetBinContent(5));
+  //CHARM3 configuration
+  grMChd->SetPoint(6,89,hvz3MChd->GetBinContent(1));
+  grMChd->SetPoint(7,101,hvz3MChd->GetBinContent(2));
+  grMChd->SetPoint(8,113,hvz3MChd->GetBinContent(3));
+  grMChd->SetPoint(9,125,hvz3MChd->GetBinContent(4));
+  grMChd->SetPoint(10,137,hvz3MChd->GetBinContent(5));
+  //CHARM4 configuration
+  grMChd->SetPoint(11,164,hvz4MChd->GetBinContent(1));
+  grMChd->SetPoint(12,176,hvz4MChd->GetBinContent(2));
+  grMChd->SetPoint(13,188,hvz4MChd->GetBinContent(3));
+  grMChd->SetPoint(14,200,hvz4MChd->GetBinContent(4));
+  grMChd->SetPoint(15,212,hvz4MChd->GetBinContent(5));
+  //CHARM5 configuration  
+  grMChd->SetPoint(16,239,hvz5MChd->GetBinContent(1));
+  grMChd->SetPoint(17,251,hvz5MChd->GetBinContent(2));
+  grMChd->SetPoint(18,263,hvz5MChd->GetBinContent(3));
+  grMChd->SetPoint(19,275,hvz5MChd->GetBinContent(4));
+  grMChd->SetPoint(20,287,hvz5MChd->GetBinContent(5));
+  //CHARM6 configuration  
+  grMChd->SetPoint(21,314,hvz6MChd->GetBinContent(1));
+  grMChd->SetPoint(22,326,hvz6MChd->GetBinContent(2));
+  grMChd->SetPoint(23,338,hvz6MChd->GetBinContent(3));
+  grMChd->SetPoint(24,350,hvz6MChd->GetBinContent(4));
+  grMChd->SetPoint(25,362,hvz6MChd->GetBinContent(5));
 
-  grMChd->SetPoint(5,89,hvz3MChd->GetBinContent(1));
-  grMChd->SetPoint(6,101,hvz3MChd->GetBinContent(2));
-  grMChd->SetPoint(7,113,hvz3MChd->GetBinContent(3));
-  grMChd->SetPoint(8,125,hvz3MChd->GetBinContent(4));
-  grMChd->SetPoint(9,137,hvz3MChd->GetBinContent(5));
-
-
-  grMChd->SetPoint(10,164,hvz4MChd->GetBinContent(1));
-  grMChd->SetPoint(11,176,hvz4MChd->GetBinContent(2));
-  grMChd->SetPoint(12,188,hvz4MChd->GetBinContent(3));
-  grMChd->SetPoint(13,200,hvz4MChd->GetBinContent(4));
-  grMChd->SetPoint(14,212,hvz4MChd->GetBinContent(5));
-  
-  grMChd->SetPoint(15,239,hvz5MChd->GetBinContent(1));
-  grMChd->SetPoint(16,251,hvz5MChd->GetBinContent(2));
-  grMChd->SetPoint(17,263,hvz5MChd->GetBinContent(3));
-  grMChd->SetPoint(18,275,hvz5MChd->GetBinContent(4));
-  grMChd->SetPoint(19,287,hvz5MChd->GetBinContent(5));
-  
-  grMChd->SetPoint(20,314,hvz6MChd->GetBinContent(1));
-  grMChd->SetPoint(21,326,hvz6MChd->GetBinContent(2));
-  grMChd->SetPoint(22,338,hvz6MChd->GetBinContent(3));
-  grMChd->SetPoint(23,350,hvz6MChd->GetBinContent(4));
-  grMChd->SetPoint(24,362,hvz6MChd->GetBinContent(5));
-
-
+  //MC total distribution
   TGraphErrors *grMC = new TGraphErrors();
-
+  //CHARM1 configuration
   grMC->SetPoint(0,6,hvz1MCfull->GetBinContent(1)+hvz1MCfull->GetBinContent(2));
   grMC->SetPoint(1,18,hvz1MCfull->GetBinContent(3)+hvz1MCfull->GetBinContent(4));
-  grMC->SetPoint(2,32.5,hvz1MCfull->GetBinContent(5)+hvz2MCfull->GetBinContent(1));
-  grMC->SetPoint(3,47,hvz2MCfull->GetBinContent(2)+hvz2MCfull->GetBinContent(3));
-  grMC->SetPoint(4,59,hvz2MCfull->GetBinContent(4)+hvz2MCfull->GetBinContent(5));
+  grMC->SetPoint(2,27,rebin_factor*hvz1MCfull->GetBinContent(5));
+  //CHARM2 configuration
+  grMC->SetPoint(3,38,rebin_factor*hvz2MCfull->GetBinContent(1));
+  grMC->SetPoint(4,47,hvz2MCfull->GetBinContent(2)+hvz2MCfull->GetBinContent(3));
+  grMC->SetPoint(5,59,hvz2MCfull->GetBinContent(4)+hvz2MCfull->GetBinContent(5));
+  //CHARM3 configuration
+  grMC->SetPoint(6,89,hvz3MCfull->GetBinContent(1));
+  grMC->SetPoint(7,101,hvz3MCfull->GetBinContent(2));
+  grMC->SetPoint(8,113,hvz3MCfull->GetBinContent(3));
+  grMC->SetPoint(9,125,hvz3MCfull->GetBinContent(4));
+  grMC->SetPoint(10,137,hvz3MCfull->GetBinContent(5));
+  //CHARM4 configuration
+  grMC->SetPoint(11,164,hvz4MCfull->GetBinContent(1));
+  grMC->SetPoint(12,176,hvz4MCfull->GetBinContent(2));
+  grMC->SetPoint(13,188,hvz4MCfull->GetBinContent(3));
+  grMC->SetPoint(14,200,hvz4MCfull->GetBinContent(4));
+  grMC->SetPoint(15,212,hvz4MCfull->GetBinContent(5));
+  //CHARM5 configuration
+  grMC->SetPoint(16,239,hvz5MCfull->GetBinContent(1));
+  grMC->SetPoint(17,251,hvz5MCfull->GetBinContent(2));
+  grMC->SetPoint(18,263,hvz5MCfull->GetBinContent(3));
+  grMC->SetPoint(19,275,hvz5MCfull->GetBinContent(4));
+  grMC->SetPoint(20,287,hvz5MCfull->GetBinContent(5));
+  //CHARM6 configuration  
+  grMC->SetPoint(21,314,hvz6MCfull->GetBinContent(1));
+  grMC->SetPoint(22,326,hvz6MCfull->GetBinContent(2));
+  grMC->SetPoint(23,338,hvz6MCfull->GetBinContent(3));
+  grMC->SetPoint(24,350,hvz6MCfull->GetBinContent(4));
+  grMC->SetPoint(25,362,hvz6MCfull->GetBinContent(5));
 
-  grMC->SetPoint(5,89,hvz3MCfull->GetBinContent(1));
-  grMC->SetPoint(6,101,hvz3MCfull->GetBinContent(2));
-  grMC->SetPoint(7,113,hvz3MCfull->GetBinContent(3));
-  grMC->SetPoint(8,125,hvz3MCfull->GetBinContent(4));
-  grMC->SetPoint(9,137,hvz3MCfull->GetBinContent(5));
-
-
-  grMC->SetPoint(10,164,hvz4MCfull->GetBinContent(1));
-  grMC->SetPoint(11,176,hvz4MCfull->GetBinContent(2));
-  grMC->SetPoint(12,188,hvz4MCfull->GetBinContent(3));
-  grMC->SetPoint(13,200,hvz4MCfull->GetBinContent(4));
-  grMC->SetPoint(14,212,hvz4MCfull->GetBinContent(5));
-  
-  grMC->SetPoint(15,239,hvz5MCfull->GetBinContent(1));
-  grMC->SetPoint(16,251,hvz5MCfull->GetBinContent(2));
-  grMC->SetPoint(17,263,hvz5MCfull->GetBinContent(3));
-  grMC->SetPoint(18,275,hvz5MCfull->GetBinContent(4));
-  grMC->SetPoint(19,287,hvz5MCfull->GetBinContent(5));
-  
-  grMC->SetPoint(20,314,hvz6MCfull->GetBinContent(1));
-  grMC->SetPoint(21,326,hvz6MCfull->GetBinContent(2));
-  grMC->SetPoint(22,338,hvz6MCfull->GetBinContent(3));
-  grMC->SetPoint(23,350,hvz6MCfull->GetBinContent(4));
-  grMC->SetPoint(24,362,hvz6MCfull->GetBinContent(5));
-
-
+  //Data interaction vertices
   TGraphErrors *grwb = new TGraphErrors();
-
+  //CHARM1 configuration
   grwb->SetPoint(0,6,hvz1wb->GetBinContent(1)+hvz1wb->GetBinContent(2));
   grwb->SetPoint(1,18,hvz1wb->GetBinContent(3)+hvz1wb->GetBinContent(4));
-  grwb->SetPoint(2,32.5,hvz1wb->GetBinContent(5)+hvz2wb->GetBinContent(1));
-  grwb->SetPoint(3,47,hvz2wb->GetBinContent(2)+hvz2wb->GetBinContent(3));
-  grwb->SetPoint(4,59,hvz2wb->GetBinContent(4)+hvz2wb->GetBinContent(5));
-
-  grwb->SetPoint(5,89,hvz3wb->GetBinContent(1));
-  grwb->SetPoint(6,101,hvz3wb->GetBinContent(2));
-  grwb->SetPoint(7,113,hvz3wb->GetBinContent(3));
-  grwb->SetPoint(8,125,hvz3wb->GetBinContent(4));
-  grwb->SetPoint(9,137,hvz3wb->GetBinContent(5));
-
-
-  grwb->SetPoint(10,164,hvz4wb->GetBinContent(1));
-  grwb->SetPoint(11,176,hvz4wb->GetBinContent(2));
-  grwb->SetPoint(12,188,hvz4wb->GetBinContent(3));
-  grwb->SetPoint(13,200,hvz4wb->GetBinContent(4));
-  grwb->SetPoint(14,212,hvz4wb->GetBinContent(5));
-  
-  grwb->SetPoint(15,239,hvz5wb->GetBinContent(1));
-  grwb->SetPoint(16,251,hvz5wb->GetBinContent(2));
-  grwb->SetPoint(17,263,hvz5wb->GetBinContent(3));
-  grwb->SetPoint(18,275,hvz5wb->GetBinContent(4));
-  grwb->SetPoint(19,287,hvz5wb->GetBinContent(5));
-  
-  grwb->SetPoint(20,314,hvz6wb->GetBinContent(1));
-  grwb->SetPoint(21,326,hvz6wb->GetBinContent(2));
-  grwb->SetPoint(22,338,hvz6wb->GetBinContent(3));
-  grwb->SetPoint(23,350,hvz6wb->GetBinContent(4));
-  grwb->SetPoint(24,362,hvz6wb->GetBinContent(5));
+  grwb->SetPoint(2,27,rebin_factor*hvz1wb->GetBinContent(5));
+  //CHARM2 configuration
+  grwb->SetPoint(3,38,rebin_factor*hvz2wb->GetBinContent(1));
+  grwb->SetPoint(4,47,hvz2wb->GetBinContent(2)+hvz2wb->GetBinContent(3));
+  grwb->SetPoint(5,59,hvz2wb->GetBinContent(4)+hvz2wb->GetBinContent(5));
+  //CHARM3 configuration
+  grwb->SetPoint(6,89,hvz3wb->GetBinContent(1));
+  grwb->SetPoint(7,101,hvz3wb->GetBinContent(2));
+  grwb->SetPoint(8,113,hvz3wb->GetBinContent(3));
+  grwb->SetPoint(9,125,hvz3wb->GetBinContent(4));
+  grwb->SetPoint(10,137,hvz3wb->GetBinContent(5));
+  //CHARM4 configuration
+  grwb->SetPoint(11,164,hvz4wb->GetBinContent(1));
+  grwb->SetPoint(12,176,hvz4wb->GetBinContent(2));
+  grwb->SetPoint(13,188,hvz4wb->GetBinContent(3));
+  grwb->SetPoint(14,200,hvz4wb->GetBinContent(4));
+  grwb->SetPoint(15,212,hvz4wb->GetBinContent(5));
+  //CHARM5 configuration 
+  grwb->SetPoint(16,239,hvz5wb->GetBinContent(1));
+  grwb->SetPoint(17,251,hvz5wb->GetBinContent(2));
+  grwb->SetPoint(18,263,hvz5wb->GetBinContent(3));
+  grwb->SetPoint(19,275,hvz5wb->GetBinContent(4));
+  grwb->SetPoint(20,287,hvz5wb->GetBinContent(5));
+  //CHARM6 configuration
+  grwb->SetPoint(21,314,hvz6wb->GetBinContent(1));
+  grwb->SetPoint(22,326,hvz6wb->GetBinContent(2));
+  grwb->SetPoint(23,338,hvz6wb->GetBinContent(3));
+  grwb->SetPoint(24,350,hvz6wb->GetBinContent(4));
+  grwb->SetPoint(25,362,hvz6wb->GetBinContent(5));
 
 
   float xgraph[30] = {3,9,15,21,27,38,44,50,56,62,89,101,113,125,137,164,176,188,200,212,239,251,263,275,287,314,326,338,350,362};
@@ -413,31 +416,31 @@ void vz_plot_rebin6(){
 
   // ERRORS
   for(int i=0;i<30;i++){
-  //  if (i==2) continue;
-    if(i<10 && i%2==0)grMCpr->SetPointError(i/2,0,TMath::Sqrt(err_MC_pr[i]*err_MC_pr[i]+err_MC_pr[i+1]*err_MC_pr[i+1]));
-    if(i>=10)grMCpr->SetPointError(i-5,0,err_MC_pr[i]);
+    if(i==2 || i ==3) grMCpr->SetPointError(i-5,0,err_MC_pr[i]); //points 3 and 4 not merged
+    else if(i<10 && i%2==0)grMCpr->SetPointError(i/2,0,TMath::Sqrt(err_MC_pr[i]*err_MC_pr[i]+err_MC_pr[i+1]*err_MC_pr[i+1])); //points merged
+    else grMCpr->SetPointError(i-4,0,err_MC_pr[i]); //from CH3 to CH6
   } 
 
    // ERRORS
    for(int i=0;i<30;i++){
-   //  if (i==2) continue;
-     if(i<10 && i%2==0)grMChd->SetPointError(i/2,0,TMath::Sqrt(err_MC_hd[i]*err_MC_hd[i]+err_MC_hd[i+1]*err_MC_hd[i+1]));
-     if(i>=10)grMChd->SetPointError(i-5,0,err_MC_hd[i]);
+     if(i==2 || i ==3) grMChd->SetPointError(i-5,0,err_MC_hd[i]);//points 3 and 4 not merged
+     else if(i<10 && i%2==0)grMChd->SetPointError(i/2,0,TMath::Sqrt(err_MC_hd[i]*err_MC_hd[i]+err_MC_hd[i+1]*err_MC_hd[i+1]));//points merged
+     else grMChd->SetPointError(i-4,0,err_MC_hd[i]); //from CH3 to CH6
   } // ERRORS
 
    for(int i=0;i<30;i++){
-    // if (i==2) continue;
-     if(i<10 && i%2==0)grMC->SetPointError(i/2,0,TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1]));
-     if(i>=10)grMC->SetPointError(i-5,0,err_MC[i]);
+     if(i==2 || i ==3) grMC->SetPointError(i-5,0,err_MC[i]);//points 3 and 4 not merged
+     else if(i<10 && i%2==0)grMC->SetPointError(i/2,0,TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1]));//points merged
+     else grMC->SetPointError(i-4,0,err_MC[i]); //from CH3 to CH6
    }
  
   
   // ERRORS
   
   for(int i=0;i<30;i++){
-   // if (i==2) continue;
-    if(i<10 && i%2==0)grwb->SetPointError(i/2,0,TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]));
-    if(i>=10)grwb->SetPointError(i-5,0,err_DT[i]);
+    if(i==2 || i ==3) grwb->SetPointError(i-5,0,err_DT[i]);//points 3 and 4 not merged
+    else if(i<10 && i%2==0)grwb->SetPointError(i/2,0,TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]));//points merged
+    else grwb->SetPointError(i-5,0,err_DT[i]); //from CH3 to CH6
   }
 
   
