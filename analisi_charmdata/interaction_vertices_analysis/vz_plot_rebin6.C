@@ -9,7 +9,8 @@ void vz_plot_rebin6(){
    //TString dir = gSystem->UnixPathName(gInterpreter->GetCurrentMacroName());
    //dir.ReplaceAll("vz_plot_rebin6.C","");
    //dir.ReplaceAll("/./","/");
-   TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/");
+   //TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/");
+   TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/cutvalues/0_05/");
    ifstream in;
    in.open(Form("%serrors.dat",dir.Data()));
 
