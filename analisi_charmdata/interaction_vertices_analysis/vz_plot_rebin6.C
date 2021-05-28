@@ -9,8 +9,8 @@ void vz_plot_rebin6(){
    //TString dir = gSystem->UnixPathName(gInterpreter->GetCurrentMacroName());
    //dir.ReplaceAll("vz_plot_rebin6.C","");
    //dir.ReplaceAll("/./","/");
-   //TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/");
-   TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/cutvalues/0_05/");
+   TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/");
+   //TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/cutvalues/0_05/");
    ifstream in;
    in.open(Form("%serrors.dat",dir.Data()));
 
@@ -338,16 +338,16 @@ void vz_plot_rebin6(){
   float yMC[30]= {};
   float yDT[30]= {};
   
-  yMC[0] = rebin_factor*hvz1MCfull->GetBinContent(1);
-  yMC[1] = rebin_factor*hvz1MCfull->GetBinContent(2);
-  yMC[2] = rebin_factor*hvz1MCfull->GetBinContent(3);
-  yMC[3] = rebin_factor*hvz1MCfull->GetBinContent(4);
+  yMC[0] = hvz1MCfull->GetBinContent(1);
+  yMC[1] = hvz1MCfull->GetBinContent(2);
+  yMC[2] = hvz1MCfull->GetBinContent(3);
+  yMC[3] = hvz1MCfull->GetBinContent(4);
   yMC[4] = rebin_factor*hvz1MCfull->GetBinContent(5);
   yMC[5] = rebin_factor*hvz2MCfull->GetBinContent(1);
-  yMC[6] = rebin_factor*hvz2MCfull->GetBinContent(2);
-  yMC[7] = rebin_factor*hvz2MCfull->GetBinContent(3);
-  yMC[8] = rebin_factor*hvz2MCfull->GetBinContent(4);
-  yMC[9] = rebin_factor*hvz2MCfull->GetBinContent(5);
+  yMC[6] = hvz2MCfull->GetBinContent(2);
+  yMC[7] = hvz2MCfull->GetBinContent(3);
+  yMC[8] = hvz2MCfull->GetBinContent(4);
+  yMC[9] = hvz2MCfull->GetBinContent(5);
   yMC[10] = hvz3MCfull->GetBinContent(1);
   yMC[11] = hvz3MCfull->GetBinContent(2);
   yMC[12] = hvz3MCfull->GetBinContent(3);
@@ -369,16 +369,16 @@ void vz_plot_rebin6(){
   yMC[28] = hvz6MCfull->GetBinContent(4);
   yMC[29] = hvz6MCfull->GetBinContent(5);
 
-  yDT[0] = rebin_factor*hvz1wb->GetBinContent(1);
-  yDT[1] = rebin_factor*hvz1wb->GetBinContent(2);
-  yDT[2] = rebin_factor*hvz1wb->GetBinContent(3);
-  yDT[3] = rebin_factor*hvz1wb->GetBinContent(4);
+  yDT[0] = hvz1wb->GetBinContent(1);
+  yDT[1] = hvz1wb->GetBinContent(2);
+  yDT[2] = hvz1wb->GetBinContent(3);
+  yDT[3] = hvz1wb->GetBinContent(4);
   yDT[4] = rebin_factor*hvz1wb->GetBinContent(5);
   yDT[5] = rebin_factor*hvz2wb->GetBinContent(1);
-  yDT[6] = rebin_factor*hvz2wb->GetBinContent(2);
-  yDT[7] = rebin_factor*hvz2wb->GetBinContent(3);
-  yDT[8] = rebin_factor*hvz2wb->GetBinContent(4);
-  yDT[9] = rebin_factor*hvz2wb->GetBinContent(5);
+  yDT[6] = hvz2wb->GetBinContent(2);
+  yDT[7] = hvz2wb->GetBinContent(3);
+  yDT[8] = hvz2wb->GetBinContent(4);
+  yDT[9] = hvz2wb->GetBinContent(5);
   yDT[10] = hvz3wb->GetBinContent(1);
   yDT[11] = hvz3wb->GetBinContent(2);
   yDT[12] = hvz3wb->GetBinContent(3);
@@ -408,40 +408,60 @@ void vz_plot_rebin6(){
 
   for(int i=0;i<30;i++){
 
-    out << i << " " << xgraph[i] << " " << yMC[i] << " " << err_MC[i] << " " << yDT[i] << " " << 4*err_DT[i] << endl;
-
+    if(i==4 || i ==5)  out << i-2 << " " << xgraph[i] << " " << yMC[i] << " " << err_MC[i] << " " << yDT[i] << " " << 4*err_DT[i] << endl;
+    if(i<=2 && i%2==0) 
+     out << i/2 << " " << (xgraph[i] + xgraph[i+1])/2. << " " << yMC[i] + yMC[i+1] << " " << TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1])
+      << " " << yDT[i] + yDT[i+1]<< " " << TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]) << endl;
+    if(i>4 && i<10 && i%2==0) 
+     out << i/2+1 << " " << (xgraph[i] + xgraph[i+1])/2. << " " << yMC[i] + yMC[i+1] << " " << TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1])
+      << " " << yDT[i] + yDT[i+1]<< " " << TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]) << endl;
+    if(i>=10) out << i-4 << " " << xgraph[i] << " " << yMC[i] << " " << err_MC[i] << " " << yDT[i] << " " << 4*err_DT[i] << endl;
   }
 
   out.close();
   
 
-  // ERRORS
+  // ERRORS CHECK POSITIONS PRINTOUT
   for(int i=0;i<30;i++){
-    if(i==2 || i ==3) grMCpr->SetPointError(i-5,0,err_MC_pr[i]); //points 3 and 4 not merged
-    else if(i<10 && i%2==0)grMCpr->SetPointError(i/2,0,TMath::Sqrt(err_MC_pr[i]*err_MC_pr[i]+err_MC_pr[i+1]*err_MC_pr[i+1])); //points merged
-    else grMCpr->SetPointError(i-4,0,err_MC_pr[i]); //from CH3 to CH6
+    
+    if(i==4 || i ==5) cout<<i<<", POINT NOT MERGED:set error at "<<i-2<<endl; 
+    if(i<=2 && i%2==0)  cout<<i<<", POINT MERGED WITH AFTER: set error at "<<i/2<<endl;
+    if(i>4 && i<10 && i%2==0)  cout<<i<<", POINT MERGED WITH AFTER: set error at "<<i/2+1<<endl;
+    //else if(i<10 && i%2==1)  cout<<"POINT MERGED WITH BEFORE "<<i<<" set error at "<<i/2+1<<endl;
+    if(i>=10)cout<<i<<", POINT NOT MERGED:set error at "<<i-4<<endl;
+  } 
+  // ERRORS MC PROTONS
+  for(int i=0;i<30;i++){
+    if(i==4 || i ==5) grMCpr->SetPointError(i-2,0,rebin_factor *err_MC_pr[i]); //points 3 and 4 not merged
+    if(i<=2 && i%2==0)grMCpr->SetPointError(i/2,0,TMath::Sqrt(err_MC_pr[i]*err_MC_pr[i]+err_MC_pr[i+1]*err_MC_pr[i+1])); //points merged
+    if(i>4 && i<10 && i%2==0)grMCpr->SetPointError(i/2+1,0,TMath::Sqrt(err_MC_pr[i]*err_MC_pr[i]+err_MC_pr[i+1]*err_MC_pr[i+1])); //points merged        
+    if(i>=10) grMCpr->SetPointError(i-4,0,err_MC_pr[i]); //from CH3 to CH6
   } 
 
-   // ERRORS
+   // ERRORS MC HADRONS
    for(int i=0;i<30;i++){
-     if(i==2 || i ==3) grMChd->SetPointError(i-5,0,err_MC_hd[i]);//points 3 and 4 not merged
-     else if(i<10 && i%2==0)grMChd->SetPointError(i/2,0,TMath::Sqrt(err_MC_hd[i]*err_MC_hd[i]+err_MC_hd[i+1]*err_MC_hd[i+1]));//points merged
-     else grMChd->SetPointError(i-4,0,err_MC_hd[i]); //from CH3 to CH6
-  } // ERRORS
+     if(i==4 || i ==5) grMChd->SetPointError(i-2,0,rebin_factor *err_MC_hd[i]);//points 3 and 4 not merged
+     if(i<=2 && i%2==0) grMChd->SetPointError(i/2,0,TMath::Sqrt(err_MC_hd[i]*err_MC_hd[i]+err_MC_hd[i+1]*err_MC_hd[i+1]));//points merged
+     if(i>4 && i<10 && i%2==0) grMChd->SetPointError(i/2+1,0,TMath::Sqrt(err_MC_hd[i]*err_MC_hd[i]+err_MC_hd[i+1]*err_MC_hd[i+1]));//points merged
+     if(i>=10) grMChd->SetPointError(i-4,0,err_MC_hd[i]); //from CH3 to CH6
+  } 
+  // ERRORS MCTOT
 
    for(int i=0;i<30;i++){
-     if(i==2 || i ==3) grMC->SetPointError(i-5,0,err_MC[i]);//points 3 and 4 not merged
-     else if(i<10 && i%2==0)grMC->SetPointError(i/2,0,TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1]));//points merged
-     else grMC->SetPointError(i-4,0,err_MC[i]); //from CH3 to CH6
+     if(i==4 || i ==5) grMC->SetPointError(i-2,0,rebin_factor *err_MC[i]);//points 3 and 4 not merged
+     if(i<=2 && i%2==0) grMC->SetPointError(i/2,0,TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1]));//points merged  
+     if(i>4 && i<10 && i%2==0) grMC->SetPointError(i/2+1,0,TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1]));//points merged     
+     if(i>=10) grMC->SetPointError(i-4,0,err_MC[i]); //from CH3 to CH6
    }
  
   
-  // ERRORS
+  // ERRORS DATA
   
   for(int i=0;i<30;i++){
-    if(i==2 || i ==3) grwb->SetPointError(i-5,0,err_DT[i]);//points 3 and 4 not merged
-    else if(i<10 && i%2==0)grwb->SetPointError(i/2,0,TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]));//points merged
-    else grwb->SetPointError(i-5,0,err_DT[i]); //from CH3 to CH6
+    if(i==4 || i ==5) grwb->SetPointError(i-2,0,rebin_factor *err_DT[i]);//points 3 and 4 not merged
+    if(i<=2 && i%2==0) grwb->SetPointError(i/2,0,TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]));//points merged
+    if(i>4 && i<10 && i%2==0) grwb->SetPointError(i/2+1,0,TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]));//points merged
+    if(i>=10) grwb->SetPointError(i-4,0,err_DT[i]); //from CH3 to CH6
   }
 
   
