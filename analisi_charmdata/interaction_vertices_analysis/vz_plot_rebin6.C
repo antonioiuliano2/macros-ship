@@ -9,8 +9,8 @@ void vz_plot_rebin6(){
    //TString dir = gSystem->UnixPathName(gInterpreter->GetCurrentMacroName());
    //dir.ReplaceAll("vz_plot_rebin6.C","");
    //dir.ReplaceAll("/./","/");
-   //TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/");
-   TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/cutvalues/0_05/");
+   TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/");
+   //TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/cutvalues/0_05/");
    ifstream in;
    in.open(Form("%serrors.dat",dir.Data()));
 
@@ -336,7 +336,72 @@ void vz_plot_rebin6(){
   float xgraph[30] = {3,9,15,21,27,38,44,50,56,62,89,101,113,125,137,164,176,188,200,212,239,251,263,275,287,314,326,338,350,362};
 
   float yMC[30]= {};
+  float yMCpr[30]= {};
+  float yMChd[30]= {};
   float yDT[30]= {};
+  //array of points for protons
+  yMCpr[0] = hvz1MCpr->GetBinContent(1);
+  yMCpr[1] = hvz1MCpr->GetBinContent(2);
+  yMCpr[2] = hvz1MCpr->GetBinContent(3);
+  yMCpr[3] = hvz1MCpr->GetBinContent(4);
+  yMCpr[4] = rebin_factor*hvz1MCpr->GetBinContent(5);
+  yMCpr[5] = rebin_factor*hvz2MCpr->GetBinContent(1);
+  yMCpr[6] = hvz2MCpr->GetBinContent(2);
+  yMCpr[7] = hvz2MCpr->GetBinContent(3);
+  yMCpr[8] = hvz2MCpr->GetBinContent(4);
+  yMCpr[9] = hvz2MCpr->GetBinContent(5);
+  yMCpr[10] = hvz3MCpr->GetBinContent(1);
+  yMCpr[11] = hvz3MCpr->GetBinContent(2);
+  yMCpr[12] = hvz3MCpr->GetBinContent(3);
+  yMCpr[13] = hvz3MCpr->GetBinContent(4);
+  yMCpr[14] = hvz3MCpr->GetBinContent(5);
+  yMCpr[15] = hvz4MCpr->GetBinContent(1);
+  yMCpr[16] = hvz4MCpr->GetBinContent(2);
+  yMCpr[17] = hvz4MCpr->GetBinContent(3);
+  yMCpr[18] = hvz4MCpr->GetBinContent(4);
+  yMCpr[19] = hvz4MCpr->GetBinContent(5);
+  yMCpr[20] = hvz5MCpr->GetBinContent(1);
+  yMCpr[21] = hvz5MCpr->GetBinContent(2);
+  yMCpr[22] = hvz5MCpr->GetBinContent(3);
+  yMCpr[23] = hvz5MCpr->GetBinContent(4);
+  yMCpr[24] = hvz5MCpr->GetBinContent(5);
+  yMCpr[25] = hvz6MCpr->GetBinContent(1);
+  yMCpr[26] = hvz6MCpr->GetBinContent(2);
+  yMCpr[27] = hvz6MCpr->GetBinContent(3);
+  yMCpr[28] = hvz6MCpr->GetBinContent(4);
+  yMCpr[29] = hvz6MCpr->GetBinContent(5);
+
+  //array of points for hadrons
+  yMChd[0] = hvz1MChd->GetBinContent(1);
+  yMChd[1] = hvz1MChd->GetBinContent(2);
+  yMChd[2] = hvz1MChd->GetBinContent(3);
+  yMChd[3] = hvz1MChd->GetBinContent(4);
+  yMChd[4] = rebin_factor*hvz1MChd->GetBinContent(5);
+  yMChd[5] = rebin_factor*hvz2MChd->GetBinContent(1);
+  yMChd[6] = hvz2MChd->GetBinContent(2);
+  yMChd[7] = hvz2MChd->GetBinContent(3);
+  yMChd[8] = hvz2MChd->GetBinContent(4);
+  yMChd[9] = hvz2MChd->GetBinContent(5);
+  yMChd[10] = hvz3MChd->GetBinContent(1);
+  yMChd[11] = hvz3MChd->GetBinContent(2);
+  yMChd[12] = hvz3MChd->GetBinContent(3);
+  yMChd[13] = hvz3MChd->GetBinContent(4);
+  yMChd[14] = hvz3MChd->GetBinContent(5);
+  yMChd[15] = hvz4MChd->GetBinContent(1);
+  yMChd[16] = hvz4MChd->GetBinContent(2);
+  yMChd[17] = hvz4MChd->GetBinContent(3);
+  yMChd[18] = hvz4MChd->GetBinContent(4);
+  yMChd[19] = hvz4MChd->GetBinContent(5);
+  yMChd[20] = hvz5MChd->GetBinContent(1);
+  yMChd[21] = hvz5MChd->GetBinContent(2);
+  yMChd[22] = hvz5MChd->GetBinContent(3);
+  yMChd[23] = hvz5MChd->GetBinContent(4);
+  yMChd[24] = hvz5MChd->GetBinContent(5);
+  yMChd[25] = hvz6MChd->GetBinContent(1);
+  yMChd[26] = hvz6MChd->GetBinContent(2);
+  yMChd[27] = hvz6MChd->GetBinContent(3);
+  yMChd[28] = hvz6MChd->GetBinContent(4);
+  yMChd[29] = hvz6MChd->GetBinContent(5);
   
   yMC[0] = hvz1MCfull->GetBinContent(1);
   yMC[1] = hvz1MCfull->GetBinContent(2);
@@ -405,17 +470,29 @@ void vz_plot_rebin6(){
 
 
   ofstream out(Form("%serrors_filips.dat",dir.Data()));
+  out<<"ipoint vz yMCpr errMCpr yMChad errMChad yMCtot errMCtot yDATA errDATA"<<endl;
 
   for(int i=0;i<30;i++){
 
-    if(i==4 || i ==5)  out << i-2 << " " << xgraph[i] << " " << yMC[i] << " " << rebin_factor * err_MC[i] << " " << yDT[i] << " " << rebin_factor * err_DT[i] << endl;
+    if(i==4 || i ==5)  out << i-2 << " " << xgraph[i] << " " << yMCpr[i] << " " << rebin_factor * err_MC_pr[i]<< " " 
+     << yMChd[i] << " " << rebin_factor * err_MC_hd[i]<< " "<<
+     yMC[i] << " " << rebin_factor * err_MC[i] << " " << yDT[i] << " " << rebin_factor * err_DT[i] << endl;
     if(i<=2 && i%2==0) 
-     out << i/2 << " " << (xgraph[i] + xgraph[i+1])/2. << " " << yMC[i] + yMC[i+1] << " " << TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1])
+     out << i/2 << " " << (xgraph[i] + xgraph[i+1])/2.
+      << " " << yMCpr[i] + yMCpr[i+1] << " " << TMath::Sqrt(err_MC_pr[i]*err_MC_pr[i]+err_MC_pr[i+1]*err_MC_pr[i+1])
+      << " " << yMChd[i] + yMChd[i+1] << " " << TMath::Sqrt(err_MC_hd[i]*err_MC_hd[i]+err_MC_hd[i+1]*err_MC_hd[i+1]) 
+      << " " << yMC[i] + yMC[i+1] << " " << TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1])
       << " " << yDT[i] + yDT[i+1]<< " " << TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]) << endl;
     if(i>4 && i<10 && i%2==0) 
-     out << i/2+1 << " " << (xgraph[i] + xgraph[i+1])/2. << " " << yMC[i] + yMC[i+1] << " " << TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1])
+     out << i/2+1 << " " << (xgraph[i] + xgraph[i+1])/2. 
+      << " " << yMCpr[i] + yMCpr[i+1] << " " << TMath::Sqrt(err_MC_pr[i]*err_MC_pr[i]+err_MC_pr[i+1]*err_MC_pr[i+1])
+      << " " << yMChd[i] + yMChd[i+1] << " " << TMath::Sqrt(err_MC_hd[i]*err_MC_hd[i]+err_MC_hd[i+1]*err_MC_hd[i+1])
+      << " " << yMC[i] + yMC[i+1] << " " << TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1])
       << " " << yDT[i] + yDT[i+1]<< " " << TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]) << endl;
-    if(i>=10) out << i-4 << " " << xgraph[i] << " " << yMC[i] << " " << err_MC[i] << " " << yDT[i] << " " << err_DT[i] << endl;
+    if(i>=10) out << i-4 << " " << xgraph[i] 
+    << " " << yMCpr[i] << " " << err_MC_pr[i]
+    << " " << yMChd[i] << " " << err_MC_hd[i]
+    << " " << yMC[i] << " " << err_MC[i] << " " << yDT[i] << " " << err_DT[i] << endl; 
   }
 
   out.close();
@@ -512,12 +589,24 @@ void vz_plot_rebin6(){
   fit->SetParameter(0, proton_fit->GetParameter(0));
   fit->SetParameter(1, proton_fit->GetParameter(1));
   //setto adronico in intervallo
-  fit->SetParLimits(2, 780,790);
-  fit->SetParLimits(3, -0.4,-0.2);
-  fit->SetParLimits(4, 0.04,0.06);
-  fit->SetParLimits(5, -0.0002,-0.0001);
-/*
-  fit->SetParameter(2, hd_fit->GetParameter(0));
+/*  //initial mid values
+  float midp0 = hd_fit->GetParameter(0);
+  float midp1 = hd_fit->GetParameter(1);
+  float midp2 = hd_fit->GetParameter(2);
+  float midp3 = hd_fit->GetParameter(3);
+  float relsigma = 1.2; //relative uncertanity
+
+  fit->SetParLimits(2, midp0*(1-relsigma),midp0*(1+relsigma));
+  fit->SetParLimits(3, midp1*(1-relsigma),midp1*(1+relsigma));
+  fit->SetParLimits(4, midp2*(1-relsigma),midp2*(1+relsigma));
+  fit->SetParLimits(5, midp3*(1-relsigma),midp3*(1+relsigma));*/
+  //test with Valerio
+  fit->SetParLimits(2,780,790);
+  fit->SetParLimits(3,-0.4,-0.2);
+  fit->SetParLimits(4,0.04,0.06);
+  fit->SetParLimits(5,-0.0002,-0.0001);
+
+/*  fit->SetParameter(2, hd_fit->GetParameter(0));
   //fit->SetParameter(2,155);
   fit->SetParameter(3,hd_fit->GetParameter(1));
   fit->SetParameter(4,hd_fit->GetParameter(2));
