@@ -9,8 +9,8 @@ void vz_plot_rebin6(){
    //TString dir = gSystem->UnixPathName(gInterpreter->GetCurrentMacroName());
    //dir.ReplaceAll("vz_plot_rebin6.C","");
    //dir.ReplaceAll("/./","/");
-   TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/");
-   //TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/cutvalues/0_05/");
+   //TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/");
+   TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/cutvalues/0_05/");
    ifstream in;
    in.open(Form("%serrors.dat",dir.Data()));
 
@@ -408,14 +408,14 @@ void vz_plot_rebin6(){
 
   for(int i=0;i<30;i++){
 
-    if(i==4 || i ==5)  out << i-2 << " " << xgraph[i] << " " << yMC[i] << " " << err_MC[i] << " " << yDT[i] << " " << 4*err_DT[i] << endl;
+    if(i==4 || i ==5)  out << i-2 << " " << xgraph[i] << " " << yMC[i] << " " << rebin_factor * err_MC[i] << " " << yDT[i] << " " << rebin_factor * err_DT[i] << endl;
     if(i<=2 && i%2==0) 
      out << i/2 << " " << (xgraph[i] + xgraph[i+1])/2. << " " << yMC[i] + yMC[i+1] << " " << TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1])
       << " " << yDT[i] + yDT[i+1]<< " " << TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]) << endl;
     if(i>4 && i<10 && i%2==0) 
      out << i/2+1 << " " << (xgraph[i] + xgraph[i+1])/2. << " " << yMC[i] + yMC[i+1] << " " << TMath::Sqrt(err_MC[i]*err_MC[i]+err_MC[i+1]*err_MC[i+1])
       << " " << yDT[i] + yDT[i+1]<< " " << TMath::Sqrt(err_DT[i]*err_DT[i]+err_DT[i+1]*err_DT[i+1]) << endl;
-    if(i>=10) out << i-4 << " " << xgraph[i] << " " << yMC[i] << " " << err_MC[i] << " " << yDT[i] << " " << 4*err_DT[i] << endl;
+    if(i>=10) out << i-4 << " " << xgraph[i] << " " << yMC[i] << " " << err_MC[i] << " " << yDT[i] << " " << err_DT[i] << endl;
   }
 
   out.close();
@@ -478,11 +478,11 @@ void vz_plot_rebin6(){
   grMCpr->Fit(proton_fit,"R");
   grMCpr->SetTitle("MC protons");
 
-/* TF1 *hd_fit = new TF1("hd_fit","[0]*TMath::Log([1]*x)",0,365);
+ /*TF1 *hd_fit = new TF1("hd_fit","[0]*TMath::Log([1]*x)",0,365);
   hd_fit->SetParameter(0, 180);
   hd_fit->SetParameter(1, 0.79);
- // hd_fit->SetParameter(2, -170);*/
-
+ // hd_fit->SetParameter(2, -170);
+*/
   TF1 *hd_fit = new TF1("hd_fit","pol3",0,365);
   hd_fit->SetParameter(0, 155);
   hd_fit->SetParameter(1, 23);
@@ -498,23 +498,31 @@ void vz_plot_rebin6(){
   grMChd->SetTitle("MC hadrons");
 
 /*  TF1 *fit = new TF1("fit","expo(0) + [2]*TMath::Log([3]*x)",0,365);
-  fit->SetParameter(0, grMCpr->GetFunction("expo")->GetParameter(0));
-  fit->SetParameter(1, grMCpr->GetFunction("expo")->GetParameter(1));;
-  fit->FixParameter(2, hd_fit->GetParameter(0));
-  fit->FixParameter(3, hd_fit->GetParameter(1));
-*/
+  fit->SetParameter(0, proton_fit->GetParameter(0));
+  fit->SetParameter(1, proton_fit->GetParameter(1));
+  fit->SetParLimits(2, 96, 100);
+  fit->SetParLimits(3, 3,5);*/
+  //fit->SetParameter(2, hd_fit->GetParameter(0));
+  //fit->SetParameter(3, hd_fit->GetParameter(1));
+
   //fit->SetParLimits(3, -1.62,-1.22);
   //fit->FixParameter(4, -170);
 
   TF1 *fit = new TF1("fit","expo(0) + pol3(2)",0,365);
   fit->SetParameter(0, proton_fit->GetParameter(0));
-  fit->SetParameter(1, proton_fit->GetParameter(1));;
-  fit->FixParameter(2, hd_fit->GetParameter(0));
+  fit->SetParameter(1, proton_fit->GetParameter(1));
+  //setto adronico in intervallo
+  fit->SetParLimits(2, 780,790);
+  fit->SetParLimits(3, -0.4,-0.2);
+  fit->SetParLimits(4, 0.04,0.06);
+  fit->SetParLimits(5, -0.0002,-0.0001);
+/*
+  fit->SetParameter(2, hd_fit->GetParameter(0));
   //fit->SetParameter(2,155);
-  fit->FixParameter(3,hd_fit->GetParameter(1));
-  fit->FixParameter(4,hd_fit->GetParameter(2));
-  fit->FixParameter(5,hd_fit->GetParameter(3));
-
+  fit->SetParameter(3,hd_fit->GetParameter(1));
+  fit->SetParameter(4,hd_fit->GetParameter(2));
+  fit->SetParameter(5,hd_fit->GetParameter(3));
+*/
   fit->SetParName(0,"Constant");
   fit->SetParName(1,"Slope");
   fit->SetParName(2,"p0");
