@@ -10,7 +10,7 @@ void vz_plot_rebin6(){
    //dir.ReplaceAll("vz_plot_rebin6.C","");
    //dir.ReplaceAll("/./","/");
    TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/");
-   //TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/cutvalues/0_05/");
+   //TString dir = TString("/home/utente/cernbox/Synched/Charmdata/BDT_vertices_Valerio/afterBDT_plots/cutvalues/0_06/");
    ifstream in;
    in.open(Form("%serrors.dat",dir.Data()));
 
@@ -543,7 +543,7 @@ void vz_plot_rebin6(){
 
   
   
-  TF1 * proton_fit = new TF1("proton_fit","expo",0,365);
+  TF1 * proton_fit = new TF1("proton_fit","exp([0]+[1]*x)",0,365);
 
   gStyle->SetOptFit(1111);
   
@@ -585,9 +585,9 @@ void vz_plot_rebin6(){
   //fit->SetParLimits(3, -1.62,-1.22);
   //fit->FixParameter(4, -170);
 
-  TF1 *fit = new TF1("fit","expo(0) + pol3(2)",0,365);
+  TF1 *fit = new TF1("fit","exp([0]-x/[1]) + pol3(2)",0,365);
   fit->SetParameter(0, proton_fit->GetParameter(0));
-  fit->SetParameter(1, proton_fit->GetParameter(1));
+  fit->SetParameter(1, -1/proton_fit->GetParameter(1));
   //setto adronico in intervallo
 /*  //initial mid values
   float midp0 = hd_fit->GetParameter(0);
@@ -606,14 +606,18 @@ void vz_plot_rebin6(){
   fit->SetParLimits(4,0.04,0.06);
   fit->SetParLimits(5,-0.0002,-0.0001);
 
-/*  fit->SetParameter(2, hd_fit->GetParameter(0));
+  /*fit->SetParLimits(2, 950,1050);
+  fit->SetParLimits(3,-5,5);
+  fit->SetParLimits(4,0.02,0.04);
+  fit->SetParLimits(5,-0.0001,-0.00005);
+ *//* fit->SetParameter(2, hd_fit->GetParameter(0));
   //fit->SetParameter(2,155);
   fit->SetParameter(3,hd_fit->GetParameter(1));
   fit->SetParameter(4,hd_fit->GetParameter(2));
   fit->SetParameter(5,hd_fit->GetParameter(3));
 */
   fit->SetParName(0,"Constant");
-  fit->SetParName(1,"Slope");
+  fit->SetParName(1,"Lambda");
   fit->SetParName(2,"p0");
   fit->SetParName(3,"p1");
   fit->SetParName(4,"p2");
@@ -627,11 +631,16 @@ void vz_plot_rebin6(){
   grMC->Fit(fit,"R");
   grMC->SetTitle("Full MC");
 
-  float slope = fit->GetParameter(1);
-  float slopeerror = fit->GetParError(1);
+  //when it was still expo
+  //float slope = fit->GetParameter(1);
+//  float slopeerror = fit->GetParError(1);
 
-  float lambda = -1./slope;
-  float lambdaerror = 1./(slope*slope) * slopeerror;  //error propagation of (1/x)
+  //float lambda = -1./slope;
+  //float lambdaerror = 1./(slope*slope) * slopeerror;  //error propagation of (1/x)
+
+  //now we retrieve directly lambda
+  float lambda = fit->GetParameter(1);
+  float lambdaerror = fit->GetParError(1);
 
   cout<<"For Monte Carlo: resulting lambda is "<<lambda<<" pm "<<lambdaerror;
 
@@ -648,11 +657,16 @@ void vz_plot_rebin6(){
   grwb->Fit(fit,"R");
   grwb->SetTitle("Full data");
 
+  /* when it was still the slope
   slope = fit->GetParameter(1);
   slopeerror = fit->GetParError(1);  
  
   lambda = -1./slope;
   lambdaerror = 1./(slope*slope) * slopeerror; //error propagation of (1/x)
+*/
+  //now we retrieve directly lambda
+  lambda = fit->GetParameter(1);
+  lambdaerror = fit->GetParError(1);
 
   cout<<"For data: resulting lambda is "<<lambda<<" pm "<<lambdaerror;
  
