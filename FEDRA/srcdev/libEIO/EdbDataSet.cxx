@@ -2625,7 +2625,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
      MCEventID[itrk] = track->MCEvt();
      MCTrackID[itrk] = track->MCTrack();
      if(MCEventID[itrk]>-1){ //vertices from MC simulation, used Vid[0] and Aid[0] to store these information
-      MCTrackPdgCode[itrk] = track->Vid(0);
+      MCTrackPdgCode[itrk] = track->GetSegment(0)->Vid(0); //due to MakeTracksTree, Vid[0] is always 0
       MCMotherID[itrk] = track->Aid(0); //used to store MotherID information
      }
      else { //vertices from data, set default values 
