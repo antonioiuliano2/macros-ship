@@ -1529,11 +1529,74 @@ void  EdbVertexRec::CheckVTX()
       vtx->EstimateVertexFlag();
     }
   }
-
+  RecoverCheckVTX(); //recovering disappeared vertices
   // reassign the vertex id's
   for (Int_t i = 0; i < nvtx; i++) GetVertex(i)->SetID(i);
 
   //eVTA.Clear();  //TODO?
+}
+void EdbVertexRec::RecoverCheckVTX(){
+  //Recover vertices with all tracks not associated to other vertices, within CheckVTX
+  TObjArray * varr_alldis_tracks = new TObjArray();
+  int nvtx = eVTX->GetEntries();
+  EdbVertex *vtx = 0;
+  int nmissingvertices = 0;
+  for(int i=0; i<nvtx; i++){
+     vtx = GetVertex(i);
+     if (vtx->AllTracksDisappeared()) varr_alldis_tracks->Add(vtx);
+  }
+  const int nmissingvertices_initial = varr_alldis_tracks->GetEntries();
+  while (nmissingvertices != varr_alldis_tracks->GetEntries()){
+   //starting second iteration
+   int nmissingvertices = varr_alldis_tracks->GetEntries();
+
+   TArrayF   weight2(nmissingvertices);  // the vertex "weight" = 10*ntr+prob
+   TArrayI   ind2(nmissingvertices);
+
+   for(int i=0; i<nmissingvertices; i++)  {
+     vtx = (EdbVertex*) varr_alldis_tracks->At(i);
+     //vtx->SetFlag(0);       // to check!!!
+     weight2[i] = 10*vtx->N() + vtx->V()->prob();
+   }
+   TMath::Sort(nmissingvertices,weight2.GetArray(),ind2.GetArray(),0); // sort in ascending order
+   for(int i=0; i<nmissingvertices; i++)  {
+     vtx = (EdbVertex*) varr_alldis_tracks->At(i);
+     vtx->ResetTracks();
+   }
+
+   // discard vertices with the detached tracks
+   for(int i=0; i<nmissingvertices; i++)  {
+     vtx = (EdbVertex*) varr_alldis_tracks->At(i);
+     int ndisc = vtx->CheckDiscardedTracks();
+     if(ndisc>0) {
+       Log(2,"EdbVertexRec::CheckVTX","discard vtx i=%d ntr=%d flag before: %d  disc tracks: %d",i, vtx->N(), vtx->Flag(), ndisc);
+       vtx->SetFlag(-10);
+     } else {
+       vtx->EstimateVertexFlag();
+     }
+   }
+   //clearing for next iteration
+   varr_alldis_tracks->Clear();
+   //how many vertices have tracks still missing?
+   for(int i=0; i<nvtx; i++){
+     vtx = GetVertex(i);
+     if (vtx->AllTracksDisappeared()) varr_alldis_tracks->Add(vtx);
+   }
+  }
+  Log(1,"EdbVertexRec::RecoverCheckVTX()","recovered %d vertices, still missing %d",nmissingvertices_initial-nmissingvertices, nmissingvertices);
+}
+
+Bool_t EdbVertex::AllTracksDisappeared(){
+  //check if all the tracks of this vertex are not associated a vertex with positive ID
+  int ndisappeared = 0;
+  for (int itrk = 0; itrk < this->N(); itrk++){
+    EdbVTA *vta = GetVTa(itrk);
+    if (vta) {
+     if (this->GetTrack(itrk)->Vertex(vta->Zpos())->Flag() == -10) ndisappeared++;
+    }
+  }
+  if (ndisappeared == this->N()) return true;
+  else return false;
 }
 
 //______________________________________________________________________________

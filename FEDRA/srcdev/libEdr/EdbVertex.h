@@ -158,6 +158,7 @@ class EdbVertex: public TObject {
   void       SetMC(int mEvt=0) 		       {eMCEvt=mEvt;}
   void       SetV(VERTEX::Vertex *v)           {eV=v;}
   void       SetQuality( float q = 0 )         {eQuality = q;}
+  Bool_t      AllTracksDisappeared();
 
   Bool_t     TrackInVertex( EdbTrackP *t );
   Int_t      CheckDiscardedTracks();
@@ -232,6 +233,7 @@ class EdbVertexRec: public EdbVertexPar {
   Int_t      ProbVertexN_old();
   Int_t      ProbVertexNpos(int zpos);
   void       CheckVTX();
+  void       RecoverCheckVTX();
   EdbVertex *TestVTAGroup(TObjArray &arrvta);
   int        EstimateVertexFlag(int zpos1, int zpos2);
   
