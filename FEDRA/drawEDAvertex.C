@@ -13,7 +13,7 @@ namespace VERTEX_PAR
 void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree.root"){
  using namespace VERTEX_PAR;
  const int nvertices = 1;
- int vertexlist[nvertices] = {112283};
+ int vertexlist[nvertices] = {648};
  int vertexcolors[nvertices] = {kRed};
  EdbDataProc *dproc = new EdbDataProc();
 
@@ -51,6 +51,7 @@ void drawEDAvertex(bool newversion = true, TString vertexfilename= "vertextree.r
     vertex = (EdbVertex*) vertexrec->eVTX->At(vID);
   }
 
+  vertex->SetXYZ(vertex->VX(),vertex->VY(),vertex->VZ()); //EDA USES X(), NOT VX(). Here I want the display to match my coordinates
   drawnvertices->Add(vertex); // assuming the array is filled with EdbVertex.
   for (int itrk = 0; itrk < vertex->N(); itrk++){
      EdbTrackP* track =  vertex->GetTrack(itrk);     
