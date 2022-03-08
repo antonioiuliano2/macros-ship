@@ -2527,9 +2527,10 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
   TClonesArray *segments  = new TClonesArray("EdbSegP");
   TClonesArray *segmentsf = new TClonesArray("EdbSegP");
 
-  //list of variables
+  //list of variables to be stored
 
   Float_t vx, vy, vz; //true reconstructed vertex position
+  TMatrixD vCOV(3,3); //covariance matrix vertex
   Float_t meanvx, meanvy, meanvz; //track connection point
   Int_t vID = 0;
   Float_t maxaperture;
@@ -2559,6 +2560,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
   vtx->Branch("vx",&vx,"vx/F");
   vtx->Branch("vy",&vy,"vy/F");
   vtx->Branch("vz",&vz,"vz/F");
+  vtx->Branch("vCOV",&vCOV);
   vtx->Branch("meanvx",&meanvx,"meanvx/F");
   vtx->Branch("meanvy",&meanvy,"meanvy/F");
   vtx->Branch("meanvz",&meanvz,"meanvz/F");
@@ -2600,6 +2602,14 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
     meanvx=vertex->X();
     meanvy=vertex->Y();
     meanvz=vertex->Z();
+    
+    //covariance matrix, need to do it by hand due to no known conversion command from SMatrix to TMatrix
+    for (int irow = 0; irow < 3; irow++){
+     for (int icolumn = 0; icolumn < 3; icolumn++){
+      vCOV(irow,icolumn) = vertex->V()->VCOV()(irow,icolumn);
+     }
+    }
+    
     n=vertex->N();
     maxaperture = vertex->MaxAperture();
     probability = vertex->V()->prob();  
