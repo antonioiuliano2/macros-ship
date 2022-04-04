@@ -239,7 +239,7 @@ class EdbDataProc : public TObject {
   static int MakeTracksTree(EdbPVRec *ali=0, const char *file="linked_tracks.root");
   static int MakeVertexTree(TObjArray &vtxarr, const char *file);
   static int MakeTracksTree(TObjArray &tracks, float xv=0, float yv=0, const char *file="linked_tracks.root");
-  static int ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname, const char *rcut, map<int,EdbTrackP*> trackID_map);
+  static int ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname, const char *rcut, map<int,EdbTrackP*> &trackID_map);
   static int ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname, const char *rcut, TObjArray *builttracks = 0);
   EdbVertex* GetVertexFromTree( EdbVertexRec &vertexrec, const char     *fname, const int vertexID );
   static int ReadTracksTree(EdbPVRec &ali,
