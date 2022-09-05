@@ -860,7 +860,7 @@ EdbVertex *EdbVertexRec::Make1Vertex(TObjArray &tracks, float zexpected)
   
   EdbVertex *v = new EdbVertex();
   v->SetXYZ( 0,0, zexpected );
-  int ntr = tracks.GetEntries();
+  int ntr = tracks.GetEntriesFast();
   for(int i=0; i<ntr; i++) {
     EdbTrackP *t = (EdbTrackP*)tracks.At(i);
     EdbVTA *vta = new EdbVTA(t,v);
@@ -919,7 +919,7 @@ Int_t EdbVertexRec::FindSimilarTracks(EdbTrackP &track, TObjArray &found, int ns
   // dZmax   - max distance in z between track lines
 
   using namespace TMath;
-  int ntr  = eEdbTracks->GetEntries();
+  int ntr  = eEdbTracks->GetEntriesFast();
   if(ntr<1) return 0;
 
   EdbTrackP *t=0;
@@ -958,7 +958,7 @@ Int_t EdbVertexRec::FindSimilarTracks(EdbTrackP &track, TObjArray &found, int ns
 
   Log(2,"EdbVertexRec::FindSimilarTracks","%d tracks found",nfound);
   if(gEDBDEBUGLEVEL>1) {
-    for(int i=0; i<found.GetEntries(); i++) {
+    for(int i=0; i<found.GetEntriesFast(); i++) {
       t = (EdbTrackP*)found.At(i);
       t2 = (EdbSegP*)t;
       dtheta = Sqrt( (t2->TX()-t1->TX())*(t2->TX()-t1->TX()) + (t2->TY()-t1->TY())*(t2->TY()-t1->TY()) );
@@ -1042,7 +1042,7 @@ Int_t EdbVertexRec::FindSimilarTracksE( EdbSegP &spred, TObjArray &found, bool s
   //   zminT,zmaxT  - limits in Z for the tracks extremity
   //   zminV,zmaxV  - limits in Z for the estimated vertex position
 
-  int ntr  = eEdbTracks->GetEntries();
+  int ntr  = eEdbTracks->GetEntriesFast();
   if(ntr<1) return 0;
   int   nfound=0;
 
@@ -1089,7 +1089,7 @@ int EdbVertexRec::FindVertex()
   nvtx += LoopVertex(ends  , ends,    0, 0 );
 
   int nvtxt = 0;
-  if (eVTX) nvtxt = eVTX->GetEntries();
+  if (eVTX) nvtxt = eVTX->GetEntriesFast();
 
   if(nvtx!=nvtxt) printf("ERROR: EdbVertexRec::FindVertex():  nvtx =%d nvtxt =%d\n",nvtx,nvtxt);
 
@@ -1116,7 +1116,7 @@ void EdbVertexRec::FillTracksStartEnd(TIndexCell &starts, TIndexCell &ends )
   // inside sorted tracks: starts - minimal Z; ends - maximal Z
 
   EdbTrackP *tr=0;
-  int ntr  = eEdbTracks->GetEntries();
+  int ntr  = eEdbTracks->GetEntriesFast();
   Long_t  v[2];
 
   EdbSegP *s=0;
@@ -1158,8 +1158,8 @@ int EdbVertexRec::LoopVertex( TIndexCell &list1, TIndexCell &list2,
   EdbTrackP  *tr1=0, *tr2=0;
   int         itr1,  itr2;
 
-  int   nz1 = list1.GetEntries();
-  int   nz2 = list2.GetEntries();
+  int   nz1 = list1.GetEntriesFast();
+  int   nz2 = list2.GetEntriesFast();
   float z1, z2;
 
   //int ntot = nz1*nz2;
@@ -1168,7 +1168,7 @@ int EdbVertexRec::LoopVertex( TIndexCell &list1, TIndexCell &list2,
   for(int iz1=0; iz1<nz1; iz1++)   {           // first z-group
     c1 = list1.At(iz1);
     z1 = c1->Value()*eZbin;
-    int nc1=c1->GetEntries();
+    int nc1=c1->GetEntriesFast();
 
     for(int iz2=0; iz2<nz2; iz2++)   {         // second z-group
       c2 = list2.At(iz2);
@@ -1181,7 +1181,7 @@ int EdbVertexRec::LoopVertex( TIndexCell &list1, TIndexCell &list2,
       //printf("\b\b\b\b%3d%%",(int)((double)ncount/double(ntot)*100.));
       fflush(stdout);
       
-      int nc2=c2->GetEntries();
+      int nc2=c2->GetEntriesFast();
       for(int ic1=0; ic1<nc1; ic1++) {      // first z-group entries
 
 	itr1 = c1->At(ic1)->Value();
@@ -1425,11 +1425,11 @@ Bool_t EdbVertexRec::CheckDZ2(float z1, float z2, int zpos1, int zpos2, float z 
 //______________________________________________________________________________
 int EdbVertexRec::ProbVertexN()
 {
-  if(gEDBDEBUGLEVEL>1) printf("*** on entry to ProbVertexN: nv = %d\n", eVTX->GetEntries());
+  if(gEDBDEBUGLEVEL>1) printf("*** on entry to ProbVertexN: nv = %d\n", eVTX->GetEntriesFast());
   ProbVertexNpos(0);  // find n-track vtx attached to left edges
-  if(gEDBDEBUGLEVEL>1) printf("*** npoz     0  ProbVertexN: nv = %d\n", eVTX->GetEntries());
+  if(gEDBDEBUGLEVEL>1) printf("*** npoz     0  ProbVertexN: nv = %d\n", eVTX->GetEntriesFast());
   ProbVertexNpos(1);  // to right edges
-  if(gEDBDEBUGLEVEL>1) printf("*** npoz     1  ProbVertexN: nv = %d\n", eVTX->GetEntries());
+  if(gEDBDEBUGLEVEL>1) printf("*** npoz     1  ProbVertexN: nv = %d\n", eVTX->GetEntriesFast());
 
   CheckVTX();         // rank the vertices and reassign tracks according to the major rank
   if(gEDBDEBUGLEVEL>0) StatVertexN();      // print vertex statistics
@@ -1442,7 +1442,7 @@ int EdbVertexRec::ProbVertexNpos(int zpos)
   // cycle by all vertices, check if it is possible to join some of them by common track, do it
 
   if (!eVTX) return 0;
-  int nv2 = eVTX->GetEntries();    // number of vertices
+  int nv2 = eVTX->GetEntriesFast();    // number of vertices
   if(nv2<2)  return 0;
 
   Log(2,"EdbVertexRec::ProbVertexNpos","%d vertices as input",nv2);
@@ -1474,7 +1474,7 @@ int EdbVertexRec::ProbVertexNpos(int zpos)
   while ((a = (TPair*) next())) {   // cycle by all keys (tracks)
     t  = (EdbTrackP*)a->Key();
     arr = (TObjArray*)a->Value();
-    int nv = arr->GetEntries();
+    int nv = arr->GetEntriesFast();
     //printf( "nv = %d\n", nv );
     if(nv<2)    continue;
     TObjArray arrvta;        // group of vta of tracks attached to t
@@ -1489,7 +1489,7 @@ int EdbVertexRec::ProbVertexNpos(int zpos)
     }
   }
 
-  Log(2,"EdbVertexRec::ProbVertexNpos","%d entries in the map for zpos = %d",maptr.GetEntries(), zpos);
+  Log(2,"EdbVertexRec::ProbVertexNpos","%d entries in the map for zpos = %d",maptr.GetSize(), zpos);
 
   return 0;
 }
@@ -1500,7 +1500,7 @@ void  EdbVertexRec::CheckVTX()
   // rank the vertices and reassign tracks according to the major vertex weight
 
   if(!eVTX)   return;
-  int nvtx = eVTX->GetEntries();
+  int nvtx = eVTX->GetEntriesFast();
   Log(2,"EdbVertexRec::CheckVTX","%d vertices",nvtx);
   if(nvtx<1)  return;
 
@@ -1606,7 +1606,7 @@ EdbVertex *EdbVertexRec::TestVTAGroup(TObjArray &arrvta)
   // Input: array of preselected vta's
   // return the new vertex if successful
 
-  int nvta=arrvta.GetEntries();
+  int nvta=arrvta.GetEntriesFast();
   Log(3,"EdbVertexRec::TestVTAGroup","nvta = %d\n",nvta);
 
   EdbVTA *vta=0, *newvta=0;
@@ -1659,7 +1659,7 @@ int EdbVertexRec::ProbVertexN_old()
   float dz = 0.;
   
   if (eVTX) {
-    nvtx = eVTX->GetEntries();
+    nvtx = eVTX->GetEntriesFast();
     for (Int_t i = 0; i < nvtx; i++) {
       edbv1 = GetVertex(i);
       if (edbv1) {
@@ -1705,7 +1705,7 @@ int EdbVertexRec::ProbVertexN_old()
 
   zpos = 0;
 
-  nvtx = eVTX->GetEntries();
+  nvtx = eVTX->GetEntriesFast();
   printf("-----Merge 2-track vertex pairs to N-track vertexes-----\n");
   printf("N-track vertexes search in progress... %3d%%", 0);
 
@@ -1909,12 +1909,12 @@ int EdbVertexRec::SelVertNeighbor( EdbVertex *v, int seltype, float RadMax, int 
   TObjArray arr(20);
   ePVR->FindComplimentsVol(ss,arr,1,1,Dpat);
   
-  int nseg = arr.GetEntries();
+  int nseg = arr.GetEntriesFast();
   EdbTrackP *tr = 0;
   EdbSegP   *s  = 0;
   int trflg  = 0;
   int trind  = 0;
-  int ntr = eEdbTracks->GetEntries();
+  int ntr = eEdbTracks->GetEntriesFast();
 
   int nadd = 0;
   for (int i=0; i<nseg; i++)
@@ -1953,7 +1953,7 @@ int EdbVertexRec::SelVertNeighbor( EdbVertex *v, int seltype, float RadMax, int 
  
   if (seltype == 0)
   {
-    nseg = ao->GetEntries();
+    nseg = ao->GetEntriesFast();
     for (int i=0; i<nseg; i++)
     {
 	tr = (EdbTrackP *)(ao->At(i)); 
@@ -1982,13 +1982,13 @@ int EdbVertexRec::SelSegNeighbor( EdbSegP *sin, int seltype, float RadMax, int D
   
   ePVR->FindComplimentsVol(ss,arr,1,1,Dpat);
 
-  int nseg = arr.GetEntries();
+  int nseg = arr.GetEntriesFast();
   EdbTrackP *tr = 0;
   EdbSegP   *s  = 0;
   int trflg  = 0;
   int trind  = 0;
   int ntr = 0;
-  if (eEdbTracks) ntr = eEdbTracks->GetEntries();
+  if (eEdbTracks) ntr = eEdbTracks->GetEntriesFast();
 
   int nadd = 0;
   for (int i=0; i<nseg; i++)
@@ -2027,7 +2027,7 @@ int EdbVertexRec::SelSegNeighbor( EdbSegP *sin, int seltype, float RadMax, int D
  
   if (seltype == 0)
   {
-    nseg = ao->GetEntries();
+    nseg = ao->GetEntriesFast();
     for (int i=0; i<nseg; i++)
     {
 	tr = (EdbTrackP *)(ao->At(i)); 
@@ -2139,7 +2139,7 @@ int EdbVertexRec::AddSegmentToVertex(EdbSegP *s, float ImpMax, float ProbMin, fl
 	EdbVertex *eW = eWorking;
 	eW->SetID(eVertex->ID());
 	eW->V()->rmsDistAngle();
-	int trind = eEdbTracks->GetEntries();
+	int trind = eEdbTracks->GetEntriesFast();
 	Tr->SetID(trind);
 	eEdbTracks->Add(Tr);
 	Tr->SetSegmentsTrack();
@@ -2262,9 +2262,9 @@ int EdbVertexRec::VertexTuning(int seltype)
   int iv = 0, nntr = 0, nn = 0;
   int nvt = 0;
   int ntr = 0;
-  if (eEdbTracks) ntr = eEdbTracks->GetEntries();
+  if (eEdbTracks) ntr = eEdbTracks->GetEntriesFast();
   if (!ntr) return 0;
-  if (eVTX) nvt = eVTX->GetEntries();
+  if (eVTX) nvt = eVTX->GetEntriesFast();
   if (!nvt) return 0;
 
   EdbVertex *v1 = 0, *v2 = 0;
@@ -2490,7 +2490,7 @@ int EdbVertexRec::VertexTuning(int seltype)
     } // good v1
   } // loop on vertexes
 
-  nvt = eVTX->GetEntries();
+  nvt = eVTX->GetEntriesFast();
 
   for (iv=0; iv<nvt; iv++) {
     v1 = GetVertex(iv);
@@ -2566,7 +2566,7 @@ double EdbVertexRec::MoveTrackToOtherVertex(EdbVertex *v2, int it2max, EdbVertex
 int EdbVertexRec::RefitAll()
 {
   // use already found vertex position to improve the fit
-  int nv = eVTX->GetEntries();
+  int nv = eVTX->GetEntriesFast();
   EdbVertex *vtx = 0;
   int cnt=0;
   for (int i=0; i<nv; i++)   {
@@ -2802,8 +2802,8 @@ int EdbVertexRec::VertexNeighbor(float RadMax, int Dpat, float ImpMax)
 //  int i = 0, nntr = 0;
   int nvt = 0;
   int ntr = 0;
-  if (eVTX) nvt = eVTX->GetEntries();
-  if (eEdbTracks) ntr = eEdbTracks->GetEntries();
+  if (eVTX) nvt = eVTX->GetEntriesFast();
+  if (eEdbTracks) ntr = eEdbTracks->GetEntriesFast();
   if (!nvt) return 0;
   if (!ntr) return 0;
 
@@ -3096,7 +3096,7 @@ int EdbVertexRec::SegmentNeighbor(EdbSegP *s, float RadMax, int Dpat, float ImpM
 	    // Select tracks neigborhood
 	    int nvn = SelSegNeighbor(s, 0, RadMax, Dpat, &an); 
 	    if (trown) an.Add(trown);
-	    nvn = an.GetEntries();
+	    nvn = an.GetEntriesFast();
 	    for (int it=0; it<nvn; it++) {
 		    tr = (EdbTrackP*)(an.At(it));
 		    if (tr)
@@ -3205,13 +3205,13 @@ int EdbVertexRec::SegmentNeighbor(EdbSegP *s, float RadMax, int Dpat, float ImpM
 		    }
 	    }
 //----------Restore MCEvt
-	    int nv = arrv->GetEntries();
+	    int nv = arrv->GetEntriesFast();
 	    for (int i=0; i<nv; i++)
 	    {
 		ve = (EdbVertex *)arrv->At(i);
 		if (ve->Flag() < -99 ) ve->SetFlag(-ve->Flag()-200);
 	    }
-	    int ntr = arrt->GetEntries();
+	    int ntr = arrt->GetEntriesFast();
 	    for (int i=0; i<ntr; i++)
 	    {
 		tr = (EdbTrackP *)arrt->At(i);
@@ -3221,7 +3221,7 @@ int EdbVertexRec::SegmentNeighbor(EdbSegP *s, float RadMax, int Dpat, float ImpM
 	    //nvn = SelSegNeighbor(s, 1, RadMax, Dpat, arrs); 
 	    an.Clear();
 	    nvn = SelSegNeighbor(s, 1, RadMax, Dpat, &an); 
-	    nvn = an.GetEntries();
+	    nvn = an.GetEntriesFast();
 	    for (int is=0; is<nvn; is++) {
 		    ss = (EdbSegP*)(an.At(is));
 		    if (ss)
@@ -3305,7 +3305,7 @@ EdbTrackP *EdbVertexRec::GetEdbTrack(const int index)
 int EdbVertexRec::CheckTrack(EdbTrackP &track, int zpos)
 {
   // loop for all tracks and check if some of them can form the vertex with tr
-  int ntr  = eEdbTracks->GetEntries();
+  int ntr  = eEdbTracks->GetEntriesFast();
   if(ntr<1) return 0;
   int nvtx=0; 
 

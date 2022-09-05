@@ -74,7 +74,7 @@ void EdbTrackAssembler::CheckPatternAlignment(EdbPattern &p, EdbPlateP &plate,  
   Log(0,"EdbTrackAssembler::CheckPatternAlignment","");
   
   ExtrapolateTracksToZ( p.Z(), nsegmin);
-  int ntr = eTrZ.GetEntries();
+  int ntr = eTrZ.GetEntriesFast();
   EdbPattern ptr( 0, 0, p.Z(), ntr ); 
   for(int i=0; i<ntr; i++) ptr.AddSegment( *((EdbSegP*)(eTrZ.UncheckedAt(i))) );
     
@@ -102,7 +102,7 @@ void EdbTrackAssembler::CheckPatternAlignment(EdbPattern &p, EdbPlateP &plate,  
   //--------------------------------------------------------------------------------------
   void EdbTrackAssembler::AddPattern(EdbPattern &p)
 {
-    //int ntrBefore=eTracks.GetEntries();
+    //int ntrBefore=eTracks.GetEntriesFast();
     //if(ntrBefore>0) ExtrapolateTracksToZ(p.Z());
     
     //DoubletsFilterOut();
@@ -118,7 +118,7 @@ void EdbTrackAssembler::CheckPatternAlignment(EdbPattern &p, EdbPlateP &plate,  
       AddSegmentAsTrack( *(p.GetSegment(j)) );
     else attached++;
   }
-  int ntrAfter = eTracks.GetEntries();
+  int ntrAfter = eTracks.GetEntriesFast();
     //int totSegTr=0;
     //for(int i=0; i<ntrAfter; i++) totSegTr += ((EdbTrackP*)(eTracks.At(i)))->N();
   Log(2,"EdbTrackAssembler::AddPattern","with z=%10.2f   %d/%d attached/tried; total collisions: %d;  tracks: %d",
@@ -260,7 +260,7 @@ EdbTrackP *EdbTrackAssembler::AddSegment(EdbSegP &s)
   eTrZMap.CleanCells();
     
   eZ=z;
-  int n=eTracks.GetEntries();
+  int n=eTracks.GetEntriesFast();
   for(int i=0; i<n; i++) {
     EdbTrackP *t = (EdbTrackP*)(eTracks.At(i));
       
@@ -287,7 +287,7 @@ EdbTrackP *EdbTrackAssembler::AddSegment(EdbSegP &s)
   //--------------------------------------------------------------------------------------
   void EdbTrackAssembler::FillTrZMap()
 {
-  int n=eTrZ.GetEntries();
+  int n=eTrZ.GetEntriesFast();
   Log(2,"EdbTrackAssembler::FillTrZMap", "with %d tracks",n);
   for(int i=0; i<n; i++) {
     EdbSegP *s = (EdbSegP*)(eTrZ.At(i));
@@ -333,7 +333,7 @@ EdbTrackP *EdbTrackAssembler::AddSegment(EdbSegP &s)
 //--------------------------------------------------------------------------------------
 void EdbTrackAssembler::SetSegmentsErrors()
 {
-  int ntr = eTracks.GetEntries();
+  int ntr = eTracks.GetEntriesFast();
     for( int i=0; i<ntr; i++ )     {
       EdbTrackP *t = (EdbTrackP*)(eTracks.At(i));
       if(t->Flag()==-10) continue;
@@ -353,7 +353,7 @@ void EdbTrackAssembler::FitTracks()
 {
   EdbTrackFitter fit;
 
-  int ntr = eTracks.GetEntries();
+  int ntr = eTracks.GetEntriesFast();
   for( int i=0; i<ntr; i++ )     {
     EdbTrackP *t = (EdbTrackP*)(eTracks.At(i));
     if(t->Flag()==-10) continue;
@@ -372,7 +372,7 @@ void EdbTrackAssembler::CombTracks( TObjArray &selected )
   int nsegMin=2;
   int nGapMax=50;
   
-  int ntr = eTracks.GetEntries();
+  int ntr = eTracks.GetEntriesFast();
   Log(3,"EdbTrackAssembler::CombTracks","Comb %d tracks");
   
     // *** sort tracks by quality
@@ -401,13 +401,13 @@ void EdbTrackAssembler::CombTracks( TObjArray &selected )
     // *** set track ID for segments attached to
   
   TIndexCell *cp=0, *c=0;
-  int nn=cn.GetEntries();
+  int nn=cn.GetEntriesFast();
   for(int i=nn-1; i>=0; i--) {
     cp = cn.At(i);                              // tracks with fixed npl
-    int np = cp->GetEntries();
+    int np = cp->GetEntriesFast();
     for(int ip=np-1; ip>=0; ip--) {
       c = cp->At(ip);                           // tracks with fixed Npl & Prob
-      int nt = c->GetEntries();
+      int nt = c->GetEntriesFast();
       for(int it=0; it<nt; it++) {
         tr = (EdbTrackP*)(eTracks.At( c->At(it)->Value() ) );
         tr->SetSegmentsTrack();
@@ -417,15 +417,15 @@ void EdbTrackAssembler::CombTracks( TObjArray &selected )
   
   
   cp=0;   c=0;
-  nn=cn.GetEntries();
+  nn=cn.GetEntriesFast();
   for(int i=0; i<nn; i++) {
     cp = cn.At(i);                              // tracks with fixed npl
 
-    int np = cp->GetEntries();
+    int np = cp->GetEntriesFast();
     for(int ip=0; ip<np; ip++) {
       c = cp->At(ip);                           // tracks with fixed Npl & Prob
 
-      int nt = c->GetEntries();
+      int nt = c->GetEntriesFast();
       for(int it=0; it<nt; it++) {
   
         tr = (EdbTrackP*)(eTracks.At( c->At(it)->Value() ) );
@@ -458,7 +458,7 @@ void EdbScanTracking::TrackSetBT(EdbID idset, TEnv &env)
   if(!ss) { Log(1,"EdbScanTracking::TrackSetBT",
     "Error! set for %s do not found",idset.AsString()); return; }
   
-    int npl = ss->eIDS.GetEntries();
+    int npl = ss->eIDS.GetSize();
     if(npl<2) { Log(1,"EdbScanTracking::TrackSetBT", "Warning! npl<2 : %d stop tracking!",npl); return; }
   
   // create and init tracking object
@@ -588,7 +588,7 @@ void EdbScanTracking::TrackSetBT(EdbID idset, TEnv &env)
     
     if(eDoRealign) eSproc->WriteScanSet(idset,*ss);
     
-    int ntr = etra.Tracks().GetEntries();
+    int ntr = etra.Tracks().GetEntriesFast();
     
     for(int i=0; i<ntr; i++) {
       EdbTrackP *t = (EdbTrackP *)(etra.Tracks().At(i));
@@ -759,7 +759,7 @@ void EdbScanTracking::TrackAli(EdbPVRec &ali, TEnv &env)
       }
     }
 
-    int ntr = etra.Tracks().GetEntries();
+    int ntr = etra.Tracks().GetEntriesFast();
     
     for(int i=0; i<ntr; i++) {
       EdbTrackP *t = (EdbTrackP *)(etra.Tracks().At(i));

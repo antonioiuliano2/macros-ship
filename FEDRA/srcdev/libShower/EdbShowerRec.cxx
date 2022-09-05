@@ -3464,7 +3464,7 @@ Float_t* EdbShowerRec::GetShowerValues(Int_t TreeEntry)
     /*
     cout << "sizeb xb[0] yb[0] zb[0] txb[0] tyb[0] nplates eProb90 eProb1:" << endl;
     cout << "  " <<  dummy[0] << "  " << dummy[1] << "  " << dummy[2] << "  " << dummy[3] <<  "  " << dummy[4] << "  ";
-    cout << "  " <<  dummy[5] << "  " << dummy[6] << "  " << dummy[7] << "  " << dummy[8] <<  "  " << dummy[9] << "  "<<endl;;
+    cout << "  " <<  dummy[5] << "  " << dummy[6] << "  " << dummy[7] << "  " << dummy[8] <<  "  " << dummy[9] << "  "<<endl;
     */
     return dummy;
 }

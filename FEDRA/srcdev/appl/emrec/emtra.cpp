@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
       }
     else if(!strncmp(key,"-new",4)) 
       {
-	do_new=true;;
+	do_new=true;
       }
     else if(!strncmp(key,"-pred=",6))
       {

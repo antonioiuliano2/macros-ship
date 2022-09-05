@@ -265,7 +265,7 @@ void EdbDisplay::GuessRange(float margZmin,float margZmax,float margR )
 
   if (eArrSegG) {
     EdbSegG *s=0;
-    for(int i=0; i<eArrSegG->GetEntries(); i++) {
+    for(int i=0; i<eArrSegG->GetEntriesFast(); i++) {
       s = (EdbSegG *)(eArrSegG->At(i));
       if(!s) continue;
       if(xmax-xmin<margR) {
@@ -287,7 +287,7 @@ void EdbDisplay::GuessRange(float margZmin,float margZmax,float margR )
   
   if (eArrSegP) {
     EdbSegP *s=0;
-    for(int i=0; i<eArrSegP->GetEntries(); i++) {
+    for(int i=0; i<eArrSegP->GetEntriesFast(); i++) {
       s = (EdbSegP *)(eArrSegP->At(i));
       if(!s) continue;
       if(xmax-xmin<margR) {
@@ -308,7 +308,7 @@ void EdbDisplay::GuessRange(float margZmin,float margZmax,float margR )
   }
 
   if (eArrV) {
-    for(int i=0; i<eArrV->GetEntries(); i++) {
+    for(int i=0; i<eArrV->GetEntriesFast(); i++) {
       EdbVertex *v = (EdbVertex *)(eArrV->At(i));
       if(!v) continue;
       if(!v->V()) continue;
@@ -333,7 +333,7 @@ void EdbDisplay::GuessRange(float margZmin,float margZmax,float margR )
   if (eArrTr) {
     EdbTrackP *t;
     EdbSegP   *s;
-    for(int i=0; i<eArrTr->GetEntries(); i++) {
+    for(int i=0; i<eArrTr->GetEntriesFast(); i++) {
       t = (EdbTrackP *)eArrTr->At(i);
       if(!t) continue;
       for(int j=0; j<t->N(); j++) {
@@ -396,7 +396,7 @@ void EdbDisplay::SetArrSegP(TObjArray *arr)
 
   EdbSegP *seg=0;
   if( eArrSegP ) {
-    int nseg = eArrSegP->GetEntries();
+    int nseg = eArrSegP->GetEntriesFast();
     for(int j=0;j<nseg;j++) {
       seg = (EdbSegP*)(eArrSegP->At(j));
       if (seg)
@@ -437,7 +437,7 @@ void EdbDisplay::SetArrTr(TObjArray *arr)
 
   EdbTrackP *tr=0;
   if( eArrTr ) {
-    int ntr = eArrTr->GetEntries();
+    int ntr = eArrTr->GetEntriesFast();
     for(int j=0;j<ntr;j++) {
       tr = (EdbTrackP*)(eArrTr->At(j));
       if(tr)
@@ -507,7 +507,7 @@ void EdbDisplay::SetArrV(TObjArray *arrv)
 
   EdbVertex *v=0;
   if( eArrV ) {
-    int nv = eArrV->GetEntries();
+    int nv = eArrV->GetEntriesFast();
     for(int j=0;j<nv;j++) {
       v = (EdbVertex*)(eArrV->At(j));
       if (v)
@@ -552,7 +552,7 @@ void EdbDisplay::Refresh()
 {
   EdbSegP *seg=0;
   if( eArrSegP ) {
-    int nseg = eArrSegP->GetEntries();
+    int nseg = eArrSegP->GetEntriesFast();
     printf("%d segments to draw...\n",nseg);
     for(int j=0;j<nseg;j++) {
       seg = (EdbSegP*)(eArrSegP->At(j));
@@ -566,7 +566,7 @@ void EdbDisplay::Refresh()
 
   EdbTrackP *tr=0;
   if( eArrTr ) {
-    int ntr = eArrTr->GetEntries();
+    int ntr = eArrTr->GetEntriesFast();
     printf("%d tracks to draw...\n",ntr);
     for(int j=0;j<ntr;j++) {
       tr = (EdbTrackP*)(eArrTr->At(j));
@@ -579,7 +579,7 @@ void EdbDisplay::Refresh()
 
   EdbVertex *v=0;
   if( eArrV ) {
-    int nv = eArrV->GetEntries();
+    int nv = eArrV->GetEntriesFast();
     printf("%d vertices to draw...\n",nv);
     for(int j=0;j<nv;j++) {
       v = (EdbVertex*)(eArrV->At(j));
@@ -591,7 +591,7 @@ void EdbDisplay::Refresh()
   }
 
   if( eArrSegG ) {
-    int nseg = eArrSegG->GetEntries();
+    int nseg = eArrSegG->GetEntriesFast();
     printf("%d Graph segments to draw...\n",nseg);
     for(int j=0;j<nseg;j++) {
       EdbSegG *sg = (EdbSegG*)(eArrSegG->At(j));
@@ -1201,7 +1201,7 @@ void EdbSegG::RemoveFromTrack()
 	    fflush(stdout);
 	    return;
 	}
-	int trind = etr->GetEntries();
+	int trind = etr->GetEntriesFast();
 	if (ind >= trind)
 	{
 	    printf("Wrong track index in segment!\n");
@@ -1264,7 +1264,7 @@ void EdbSegG::SplitTrack()
 	    fflush(stdout);
 	    return;
 	}
-	int trind = etr->GetEntries();
+	int trind = etr->GetEntriesFast();
 	if (ind >= trind)
 	{
 	    printf("Wrong track index in segment!\n");
@@ -2060,7 +2060,7 @@ void EdbTrackG::UndoNewTrack()
 		    fflush(stdout);
 		    return;
 		}
-		int trind = etr->GetEntries();
+		int trind = etr->GetEntriesFast();
 		if (ind >= trind)
 		{
 		    printf("Wrong track index in segment!\n");
@@ -2129,7 +2129,7 @@ void EdbTrackG::UndoSplit()
 		    fflush(stdout);
 		    return;
 		}
-		int trind = etr->GetEntries();
+		int trind = etr->GetEntriesFast();
 		if (ind >= trind)
 		{
 		    printf("Wrong track index in segment!\n");
@@ -2200,7 +2200,7 @@ void EdbTrackG::FixNewTrack()
 		    TObjArray *etr = 0;
 		    if (eD->eVerRec) etr = (eD->eVerRec)->eEdbTracks;
 		    int trind = 0;
-		    if (etr) trind = etr->GetEntries();
+		    if (etr) trind = etr->GetEntriesFast();
 		    (eD->eTrack)->SetID(trind);
 		    if (etr) etr->Add(eD->eTrack);
 		    (eD->eTrack)->SetSegmentsTrack();
@@ -2215,7 +2215,7 @@ void EdbTrackG::FixNewTrack()
 		    TObjArray *etr = 0;
 		    if (eD->eVerRec) etr = (eD->eVerRec)->eEdbTracks;
 		    int trind = 0;
-		    if (etr) trind = etr->GetEntries();
+		    if (etr) trind = etr->GetEntriesFast();
 		    (eD->eTrack1)->SetID(trind);
 		    if (etr) etr->Add(eD->eTrack1);
 		    (eD->eTrack1)->SetSegmentsTrack();
@@ -2231,7 +2231,7 @@ void EdbTrackG::FixNewTrack()
 		    TObjArray *etr = 0;
 		    if (eD->eVerRec) etr = (eD->eVerRec)->eEdbTracks;
 		    int trind = 0;
-		    if (etr) trind = etr->GetEntries();
+		    if (etr) trind = etr->GetEntriesFast();
 		    (eD->eTrack2)->SetID(trind);
 		    if (etr) etr->Add(eD->eTrack2);
 		    (eD->eTrack2)->SetSegmentsTrack();
@@ -2269,7 +2269,7 @@ void EdbTrackG::UndoRemoveKink()
 		    fflush(stdout);
 		    return;
 		}
-		int trind = etr->GetEntries();
+		int trind = etr->GetEntriesFast();
 		if (ind >= trind)
 		{
 		    printf("Wrong track index in segment!\n");
@@ -3373,7 +3373,7 @@ void EdbDisplay::UndoModifiedVTX()
 {
     char text[512];
     EdbTrackP *LastCreated = 0;
-    int CreatedInd = eCreatedTracks.GetEntries();
+    int CreatedInd = eCreatedTracks.GetSize();
     if (CreatedInd > 0) LastCreated = (EdbTrackP *)eCreatedTracks.At(CreatedInd-1); 
     if (ePrevious)
     {
@@ -3506,7 +3506,7 @@ void EdbDisplay::AcceptModifiedVTX()
 	{
 	    if (eVerRec->eVTX)
 	    {
-		ind = eVerRec->eVTX->GetEntries();
+		ind = eVerRec->eVTX->GetEntriesFast();
 	    }
 	    else
 	    {
@@ -3543,7 +3543,7 @@ void EdbDisplay::AcceptModifiedVTX()
 	TObjArray *etr = 0;
 	if (eVerRec) etr = eVerRec->eEdbTracks;
 	int trind = 0;
-	if (etr) trind = etr->GetEntries();
+	if (etr) trind = etr->GetEntriesFast();
 	for (int i = 0; i < eCreatedTracks.GetSize(); i++)
 	{
 	    tr = (EdbTrackP *)(eCreatedTracks.At(i));
@@ -3581,7 +3581,7 @@ void EdbDisplay::AcceptModifiedVTX()
 		    TObjArray *etr = 0;
 		    if (eVerRec) etr = eVerRec->eEdbTracks;
 		    int trind = 0;
-		    if (etr) trind = etr->GetEntries();
+		    if (etr) trind = etr->GetEntriesFast();
 		    eTrack->SetID(trind);
 		    if (etr) etr->Add(eTrack);
 		    eTrack->SetSegmentsTrack();
@@ -3618,7 +3618,7 @@ void EdbDisplay::AcceptModifiedVTX()
 	int ind = 0;
 	if (eVerRec->eVTX)
 	    {
-		ind = eVerRec->eVTX->GetEntries();
+		ind = eVerRec->eVTX->GetEntriesFast();
 	    }
 	else
 	    {
@@ -3632,7 +3632,7 @@ void EdbDisplay::AcceptModifiedVTX()
 	TObjArray *etr = 0;
 	if (eVerRec) etr = eVerRec->eEdbTracks;
 	int trind = 0;
-	if (etr) trind = etr->GetEntries();
+	if (etr) trind = etr->GetEntriesFast();
 	for (int i = 0; i < eCreatedTracks.GetSize(); i++)
 	{
 	    tr = (EdbTrackP *)(eCreatedTracks.At(i));
@@ -3663,7 +3663,7 @@ void EdbDisplay::AcceptModifiedVTX()
 		    TObjArray *etr = 0;
 		    if (eVerRec) etr = eVerRec->eEdbTracks;
 		    int trind = 0;
-		    if (etr) trind = etr->GetEntries();
+		    if (etr) trind = etr->GetEntriesFast();
 		    eTrack->SetID(trind);
 		    if (etr) etr->Add(eTrack);
 		    eTrack->SetSegmentsTrack();
@@ -3797,7 +3797,7 @@ void EdbDisplay::DrawVertexEnvironment()
     {
 	eIndVert = -1;
 	eVerRec->SegmentNeighbor(eSegment, Rmax, Dpat, ImpMax, eSegWmin, eArrSegP, eArrTr, eArrV);
-	if (eArrV->GetEntries()) eDrawVertex = 1;
+	if (eArrV->GetEntriesFast()) eDrawVertex = 1;
     }
     Draw();
 }
@@ -4201,7 +4201,7 @@ void EdbDisplay::SelectVertexTracks(TObjArray *vtx)
   if (!eArrTr) eArrTr = new TObjArray();
   else eArrTr->Clear();
 
-  Int_t nv = vtx->GetEntries();
+  Int_t nv = vtx->GetEntriesFast();
 
   for (Int_t i = 0; i < nv; i++) {
     EdbVertex *vertex = (EdbVertex*)(vtx->At(i));

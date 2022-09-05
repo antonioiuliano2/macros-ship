@@ -2796,7 +2796,7 @@ int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname,
     //setting vertex parameters and saving vertex
     //v1 = vertexrec.Make1Vertex(*vertextracks,vz) (copied here instead, by putting zpos directly as for in vertexing);
     v1->SetXYZ( 0,0, vz );
-    int ntr = vertextracks->GetEntries();
+    int ntr = vertextracks->GetEntriesFast();
     for(int i=0; i<ntr; i++) {
       EdbTrackP *t = (EdbTrackP*)vertextracks->At(i);
       EdbVTA *vta = new EdbVTA(t,v1);
@@ -3017,7 +3017,7 @@ TIndex2 *EdbDataProc::MakeTracksSegmentsList( EdbPVRec &ali)
   TIndex2 *itracks = 0;
   int nsegtot=0;
   EdbTrackP *tr=0;
-  int ntr = ali.eTracks->GetEntries();
+  int ntr = ali.eTracks->GetEntriesFast();
 
   if(!ntr) return 0;
   Double_t *w    = new Double_t[500000];
