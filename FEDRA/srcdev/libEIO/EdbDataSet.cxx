@@ -2667,7 +2667,7 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
 }
 int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname, const char *rcut, map<int,EdbTrackP*> &trackID_map)
 {
-  TFile f(fname);
+  TFile f = TFile::Open(fname);
   if(f.IsZombie()) { Log(1,"EdbDataProc::ReadVertexTree","Error open file %s", fname);  return 0; }
   
   TTree *vtx = (TTree*)f.Get("vtx");
@@ -2935,7 +2935,7 @@ int EdbDataProc::ReadTracksTree( EdbPVRec &ali,
 				 //				 float    probMin,
 				 const char *rcut )
 {
-  TFile f(fname);
+  TFile f = TFile::Open(fname);
   if(f.IsZombie()) { Log(1,"EdbDataProc::ReadTracksTree","Error open file %s", fname);  return 0; }
   
   TTree *tracks = (TTree*)f.Get("tracks");
