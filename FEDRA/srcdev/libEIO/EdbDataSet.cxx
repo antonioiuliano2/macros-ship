@@ -2517,7 +2517,7 @@ int EdbDataProc::MakeTracksTree(EdbPVRec *ali, const char *file)
 int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
 {
   Log(2,"EdbDataProc::MakeVertexTree","write vertices into %s ... ",file);
-  TFile fil(file,"RECREATE");
+  TFile *fil = new TFile(file,"RECREATE");
   TTree *vtx= new TTree("vtx","Reconstructed vertices in emulion");
   
   EdbSegP      *tr = new EdbSegP();
@@ -2661,16 +2661,16 @@ int EdbDataProc::MakeVertexTree(TObjArray &vtxarr, const char *file)
     vID++; //now the number of elements in the tree and vertices is the same. vID starts from 0
     }
   vtx->Write();
-  fil.Close();
+  fil->Close();
   Log(2,"EdbDataProc::MakeVertexTree","%d vertices are written",nvtx);
   return nvtx; 
 }
 int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname, const char *rcut, map<int,EdbTrackP*> &trackID_map)
 {
-  TFile f = TFile::Open(fname);
-  if(f.IsZombie()) { Log(1,"EdbDataProc::ReadVertexTree","Error open file %s", fname);  return 0; }
+  TFile *f = TFile::Open(fname);
+  if(f->IsZombie()) { Log(1,"EdbDataProc::ReadVertexTree","Error open file %s", fname);  return 0; }
   
-  TTree *vtx = (TTree*)f.Get("vtx");
+  TTree *vtx = (TTree*)f->Get("vtx");
 
   //vertex variables
   Float_t vx, vy, vz;
@@ -2868,7 +2868,7 @@ int EdbDataProc::ReadVertexTree( EdbVertexRec &vertexrec, const char     *fname,
 int EdbDataProc::MakeTracksTree(TObjArray &trarr, float xv, float yv, const char *file)
 {
   Log(2,"EdbDataProc::MakeTracksTree","write tracks into %s ... ",file);
-  TFile fil(file,"RECREATE");
+  TFile *fil = TFile::Open(file,"RECREATE");
   TTree *tracks= new TTree("tracks","tracks");
 
   EdbTrackP    *track = new EdbTrackP(8);   // why is this track initialised with 8 segments by default ???
@@ -2923,7 +2923,7 @@ int EdbDataProc::MakeTracksTree(TObjArray &trarr, float xv, float yv, const char
   }
 
   tracks->Write();
-  fil.Close();
+  fil->Close();
   Log(2,"EdbDataProc::MakeTracksTree","%d tracks are written",ntr);
   return ntr; 
 }
@@ -2935,10 +2935,10 @@ int EdbDataProc::ReadTracksTree( EdbPVRec &ali,
 				 //				 float    probMin,
 				 const char *rcut )
 {
-  TFile f = TFile::Open(fname);
-  if(f.IsZombie()) { Log(1,"EdbDataProc::ReadTracksTree","Error open file %s", fname);  return 0; }
+  TFile *f = TFile::Open(fname);
+  if(f->IsZombie()) { Log(1,"EdbDataProc::ReadTracksTree","Error open file %s", fname);  return 0; }
   
-  TTree *tracks = (TTree*)f.Get("tracks");
+  TTree *tracks = (TTree*)f->Get("tracks");
   Int_t   trid=0;
   Int_t   nseg=0;
   Int_t   npl=0;
