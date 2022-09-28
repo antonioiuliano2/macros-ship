@@ -51,7 +51,7 @@ void create_tree(){
 
 double GetCharge(float PdgCode){
  TDatabasePDG *pdgdata = TDatabasePDG::Instance();
- double charge = (pdgdata->GetParticle(PdgCode)->Charge())*3.; //pdgdatabase returns charge in quark units (i.e. e- is -1/3.)
+ double charge = (pdgdata->GetParticle(PdgCode)->Charge())/3.; //pdgdatabase returns charge in quark units (i.e. e- is -3.)
  return charge;
 }
 
