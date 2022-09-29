@@ -62,7 +62,7 @@ void read_tree(){
  ROOT::RDataFrame df("mcpoints",inputfile);
  
  //derivative variables, (tri-momentum, energy, mass, charge...);
- auto df1 = df.Define("P","TMath::Sqrt(Px*Px+Py*Py+Pz*Pz)").Define("Charge",GetCharge,{"PdgCode"}); 
+ auto df1 = df.Define("P","TMath::Sqrt(Px*Px+Py*Py+Pz*Pz)").Define("Theta","TMath::ACos(Pz/P)").Define("Charge",GetCharge,{"PdgCode"}); 
  
  //filling histograms
  auto hxy = df1.Histo2D({"hxy","xy distribution of muons;x[cm];y[cm]",140,-600,800,140,-600,800},"X","Y","Weight");
@@ -74,8 +74,11 @@ void read_tree(){
  
  auto hChargemap = df1.Profile2D({"hChargemap","Charge map of muons;x[cm];y[cm];Charge",20,-100,100,20,-100,100,-1,1},"X","Y","Charge","Weight");
  
+ auto hTheta = df1.Histo1D({"hp",";#theta[rad]",60,0,3.},"Theta","Weight");
+ auto hThetamap = df1.Profile2D({"hThetamap","Theta map of muons;x[cm];y[cm];#theta[rad]",20,-100,100,20,-100,100,0,3.},"X","Y","Theta","Weight");
+ 
  //drawing histograms and saving them to a ROOT plot file
- TFile *outputfile = new TFile("plots_negativemuons_upstreamBIG.root","RECREATE");
+ TFile *outputfile = new TFile("plots_muonshitseduard_upstreamBIG.root","RECREATE");
  TCanvas *cxy = new TCanvas("cxy","xy distribution",800,800);
  hxy->DrawClone("COLZ");
  cxy->Write();
@@ -86,6 +89,15 @@ void read_tree(){
  TCanvas *cxy_zoomed_text = new TCanvas("cxy_zoomed_text","xy distribution with text in bins",800,800);
  hxy_zoomed_text->DrawClone("COLZ&&TEXT");    
  cxy_zoomed_text->Write();
+ 
+ TCanvas *cTheta = new TCanvas("cTheta","Theta angle");
+ hTheta->DrawClone();
+ cTheta->Write();
+ 
+ TCanvas *cTheta_map = new TCanvas("cTheta_map","Angular map of muons",800,800);
+ hThetamap->DrawClone("COLZ");
+ cTheta_map->Write();
+ 
  
  TCanvas *cP = new TCanvas("cP","Momentum");
  hP->DrawClone();
