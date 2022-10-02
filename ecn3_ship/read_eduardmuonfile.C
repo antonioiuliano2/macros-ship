@@ -68,7 +68,7 @@ void read_eduardmuonfile(){
     auto hxy_zoomed = df1.Histo2D({"hxy_zoomed","xy distribution of muons;x[cm];y[cm]",400,-200,200,400,-200,200},"sco1X","sco1Y","sco1Weight");
     auto hxy_zoomed_text = df1.Histo2D({"hxy_zoomed_text","xy distribution of muons;x[cm];y[cm]",40,-200,200,40,-200,200},"sco1X","sco1Y","sco1Weight");
 
-    auto hPmap = df1.Profile2D({"hPmap","Momentum map of muons;x[cm];y[cm];P[GeV/c]",20,-100,100,20,-100,100,0,14000},"sco1X","sco1Y","sco1P");
+    auto hPmap = df1.Profile2D({"hPmap","Momentum map of muons;x[cm];y[cm];P[GeV/c]",20,-100,100,20,-100,100,0,14000},"sco1X","sco1Y","sco1P","sco1Weight");
 
     TFile *outputfile = new TFile("plots_muonshitseduard_upstreamBIG.root","RECREATE");
     TCanvas *cxy = new TCanvas("cxy","xy distribution",800,800);
