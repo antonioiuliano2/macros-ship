@@ -1,5 +1,5 @@
 #include "TLegend.h"
-#include "GenieGenerator.h"
+//#include "GenieGenerator.h"
 #include "TGeoBBox.h"
 #include <map>
 //launch with root -l
@@ -63,6 +63,7 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
  int neutrinopdgs[6] = {14,12,16,-14,-12,-16};
  //histogram and counters to be filled
  map<Int_t, TH1D*> hspectrumdet;
+ map<Int_t, TH1D*> hradiusspectrum;
  map<Int_t, Double_t> nall = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos produced, mapped per pdg
  map<Int_t, Double_t> ndet = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos arrived at det
 
@@ -76,6 +77,15 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
 
  hspectrumdet[16] = new TH1D("hnu_tau","Spectrum tau neutrinos arrived at detector;P[GeV/c]",400,0,400);
  hspectrumdet[-16] = new TH1D("hnu_tau_bar","Spectrum tau antineutrinos arrived at detector;P[GeV/c]",400,0,400);
+
+ hradiusspectrum[12] = new TH1D("hRnu_e","Spectrum electron neutrinos arrived at detector;R[m]",200,0,20.);
+ hradiusspectrum[-12] = new TH1D("hRnu_e_bar","Spectrum electron antineutrinos arrived at detector;R[m]",200,0,20.);
+
+ hradiusspectrum[14] = new TH1D("hRnu_mu","Spectrum muon neutrinos arrived at detector;R[m]",200,0,20.);
+ hradiusspectrum[-14] = new TH1D("hRnu_mu_bar","Spectrum muon antineutrinos arrived at detector;R[m]",200,0,20.);
+
+ hradiusspectrum[16] = new TH1D("hRnu_tau","Spectrum tau neutrinos arrived at detector;R[m]",200,0,20.);
+ hradiusspectrum[-16] = new TH1D("hRnu_tau_bar","Spectrum tau antineutrinos arrived at detector;R[m]",200,0,20.);
 
 for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
  int Nentries = hnu_p[neu]->GetEntries();
@@ -134,6 +144,7 @@ for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
 
   nall[neu] +=w;
 
+ hradiusspectrum[neu]->Fill(TMath::Sqrt(start[0]*start[0]+start[1]*start[1])/100.,w); //cm to m!
   if(TMath::Abs(start[0]) < targetdx && TMath::Abs(start[1]) < targetdy){ //checking how many neutrinos are inside the detector
     ndet[neu] += w;
     hspectrumdet[neu]->Fill(pzv,w);
@@ -150,7 +161,7 @@ for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
  outfile->Write();
  outfile->Close();
 }
-
+/* COMMENTING OLD VERSION
 void neutrino_fluxes(){ //projecting neutrino fluxes to the target
  TFile * f = TFile::Open("/home/antonio/SHIPBuild/pythia8_Geant4-withCharm_onlyNeutrinos.root");
  TTree *tree = (TTree*) f->Get("pythia8-Geant4");
@@ -267,7 +278,7 @@ void neutrino_fluxes(){ //projecting neutrino fluxes to the target
  outfile->Write();
  outfile->Close();
 }
-
+*/
 ///////////////STARTING METHOD FOR ESTIMATING NEUTRINO YIELDS/////////////////////////////////////////////////////
 Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = "");
 void nu_yield(){ //passing neutrino types and interaction mode to nu_yield_general for estimation
