@@ -78,19 +78,19 @@ void drawRadiusPlot(){
 
     };
  
- TGraph *gnue_ccdis = new TGraph(10, Radius.data(),nue_ccdis.data());
- TGraph *gnumu_ccdis = new TGraph(10, Radius.data(),numu_ccdis.data());
- TGraph *gnutau_ccdis = new TGraph(10, Radius.data(),nutau_ccdis.data());
+ TGraph *gnue_ccdis = new TGraph(10, (Radius/TMath::Sqrt(2)).data(),nue_ccdis.data());
+ TGraph *gnumu_ccdis = new TGraph(10, (Radius/TMath::Sqrt(2)).data(),numu_ccdis.data());
+ TGraph *gnutau_ccdis = new TGraph(10, (Radius/TMath::Sqrt(2)).data(),nutau_ccdis.data());
 
- TGraph *gnue_bar_charmccdis = new TGraph(10, Radius.data(),nue_bar_charmccdis.data());
- TGraph *gnumu_bar_charmccdis = new TGraph(10, Radius.data(),numu_bar_charmccdis.data());
+ TGraph *gnue_bar_charmccdis = new TGraph(10, (Radius/TMath::Sqrt(2)).data(),nue_bar_charmccdis.data());
+ TGraph *gnumu_bar_charmccdis = new TGraph(10, (Radius/TMath::Sqrt(2)).data(),numu_bar_charmccdis.data());
 
- gnue_ccdis->SetTitle("Electron neutrino yield;R[m]");
- gnumu_ccdis->SetTitle("Muon neutrino yield;R[m]");
- gnutau_ccdis->SetTitle("Tau neutrino yield;R[m]");
+ gnue_ccdis->SetTitle("Electron neutrino yield;dL[m]");
+ gnumu_ccdis->SetTitle("Muon neutrino yield;dL[m]");
+ gnutau_ccdis->SetTitle("Tau neutrino yield;dL[m]");
 
- gnue_bar_charmccdis->SetTitle("Electron neutrino yield;R[m]");
- gnumu_bar_charmccdis->SetTitle("Muon neutrino yield;R[m]");
+ gnue_bar_charmccdis->SetTitle("Electron neutrino yield;dL[m]");
+ gnumu_bar_charmccdis->SetTitle("Muon neutrino yield;dL[m]");
  //normalizing to ship data taking
  gnue_ccdis->Scale(normship/normsim);
  gnumu_ccdis->Scale(normship/normsim);
@@ -112,5 +112,5 @@ void drawRadiusPlot(){
  cgraph->BuildLegend();
  cgraph->SetLogy();
 
- gnumu_ccdis->SetTitle("CCDIS Yields with mass of 1 ton square detector of different R");
+ gnumu_ccdis->SetTitle("CCDIS Yields with mass of 1 ton square detector of different size");
 }
