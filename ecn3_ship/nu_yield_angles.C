@@ -391,6 +391,14 @@ void drawAngularPlot(){
  double normship = 2e+20; //reference for five years of SND DataTaking
  const int nbins = 21;
  //listing results for different radii
+  RVec<string> txoffsetnames = {
+    "-100","-90","-80","-70","-60","-50","-40","-30","-20","-10","0","10","20","30","40","50","60","70","80","90","100"
+  };
+/*  RVec<string> fluxesfilenames = {
+      "plots_-100/","plots_-90/","plots_-80/","plots_-70/","plots_-60/","plots_-50/","plots_-40/","plots_-30/","plots_-20/","plots_-10/",
+      "plots_0/",
+      "plots_10/","plots_20/","plots_30/","plots_40/","plots_50/","plots_60/","plots_70/","plots_80/","plots_90/","plots_100/"
+      };*/
  //list of folder names
  RVec<string> foldernames = {
       "plots_-100/","plots_-90/","plots_-80/","plots_-70/","plots_-60/","plots_-50/","plots_-40/","plots_-30/","plots_-20/","plots_-10/",
@@ -398,11 +406,26 @@ void drawAngularPlot(){
       "plots_10/","plots_20/","plots_30/","plots_40/","plots_50/","plots_60/","plots_70/","plots_80/","plots_90/","plots_100/"
       };
  RVec<double> TXoffset = {-0.1,-0.09,-0.08,-0.07,-0.06,-0.05,-0.04,-0.03,-0.02,-0.01,0.,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1};
- //target arrays
+ //target arrays, fluxes and yields
+ RVec<double> nue_flux,numu_flux,nutau_flux, nue_bar_flux, numu_bar_flux, nutau_bar_flux;
  RVec<double> nue_ccdis,numu_ccdis,nutau_ccdis, nue_bar_ccdis, numu_bar_ccdis, nutau_bar_ccdis;
  //for each angle, I open the file and get the plots
  for (int ibin = 0; ibin < nbins; ibin++){
-  RVec<double> nuyields = GetNuYields(foldernames[ibin]);
+  //first, fluxes section
+  string fileprefix = "neutrinos_detector_txoffset_";
+  string fileformat = ".root";
+  RVec<double> nufluxes = GetNuFluxes(fileprefix+txoffsetnames[ibin]+fileformat);
+  
+  nue_flux.push_back(nufluxes[0]);
+  numu_flux.push_back(nufluxes[1]);
+  nutau_flux.push_back(nufluxes[2]);
+  nue_bar_flux.push_back(nufluxes[3]);
+  numu_bar_flux.push_back(nufluxes[4]);
+  nutau_bar_flux.push_back(nufluxes[5]);    
+  //second, yields section
+  string folderprefix = "plots_";
+  string endfolder ="/";
+  RVec<double> nuyields = GetNuYields(folderprefix+txoffsetnames[ibin]+endfolder);
   //storing information for this angle
   nue_ccdis.push_back(nuyields[0]);
   numu_ccdis.push_back(nuyields[1]);
@@ -441,4 +464,35 @@ void drawAngularPlot(){
  cgraph->Draw("g");
 
  gnumu_ccdis->SetTitle("CCDIS Yields with mass of 1 ton square detector at different positions");
+ //same graphs for nu fluxes
+ TGraph *gnue_flux = new TGraph(21, TXoffset.data(),(nue_flux + nue_bar_flux).data());
+ TGraph *gnumu_flux = new TGraph(21, TXoffset.data(),(numu_flux + numu_bar_flux).data());
+ TGraph *gnutau_flux = new TGraph(21, TXoffset.data(),(nutau_flux + nutau_bar_flux).data());
+
+ gnue_flux->SetTitle("Electron neutrino and antineutrino;TXoffset");
+ gnumu_flux->SetTitle("Muon neutrino and antineutrino;TXoffset");
+ gnutau_flux->SetTitle("Tau neutrino and antineutrino;TXoffset");
+
+ //normalizing to ship data taking
+ gnue_flux->Scale(normship/normsim);
+ gnumu_flux->Scale(normship/normsim);
+ gnutau_flux->Scale(normship/normsim);
+
+ TCanvas *cgraphflux = new TCanvas();
+ gnumu_flux->SetMarkerColor(kRed);
+ gnumu_flux->SetMarkerStyle(20);
+ gnumu_flux->Draw("AP");
+ gnumu_flux->GetYaxis()->SetRangeUser(1,1e+20);
+ gnue_flux->SetMarkerColor(kBlue);
+ gnue_flux->SetMarkerStyle(32);
+ gnue_flux->Draw("P && SAME");
+ gnutau_flux->SetMarkerColor(kBlack);
+ gnutau_flux->Draw("P && SAME"); 
+ gnutau_flux->SetMarkerStyle(21);
+ cgraphflux->BuildLegend();
+ cgraphflux->SetLogy();
+ cgraphflux->Draw("g");
+
+ gnumu_flux->SetTitle("Fluxes with mass of 1 ton square detector at different positions");
+
 }
