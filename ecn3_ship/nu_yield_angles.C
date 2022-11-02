@@ -335,162 +335,82 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   return yield;
 }
 
-//plot as SHiP CDS radius neutrinos
 using namespace ROOT;
-void drawAngularPlot(){
-    double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
-    double normship = 2e+20; //reference for five years of SND DataTaking
-    //listing results for different radii
-    RVec<double> TXoffset = {-0.1,-0.09,-0.08,-0.07,-0.06,-0.05,-0.04,-0.03,-0.02,-0.01,0.,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1};
 
-    RVec<double> nue_ccdis = 
-    {
-        0.000150465,
-        0.000201875,
-        0.000290491,
-        0.000443646,
-        0.000677676,
-        0.00107332,
-        0.00194633,
-        0.00384609,
-        0.00901844,
-        0.0243776,
-        0.0465856,
-        0.024467,
-        0.00911816,
-        0.00389812,
-        0.00196867,
-        0.00110337,
-        0.000660554,
-        0.000423538,
-        0.000301285,
-        0.000215885,
-        0.000154462
-    
-    };
-    RVec<double> numu_ccdis = 
-    {
-        0.000897265,
-        0.00119951,
-        0.00158391,
-        0.00220087,
-        0.00303303,
-        0.00452178,
-        0.00725754,
-        0.0123317,
-        0.0248501,
-        0.062409,
-        0.140555,
-        0.0622429,
-        0.0245795,
-        0.0123041,
-        0.00720903,
-        0.00450247,
-        0.00308555,
-        0.00214904,
-        0.00160362,
-        0.00120146,
-        0.000919495
+RVec<double> GetNuFluxes(string filename){
+  //getting numbers of neutrinos in detector
+  TFile * fluxfile = TFile::Open(filename.data());
+  if (!fluxfile){
+    cout<<"missing fluxfile check name "<<filename.data()<<endl;
+  }
+  const int Nnu = 6; //3 flavours, nu and antinu
+  string histonames[Nnu] = {"hnu_e","hnu_mu","hnu_tau","hnu_e_bar","hnu_mu_bar","hnu_tau_bar"};
+  RVec<double> nufluxes;
+  for (int inu = 0; inu < Nnu; inu++){
+    TH1D *hnu = (TH1D*) fluxfile->Get(histonames[inu].data());
+    if (hnu) nufluxes.push_back(hnu->Integral());
+    else cout<<"Missing histogram object, check name "<<histonames[inu].data()<<endl;
+  }
 
-    };
-    RVec<double> nutau_ccdis = 
-    {
-        2.23501e-06,
-        3.58261e-06,
-        5.92011e-06,
-        1.18057e-05,
-        2.26625e-05,
-        4.31986e-05,
-        7.8494e-05,
-        0.000177913,
-        0.000406983,
-        0.000889832,
-        0.00136088,
-        0.000845344,
-        0.000383742,
-        0.000175138,
-        8.25427e-05,
-        4.09239e-05,
-        2.12316e-05,
-        1.19879e-05,
-        6.76853e-06,
-        4.29643e-06,
-        2.69863e-06
+  fluxfile->Close();
+  return nufluxes;
 
-    };
-    RVec<double> nue_bar_ccdis = 
-    {
-        5.20875e-05,
-        7.56794e-05,
-        0.000109863,
-        0.000172347,
-        0.000269634,
-        0.000458883,
-        0.000780619,
-        0.00150501,
-        0.00292116,
-        0.00602196,
-        0.00921616,
-        0.00599387,
-        0.00294119,
-        0.00147599,
-        0.00080625,
-        0.000468544,
-        0.00027651,
-        0.000174293,
-        0.000111018,
-        7.60751e-05,
-        5.41882e-05,
-    };
-    RVec<double> numu_bar_ccdis = 
-    {
-        0.000166477,
-        0.000230491,
-        0.000326247,
-        0.000470075,
-        0.000700624,
-        0.00107943,
-        0.00182813,
-        0.00330833,
-        0.00651237,
-        0.015072,
-        0.0309233,
-        0.0152995,
-        0.00656267,
-        0.00333933,
-        0.00184458,
-        0.00107633,
-        0.000703023,
-        0.000466147,
-        0.000322246,
-        0.00023509,
-        0.000170064,
-    };
-    RVec<double> nutau_bar_ccdis = 
-    {
-        8.09844e-07,
-        7.58057e-07,
-        1.37879e-06,
-        3.28417e-06,
-        6.26638e-06,
-        1.39533e-05,
-        2.96735e-05,
-        7.5985e-05,
-        0.000189736,
-        0.000528767,
-        0.000970689,
-        0.000549233,
-        0.000191676,
-        7.28229e-05,
-        2.90814e-05,
-        1.32335e-05,
-        6.45119e-06,
-        2.81304e-06,
-        1.65261e-06,
-        1.15858e-06,
-        6.46128e-07,
-    };
  
+}
+
+RVec<double> GetNuYields(string foldername){
+  //getting numbers of neutrinos in detector
+  const int Nnu = 6; //3 flavours, nu and antinu
+  string nunames[Nnu] = {"nu_e_dis_cc","nu_mu_dis_cc","nu_tau_dis_cc","nu_e_bar_dis_cc","nu_mu_bar_dis_cc","nu_tau_bar_dis_cc"};
+  string histonames[Nnu] = {
+    "hspectrum_nu_e_intdis_cc","hspectrum_nu_mu_intdis_cc","hspectrum_nu_tau_intdis_cc",
+    "hspectrum_nu_e_bar_intdis_cc","hspectrum_nu_mu_bar_intdis_cc","hspectrum_nu_tau_bar_intdis_cc"
+  };
+  RVec<double> nuyields;
+  for (int inu = 0; inu < Nnu; inu++){
+    string prefix = "results_";
+    string fileformat = ".root";
+    TFile * fluxfile = TFile::Open((foldername+prefix+nunames[inu]+fileformat).data());
+    if (!fluxfile){
+    cout<<"missing fluxfile check name "<<(foldername+prefix+nunames[inu]+fileformat).data()<<endl;
+    }
+
+    string histoprefix = "hspectrum_";
+    TH1D *hnu = (TH1D*) fluxfile->Get(histonames[inu].data());
+    if (hnu) nuyields.push_back(hnu->Integral());
+    else cout<<"Missing histogram object, check name "<<histonames[inu].data()<<endl;
+
+    fluxfile->Close();
+  }
+  return nuyields;
+}
+
+//plot as SHiP CDS radius neutrinos
+void drawAngularPlot(){
+ double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
+ double normship = 2e+20; //reference for five years of SND DataTaking
+ const int nbins = 21;
+ //listing results for different radii
+ //list of folder names
+ RVec<string> foldernames = {
+      "plots_-100/","plots_-90/","plots_-80/","plots_-70/","plots_-60/","plots_-50/","plots_-40/","plots_-30/","plots_-20/","plots_-10/",
+      "plots_0/",
+      "plots_10/","plots_20/","plots_30/","plots_40/","plots_50/","plots_60/","plots_70/","plots_80/","plots_90/","plots_100/"
+      };
+ RVec<double> TXoffset = {-0.1,-0.09,-0.08,-0.07,-0.06,-0.05,-0.04,-0.03,-0.02,-0.01,0.,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1};
+ //target arrays
+ RVec<double> nue_ccdis,numu_ccdis,nutau_ccdis, nue_bar_ccdis, numu_bar_ccdis, nutau_bar_ccdis;
+ //for each angle, I open the file and get the plots
+ for (int ibin = 0; ibin < nbins; ibin++){
+  RVec<double> nuyields = GetNuYields(foldernames[ibin]);
+  //storing information for this angle
+  nue_ccdis.push_back(nuyields[0]);
+  numu_ccdis.push_back(nuyields[1]);
+  nutau_ccdis.push_back(nuyields[2]);
+  nue_bar_ccdis.push_back(nuyields[3]);
+  numu_bar_ccdis.push_back(nuyields[4]);
+  nutau_bar_ccdis.push_back(nuyields[5]);
+ }
  //doing the graph. NOTE: I ADD TOGETHER NEUTRINOS AND ANTINEUTRINOS
  TGraph *gnue_ccdis = new TGraph(21, TXoffset.data(),(nue_ccdis + nue_bar_ccdis).data());
  TGraph *gnumu_ccdis = new TGraph(21, TXoffset.data(),(numu_ccdis + numu_bar_ccdis).data());
