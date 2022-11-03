@@ -70,7 +70,6 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
  int neutrinopdgs[6] = {14,12,16,-14,-12,-16};
  //histogram and counters to be filled
  map<Int_t, TH1D*> hspectrumdet;
- map<Int_t, TH1D*> hradiusspectrum;
  map<Int_t, Double_t> nall = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos produced, mapped per pdg
  map<Int_t, Double_t> ndet = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos arrived at det
 
@@ -84,15 +83,6 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
 
  hspectrumdet[16] = new TH1D("hnu_tau","Spectrum tau neutrinos arrived at detector;P[GeV/c]",400,0,400);
  hspectrumdet[-16] = new TH1D("hnu_tau_bar","Spectrum tau antineutrinos arrived at detector;P[GeV/c]",400,0,400);
-
- hradiusspectrum[12] = new TH1D("hRnu_e","Spectrum electron neutrinos arrived at detector;R[m]",200,0,20.);
- hradiusspectrum[-12] = new TH1D("hRnu_e_bar","Spectrum electron antineutrinos arrived at detector;R[m]",200,0,20.);
-
- hradiusspectrum[14] = new TH1D("hRnu_mu","Spectrum muon neutrinos arrived at detector;R[m]",200,0,20.);
- hradiusspectrum[-14] = new TH1D("hRnu_mu_bar","Spectrum muon antineutrinos arrived at detector;R[m]",200,0,20.);
-
- hradiusspectrum[16] = new TH1D("hRnu_tau","Spectrum tau neutrinos arrived at detector;R[m]",200,0,20.);
- hradiusspectrum[-16] = new TH1D("hRnu_tau_bar","Spectrum tau antineutrinos arrived at detector;R[m]",200,0,20.);
 
 for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
  int Nentries = hnu_p[neu]->GetEntries();
@@ -298,8 +288,7 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
 
   TFile *outputfile = new TFile(Form("plots_%i/results_%s_%s%s.root",int(txoffset * 1000),nu,intmode,charmmode),"RECREATE");
   TGraph *hxsec_total = new TGraph(); //summing protons and neutrons when both are present
-  TH1D *hspectrum_int = new TH1D(Form("hspectrum_%s_int%s%s",nu,intmode,charmmode),Form("Spettro neutrini %s interagenti in %s%s",nu,intmode,charmmode), 400, 0, 400); 
-  TH1D *htest = new TH1D(Form("htest_%s_int%s%s",nu,intmode,charmmode),Form("Spettro neutrini %s interagenti in %s%s",nu,intmode,charmmode), 400, 0, 400); 
+  TH1D *hspectrum_int = new TH1D(Form("hspectrum_%s_int%s%s",nu,intmode,charmmode),Form("Spettro neutrini %s interagenti in %s%s",nu,intmode,charmmode), 400, 0, 400);  
 
   for (int n = 0; n < hfluxnu->GetNbinsX(); n++){
   
@@ -314,7 +303,6 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
 
   hxsec_total->SetPoint(n+1,x,ysec);
   Ninteracting = ysec *1e-38 * NT * y/surface * hfluxnu->GetBinWidth(n+1);  
-  htest->SetBinContent(n+1,hfluxnu->GetBinWidth(n+1)*y);
   hspectrum_int->SetBinContent(n+1,Ninteracting);
 
   }
@@ -329,9 +317,6 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   outputfile->Write();
   hxsec_total->Write("xsec");
   outputfile->Close();
-  //cout<<"TEST "<<htest->GetEntries()<<endl;
-  //Double_t countingtest = htest->Integral();
-  //cout<<"Test conteggio "<<counting<<"integrale manuale "<<countingtest<<endl;
   return yield;
 }
 
