@@ -64,6 +64,7 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
 
  int neutrinopdgs[6] = {14,12,16,-14,-12,-16};
  //histogram and counters to be filled
+ map<Int_t, TH1D*> htxnu;
  map<Int_t, TH1D*> hspectrumdet;
  map<Int_t, TH1D*> hradiusspectrum;
  map<Int_t, Double_t> nall = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos produced, mapped per pdg
@@ -73,12 +74,20 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
 
  hspectrumdet[12] = new TH1D("hnu_e","Spectrum electron neutrinos arrived at detector;P[GeV/c]",400,0,400);
  hspectrumdet[-12] = new TH1D("hnu_e_bar","Spectrum electron antineutrinos arrived at detector;P[GeV/c]",400,0,400);
+ htxnu[12] = new TH1D("htx_nu_e","Electron Neutrino angular spectrum; TX",20,-0.1,0.1);
+ htxnu[-12] = new TH1D("htx_nu_e_bar","Electron Antineutrino angular spectrum; TX",20,-0.1,0.1);
 
  hspectrumdet[14] = new TH1D("hnu_mu","Spectrum muon neutrinos arrived at detector;P[GeV/c]",400,0,400);
  hspectrumdet[-14] = new TH1D("hnu_mu_bar","Spectrum muon antineutrinos arrived at detector;P[GeV/c]",400,0,400);
 
+ htxnu[14] = new TH1D("htx_nu_mu","Muon Neutrino angular spectrum; TX",20,-0.1,0.1);
+ htxnu[-14] = new TH1D("htx_nu_mu_bar","Muon Antineutrino angular spectrum; TX",20,-0.1,0.1);
+
  hspectrumdet[16] = new TH1D("hnu_tau","Spectrum tau neutrinos arrived at detector;P[GeV/c]",400,0,400);
  hspectrumdet[-16] = new TH1D("hnu_tau_bar","Spectrum tau antineutrinos arrived at detector;P[GeV/c]",400,0,400);
+
+ htxnu[16] = new TH1D("htx_nu_tau","Tau Neutrino angular spectrum; TX",20,-0.1,0.1);
+ htxnu[-16] = new TH1D("htx_nu_tau_bar","Tau Antineutrino angular spectrum; TX",20,-0.1,0.1); 
 
 for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
  int Nentries = hnu_p[neu]->GetEntries();
@@ -130,6 +139,7 @@ for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
   }
   //if (i%100000==0) cout<<pout[0]<<" "<<pout[1]<<" "<<pout[2]<<" "<<pzv<<endl;
    //end px,py,pz generation, now I can follow my previous procedure for neutrino fluxes
+  htxnu[neu]->Fill(txnu, w); //I want to study the spectrum of neutrinos, even if they do not enter my detector
 
   start[0] = txnu * deltaz; //projecting produced neutrinos to neutrino detector, aggiungere x e y non cambia significativamente il risultato
   start[1] = tynu * deltaz;
