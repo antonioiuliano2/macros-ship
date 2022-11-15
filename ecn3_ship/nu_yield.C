@@ -324,3 +324,44 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   outputfile->Close();
   return yield;
 }
+
+void drawSpectra(){
+  const double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
+  const double normship = 2e+20; //reference for five years of SND DataTaking
+  //Drawing stored histograms for neutrinos
+  TFile *inputfile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/35m/neutrinos_detector.root");
+  //Getting plots
+  TH1D *htx_nu_e = (TH1D*) inputfile->Get("htx_nu_e");
+  TH1D *htx_nu_e_bar = (TH1D*) inputfile->Get("htx_nu_e_bar");  
+
+  TH1D *htx_nu_mu = (TH1D*) inputfile->Get("htx_nu_mu");
+  TH1D *htx_nu_mu_bar = (TH1D*) inputfile->Get("htx_nu_mu_bar");
+
+  TH1D *htx_nu_tau = (TH1D*) inputfile->Get("htx_nu_tau");
+  TH1D *htx_nu_tau_bar = (TH1D*) inputfile->Get("htx_nu_tau_bar");
+
+  //summing neutrinos and antineutrinos together
+  htx_nu_e->Add(htx_nu_e_bar);
+  htx_nu_mu->Add(htx_nu_mu_bar);
+  htx_nu_tau->Add(htx_nu_tau_bar);
+
+  //normalizing to five iyears of data taking
+  htx_nu_e->Scale(normship/normsim);
+  htx_nu_mu->Scale(normship/normsim);
+  htx_nu_tau->Scale(normship/normsim);
+
+  //drawing them together
+  TCanvas *c = new TCanvas();
+  htx_nu_mu->SetLineColor(kRed);
+  htx_nu_mu->Draw();
+  htx_nu_e->SetLineColor(kBlue);
+  htx_nu_e->Draw("SAMES");
+  htx_nu_tau->SetLineColor(kBlack);
+  htx_nu_tau->Draw("SAMES");
+  c->BuildLegend();
+
+
+
+
+
+}
