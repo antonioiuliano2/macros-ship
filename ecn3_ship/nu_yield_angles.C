@@ -367,6 +367,8 @@ RVec<double> GetNuYields(string foldername){
 
     fluxfile->Close();
   }
+  cout<<foldername<<endl;
+  cout<<nuyields/(5e+13)*2e+20*4.5<<endl;
   return nuyields;
 }
 
@@ -374,6 +376,7 @@ RVec<double> GetNuYields(string foldername){
 void drawAngularPlot(){
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
  double normship = 2e+20; //reference for five years of SND DataTaking
+ double scalemass = 4.5;
  const int nbins = 21;
  //listing results for different radii
   RVec<string> txoffsetnames = {
@@ -429,9 +432,9 @@ void drawAngularPlot(){
  gnutau_ccdis->SetTitle("Tau neutrino and antineutrino;TXoffset");
 
  //normalizing to ship data taking
- gnue_ccdis->Scale(normship/normsim);
- gnumu_ccdis->Scale(normship/normsim);
- gnutau_ccdis->Scale(normship/normsim);
+ gnue_ccdis->Scale(normship/normsim * scalemass);
+ gnumu_ccdis->Scale(normship/normsim * scalemass);
+ gnutau_ccdis->Scale(normship/normsim * scalemass);
 
  TCanvas *cgraph = new TCanvas();
  gnumu_ccdis->SetMarkerColor(kRed);
@@ -448,7 +451,7 @@ void drawAngularPlot(){
  cgraph->SetLogy();
  cgraph->Draw("g");
 
- gnumu_ccdis->SetTitle("CCDIS Yields with mass of 1 ton square detector at different positions");
+ gnumu_ccdis->SetTitle(Form("CCDIS Yields with mass of %.1f ton square detector at different angular positions",scalemass));
  //same graphs for nu fluxes
  TGraph *gnue_flux = new TGraph(21, TXoffset.data(),(nue_flux + nue_bar_flux).data());
  TGraph *gnumu_flux = new TGraph(21, TXoffset.data(),(numu_flux + numu_bar_flux).data());
@@ -478,6 +481,6 @@ void drawAngularPlot(){
  cgraphflux->SetLogy();
  cgraphflux->Draw("g");
 
- gnumu_flux->SetTitle("Fluxes with mass of 1 ton square detector at different positions");
+ gnumu_flux->SetTitle("Fluxes with square detector at different positions");
 
 }
