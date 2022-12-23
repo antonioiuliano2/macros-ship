@@ -25,6 +25,7 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
  Double_t targetdy = targetdx;
 
  Float_t pzv;
+ Double_t pt = -10000.;
  Double_t start[3];
 
  Int_t idbase=1200;
@@ -64,9 +65,9 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
 
  int neutrinopdgs[6] = {14,12,16,-14,-12,-16};
  //histogram and counters to be filled
+ map<Int_t, TH1D*> hthetanu;
  map<Int_t, TH1D*> htxnu;
  map<Int_t, TH1D*> hspectrumdet;
- map<Int_t, TH1D*> hradiusspectrum;
  map<Int_t, Double_t> nall = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos produced, mapped per pdg
  map<Int_t, Double_t> ndet = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos arrived at det
 
@@ -88,6 +89,17 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
 
  htxnu[16] = new TH1D("htx_nu_tau","Tau Neutrino angular spectrum; TX",20,-0.1,0.1);
  htxnu[-16] = new TH1D("htx_nu_tau_bar","Tau Antineutrino angular spectrum; TX",20,-0.1,0.1); 
+ 
+ //theta angles neutrinos
+ hthetanu[12] = new TH1D("htheta_nu_e","Electron Neutrino angular spectrum; #theta[rad]",10,0.,0.1);
+ hthetanu[-12] = new TH1D("htheta_nu_e_bar","Electron Antineutrino angular spectrum; #theta[rad]",10,0.,0.1);
+
+ hthetanu[14] = new TH1D("htheta_nu_mu","Muon Neutrino angular spectrum; #theta[rad]",10,0.,0.1);
+ hthetanu[-14] = new TH1D("htheta_nu_mu_bar","Muon Antineutrino angular spectrum; #theta[rad]",10,0.,0.1);
+
+ hthetanu[16] = new TH1D("htheta_nu_tau","Tau Neutrino angular spectrum; #theta[rad]",10,0.,0.1);
+ hthetanu[-16] = new TH1D("htheta_nu_tau_bar","Tau Antineutrino angular spectrum; #theta[rad]",10,0.,0.1); 
+ 
 
 for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
  int Nentries = hnu_p[neu]->GetEntries();
@@ -119,7 +131,7 @@ for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
       if (nbx>nbinmx) nbx=nbinmx;
       Double_t ptlog10=pyslice[idhnu][nbx]->GetRandom();
       //hist was filled with: log10(pt+0.01)
-      Double_t pt=pow(10.,ptlog10)-0.01;
+      pt=pow(10.,ptlog10)-0.01;
       //rotate pt in phi:
       Double_t phi=gRandom->Uniform(0.,2*TMath::Pi());
       pout[0] = cos(phi)*pt;
@@ -137,9 +149,11 @@ for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
         //printf("param %e %e %e \n",bparam,mparam[6],mparam[7]);
        }
   }
+  Double_t thetanu = TMath::ASin(pt/pzv); //adding solid angle theta to the study (pt is psintheta, and pzv==pt)
   //if (i%100000==0) cout<<pout[0]<<" "<<pout[1]<<" "<<pout[2]<<" "<<pzv<<endl;
    //end px,py,pz generation, now I can follow my previous procedure for neutrino fluxes
   htxnu[neu]->Fill(txnu, w); //I want to study the spectrum of neutrinos, even if they do not enter my detector
+  hthetanu[neu]->Fill(thetanu,w);
 
   start[0] = txnu * deltaz; //projecting produced neutrinos to neutrino detector, aggiungere x e y non cambia significativamente il risultato
   start[1] = tynu * deltaz;
@@ -340,15 +354,34 @@ void drawSpectra(){
   TH1D *htx_nu_tau = (TH1D*) inputfile->Get("htx_nu_tau");
   TH1D *htx_nu_tau_bar = (TH1D*) inputfile->Get("htx_nu_tau_bar");
 
+  //Theta plots
+  TH1D *htheta_nu_e = (TH1D*) inputfile->Get("htheta_nu_e");
+  TH1D *htheta_nu_e_bar = (TH1D*) inputfile->Get("htheta_nu_e_bar");  
+
+  TH1D *htheta_nu_mu = (TH1D*) inputfile->Get("htheta_nu_mu");
+  TH1D *htheta_nu_mu_bar = (TH1D*) inputfile->Get("htheta_nu_mu_bar");
+
+  TH1D *htheta_nu_tau = (TH1D*) inputfile->Get("htheta_nu_tau");
+  TH1D *htheta_nu_tau_bar = (TH1D*) inputfile->Get("htheta_nu_tau_bar");
+
+
   //summing neutrinos and antineutrinos together
   htx_nu_e->Add(htx_nu_e_bar);
   htx_nu_mu->Add(htx_nu_mu_bar);
   htx_nu_tau->Add(htx_nu_tau_bar);
 
+  htheta_nu_e->Add(htheta_nu_e_bar);
+  htheta_nu_mu->Add(htheta_nu_mu_bar);
+  htheta_nu_tau->Add(htheta_nu_tau_bar);
+
   //normalizing to five iyears of data taking
   htx_nu_e->Scale(normship/normsim);
   htx_nu_mu->Scale(normship/normsim);
   htx_nu_tau->Scale(normship/normsim);
+
+  htheta_nu_e->Scale(normship/normsim);
+  htheta_nu_mu->Scale(normship/normsim);
+  htheta_nu_tau->Scale(normship/normsim);
 
   //drawing them together
   TCanvas *c = new TCanvas();
@@ -359,6 +392,15 @@ void drawSpectra(){
   htx_nu_tau->SetLineColor(kBlack);
   htx_nu_tau->Draw("SAMES");
   c->BuildLegend();
+
+  TCanvas *ctheta = new TCanvas();
+  htheta_nu_mu->SetLineColor(kRed);
+  htheta_nu_mu->Draw();
+  htheta_nu_e->SetLineColor(kBlue);
+  htheta_nu_e->Draw("SAMES");
+  htheta_nu_tau->SetLineColor(kBlack);
+  htheta_nu_tau->Draw("SAMES");
+  ctheta->BuildLegend();
 
 
 

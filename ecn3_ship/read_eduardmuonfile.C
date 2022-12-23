@@ -88,7 +88,7 @@ void read_eduardmuonfile(){
 
 }
 
-void plothistograms(){
+void plotmuondensityhistogram(){
     TFile *histfile = TFile::Open("plots_muonshitseduard_upstreamBIG.root");
     TCanvas *cxy = (TCanvas*) histfile->Get("cxy_zoomed_text");
 
