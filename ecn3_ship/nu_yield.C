@@ -6,17 +6,30 @@
 //>>.L nu_yield.C
 //generate_neutrinos()
 
-void generate_neutrinos(){ //generate neutrino produced spectra according to Thomas histograms
+void generate_neutrinos(int neutrinosource = 2){ //generate neutrino produced spectra according to Thomas histograms
 
- TFile * fInputFile = TFile::Open("pythia8_Geant4_1.0_withCharm_nu.root");
+ cout<<"Propagating neutrino spectra with option (0 no charm, 1 only charm, 2 with charm): "<<neutrinosource<<endl;
+ TString inputfilenames[3] = {"pythia8_Geant4_1.0_c_nu.root","pythia8_Geant4_charm_nu_1.0.root","pythia8_Geant4_1.0_withCharm_nu.root"};
+
+ TFile * fInputFile = TFile::Open(inputfilenames[neutrinosource].Data());
  map<Int_t, TH1D*> hnu_p;
  //getting 1D spectra
- hnu_p[12] =  (TH1D*) fInputFile->Get("1012");
- hnu_p[14] =  (TH1D*) fInputFile->Get("1014");
- hnu_p[16] =  (TH1D*) fInputFile->Get("1016");
- hnu_p[-12] =  (TH1D*) fInputFile->Get("2012");
- hnu_p[-14] =  (TH1D*) fInputFile->Get("2014");
- hnu_p[-16] =  (TH1D*) fInputFile->Get("2016");
+ if(neutrinosource > 1){
+  hnu_p[12] =  (TH1D*) fInputFile->Get("1012");
+  hnu_p[14] =  (TH1D*) fInputFile->Get("1014");
+  hnu_p[16] =  (TH1D*) fInputFile->Get("1016");
+  hnu_p[-12] =  (TH1D*) fInputFile->Get("2012");
+  hnu_p[-14] =  (TH1D*) fInputFile->Get("2014");
+  hnu_p[-16] =  (TH1D*) fInputFile->Get("2016");
+ }
+ else{
+  hnu_p[12] =  (TH1D*) fInputFile->Get("12");
+  hnu_p[14] =  (TH1D*) fInputFile->Get("14");
+  hnu_p[16] =  (TH1D*) fInputFile->Get("16");
+  hnu_p[-12] =  (TH1D*) fInputFile->Get("-12");
+  hnu_p[-14] =  (TH1D*) fInputFile->Get("-14");
+  hnu_p[-16] =  (TH1D*) fInputFile->Get("-16");
+ }
 
  //Float_t deltaz = 3969.; //distance between center of proton target and center of neutrino target
  Float_t deltaz = 3500.; //for now, let us assume exactly 40 m distance target-nutarget (we do not have the geometry yet)
@@ -39,12 +52,13 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
  for (Int_t idnu=12;idnu<17;idnu+=2){
     for (Int_t idadd=-1;idadd<2;idadd+=2){
   	  Int_t idhnu=idbase+idnu;
-      if (idadd<0) idhnu+=1000;
-	    sprintf(ts,"%d",idhnu);
+      if (idadd<0) idhnu+=1000; //note, we use it in all cases, even if not present in histo names. It is used to map arrays later
+      if (neutrinosource > 1) sprintf(ts,"%d",idhnu); //in the with charm files, 2D histograms have names 1212, 2212
+      else sprintf(ts,"2d25_%d",idnu*idadd); //in the no charm and only charm files, 2D histograms have 2d25_12, 2d25_-12 names
 	    //pickup corresponding (log10(p),log10(pt)) histogram
       if (fInputFile->FindObjectAny(ts)){
            TH2F* h2tmp = (TH2F*) fInputFile->Get(ts);
-           printf("HISTID=%d, Title:%s\n",idhnu,h2tmp->GetTitle());
+           printf("HISTID=%s, Title:%s\n",ts,h2tmp->GetTitle());
 	         sprintf(ts,"px_%d",idhnu);
            //make its x-projection, to later be able to convert log10(p) to its bin-number
            pxhist[idhnu]=h2tmp->ProjectionX(ts,1,-1);
@@ -71,7 +85,8 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
  map<Int_t, Double_t> nall = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos produced, mapped per pdg
  map<Int_t, Double_t> ndet = {{12, 0.},{-12,0.},{14,0.},{-14,0.},{16,0.},{-16,0.}}; //neutrinos arrived at det
 
- TFile *outfile = new TFile("neutrinos_detector.root","RECREATE"); 
+ TString outputfilenames[3] = {"neutrinos_detector_nocharm.root","neutrinos_detector_charm.root","neutrinos_detector.root"};
+ TFile *outfile = new TFile(outputfilenames[neutrinosource],"RECREATE"); 
 
  hspectrumdet[12] = new TH1D("hnu_e","Spectrum electron neutrinos arrived at detector;P[GeV/c]",400,0,400);
  hspectrumdet[-12] = new TH1D("hnu_e_bar","Spectrum electron antineutrinos arrived at detector;P[GeV/c]",400,0,400);
@@ -178,31 +193,32 @@ for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
  outfile->Close();
 }
 ///////////////STARTING METHOD FOR ESTIMATING NEUTRINO YIELDS/////////////////////////////////////////////////////
-Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = "");
-void nu_yield(){ //passing neutrino types and interaction mode to nu_yield_general for estimation
+Double_t nu_yield_general(int neutrinosource, const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = "");
+void nu_yield(int neutrinosource = 2){ //passing neutrino types and interaction mode to nu_yield_general for estimation
+  cout<<"Interacting neutrino with source option (0 no charm, 1 only charm, 2 with charm): "<<neutrinosource<<endl;
   TCanvas *cspectra = new TCanvas();
   cspectra->Divide(3,3);
     
   cout<<"Yields per nue"<<endl;
   cspectra->cd(1);
-  Double_t nue_dis_cc = nu_yield_general("nu_e","dis_cc");
+  Double_t nue_dis_cc = nu_yield_general(neutrinosource,"nu_e","dis_cc");
   cspectra->cd(2);
-  Double_t nue_bar_dis_cc = nu_yield_general("nu_e_bar","dis_cc");
+  Double_t nue_bar_dis_cc = nu_yield_general(neutrinosource,"nu_e_bar","dis_cc");
   cspectra->cd(3);
-  Double_t nue_res_cc = nu_yield_general("nu_e","res_cc");
+  Double_t nue_res_cc = nu_yield_general(neutrinosource,"nu_e","res_cc");
   cspectra->cd(4);
-  Double_t nue_bar_res_cc = nu_yield_general("nu_e_bar","res_cc");
+  Double_t nue_bar_res_cc = nu_yield_general(neutrinosource,"nu_e_bar","res_cc");
   cspectra->cd(5);
-  Double_t nue_qel_cc = nu_yield_general("nu_e","qel_cc");
+  Double_t nue_qel_cc = nu_yield_general(neutrinosource,"nu_e","qel_cc");
   cspectra->cd(6);
-  Double_t nue_bar_qel_cc = nu_yield_general("nu_e_bar","qel_cc");
+  Double_t nue_bar_qel_cc = nu_yield_general(neutrinosource,"nu_e_bar","qel_cc");
   cspectra->cd(7);
-  Double_t nue_dis_cc_charm =  nu_yield_general("nu_e","dis_cc","_charm");
+  Double_t nue_dis_cc_charm =  nu_yield_general(neutrinosource,"nu_e","dis_cc","_charm");
   cspectra->cd(8);
-  Double_t nue_bar_dis_cc_charm = nu_yield_general("nu_e_bar","dis_cc","_charm");
+  Double_t nue_bar_dis_cc_charm = nu_yield_general(neutrinosource,"nu_e_bar","dis_cc","_charm");
   cspectra->cd(9);
-  Double_t nue_el =  nu_yield_general("nu_e","ve_ccncmix");
-  Double_t nue_bar_el =  nu_yield_general("nu_e_bar","ve_ccncmix");
+  Double_t nue_el =  nu_yield_general(neutrinosource,"nu_e","ve_ccncmix");
+  Double_t nue_bar_el =  nu_yield_general(neutrinosource,"nu_e_bar","ve_ccncmix");
   cout<<endl;
 
 
@@ -214,24 +230,24 @@ void nu_yield(){ //passing neutrino types and interaction mode to nu_yield_gener
   cspectramu->Divide(3,3);
 
   cspectramu->cd(1);
-  Double_t numu_dis_cc_charm =nu_yield_general("nu_mu","dis_cc","_charm");
+  Double_t numu_dis_cc_charm =nu_yield_general(neutrinosource,"nu_mu","dis_cc","_charm");
   cspectramu->cd(2);
-  Double_t numu_bar_dis_cc_charm =nu_yield_general("nu_mu_bar","dis_cc","_charm");
+  Double_t numu_bar_dis_cc_charm =nu_yield_general(neutrinosource,"nu_mu_bar","dis_cc","_charm");
   cspectramu->cd(3);
-  Double_t numu_dis_cc = nu_yield_general("nu_mu","dis_cc");
+  Double_t numu_dis_cc = nu_yield_general(neutrinosource,"nu_mu","dis_cc");
   cspectramu->cd(4);  
-  Double_t numu_bar_dis_cc =nu_yield_general("nu_mu_bar","dis_cc");
+  Double_t numu_bar_dis_cc =nu_yield_general(neutrinosource,"nu_mu_bar","dis_cc");
   cspectramu->cd(5);  
-  Double_t numu_res_cc =nu_yield_general("nu_mu","res_cc");
+  Double_t numu_res_cc =nu_yield_general(neutrinosource,"nu_mu","res_cc");
   cspectramu->cd(6);
-  Double_t numu_bar_res_cc =nu_yield_general("nu_mu_bar","res_cc");
+  Double_t numu_bar_res_cc =nu_yield_general(neutrinosource,"nu_mu_bar","res_cc");
   cspectramu->cd(7);
-  Double_t numu_qel_cc =nu_yield_general("nu_mu","qel_cc");
+  Double_t numu_qel_cc =nu_yield_general(neutrinosource,"nu_mu","qel_cc");
   cspectramu->cd(8);
-  Double_t numu_bar_qel_cc =nu_yield_general("nu_mu_bar","qel_cc");
+  Double_t numu_bar_qel_cc =nu_yield_general(neutrinosource,"nu_mu_bar","qel_cc");
   cspectramu->cd(9);
-  Double_t numu_el =nu_yield_general("nu_mu","ve_nc");   
-  Double_t numu_bar_el =nu_yield_general("nu_mu_bar","ve_nc");
+  Double_t numu_el =nu_yield_general(neutrinosource,"nu_mu","ve_nc");   
+  Double_t numu_bar_el =nu_yield_general(neutrinosource,"nu_mu_bar","ve_nc");
   cout<<endl;
 
   cout<<"NUMU"<<" "<<numu_dis_cc<<" "<<numu_dis_cc_charm<<" "<<numu_res_cc<<" "<<numu_qel_cc<<" "<<numu_el<<endl;
@@ -241,34 +257,36 @@ void nu_yield(){ //passing neutrino types and interaction mode to nu_yield_gener
   cspectratau->Divide(3,3);
   cout<<"Yields per nutau"<<endl;
   cspectratau->cd(1);
-  Double_t nutau_dis_cc_charm =nu_yield_general("nu_tau","dis_cc","_charm");
+  Double_t nutau_dis_cc_charm =nu_yield_general(neutrinosource,"nu_tau","dis_cc","_charm");
   cspectratau->cd(2);
-  Double_t nutau_bar_dis_cc_charm =nu_yield_general("nu_tau_bar","dis_cc","_charm");
+  Double_t nutau_bar_dis_cc_charm =nu_yield_general(neutrinosource,"nu_tau_bar","dis_cc","_charm");
   cspectratau->cd(3);
-  Double_t nutau_dis_cc = nu_yield_general("nu_tau","dis_cc");
+  Double_t nutau_dis_cc = nu_yield_general(neutrinosource,"nu_tau","dis_cc");
   cspectratau->cd(4);
-  Double_t nutau_bar_dis_cc =nu_yield_general("nu_tau_bar","dis_cc");
+  Double_t nutau_bar_dis_cc =nu_yield_general(neutrinosource,"nu_tau_bar","dis_cc");
   cspectratau->cd(5);
-  Double_t nutau_qel_cc =nu_yield_general("nu_tau","qel_cc");
+  Double_t nutau_qel_cc =nu_yield_general(neutrinosource,"nu_tau","qel_cc");
   cspectratau->cd(6);
-  Double_t nutau_bar_qel_cc =nu_yield_general("nu_tau_bar","qel_cc");
+  Double_t nutau_bar_qel_cc =nu_yield_general(neutrinosource,"nu_tau_bar","qel_cc");
   cspectratau->cd(7);  
-  Double_t nutau_res_cc =nu_yield_general("nu_tau","res_cc");
+  Double_t nutau_res_cc =nu_yield_general(neutrinosource,"nu_tau","res_cc");
   cspectratau->cd(8);
-  Double_t nutau_bar_res_cc =nu_yield_general("nu_tau_bar","res_cc");
+  Double_t nutau_bar_res_cc =nu_yield_general(neutrinosource,"nu_tau_bar","res_cc");
   cspectratau->cd(9);
-  Double_t nutau_el =nu_yield_general("nu_tau","ve_nc");   
-  Double_t nutau_bar_el =nu_yield_general("nu_tau_bar","ve_nc");
+  Double_t nutau_el =nu_yield_general(neutrinosource,"nu_tau","ve_nc");   
+  Double_t nutau_bar_el =nu_yield_general(neutrinosource,"nu_tau_bar","ve_nc");
 
   cout<<"NUTAU"<<" "<<nutau_dis_cc<<" "<<nutau_dis_cc_charm<<" "<<nutau_res_cc<<" "<<nutau_qel_cc<<" "<<nutau_el<<endl;
   cout<<"ANTINUTAU"<<" "<<nutau_bar_dis_cc<<" "<<nutau_bar_dis_cc_charm<<" "<<nutau_bar_res_cc<<" "<<nutau_bar_qel_cc<<" "<<nutau_bar_el<<endl;
   
 }
 //general layout with FORM to estimate number of neutrino interactions 
-Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = ""){     
+Double_t nu_yield_general(int neutrinosource, const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = ""){     
   TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP.root");
   //TFile *xsec = TFile::Open("Nu_xsec_full.root"); //normal splines are cut at 350 GeV
-  TFile *flux = TFile::Open("neutrinos_detector.root");
+  TFile *flux = NULL;
+  TString fluxfilenames[3] = {"neutrinos_detector_nocharm.root","neutrinos_detector_charm.root","neutrinos_detector.root"};
+  flux = TFile::Open(fluxfilenames[neutrinosource]);
 
   //const char* nu = "nu_mu"; //neutrino type
   //const char* intmode = "dis_cc"; //interaction mode;
@@ -305,7 +323,7 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   Double_t NT = mass/A * avogadro;  
   Double_t x, y ,ysec;
 
-  TFile *outputfile = new TFile(Form("plots/results_%s_%s%s.root",nu,intmode,charmmode),"RECREATE");
+  TFile *outputfile = new TFile(Form("plots_%i/results_%s_%s%s.root",neutrinosource, nu,intmode,charmmode),"RECREATE");
   TGraph *hxsec_total = new TGraph(); //summing protons and neutrons when both are present
   TH1D *hspectrum_int = new TH1D(Form("hspectrum_%s_int%s%s",nu,intmode,charmmode),Form("Spettro neutrini %s interagenti in %s%s",nu,intmode,charmmode), 400, 0, 400);
 
