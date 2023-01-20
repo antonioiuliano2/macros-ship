@@ -10,12 +10,12 @@ void create_tree(){
 
  //setting tracks and hits branches;
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
- //TTreeReaderArray<vetoPoint> sco1points(reader,"sco_1Point");
- TTreeReaderArray<UpstreamTaggerPoint> points(reader,"UpstreamTaggerPoint");
+ TTreeReaderArray<vetoPoint> sco1points(reader,"sco_2Point"); //in the center
+ //TTreeReaderArray<UpstreamTaggerPoint> points(reader,"UpstreamTaggerPoint");
 
  const int nentries = reader.GetEntries();
  
- TFile *outputfile = new TFile("mcpoints_upstreamtagger_optimized_18102022.root","RECREATE");
+ TFile *outputfile = new TFile("mcpoints_sco2point_optimized_18102022.root","RECREATE");
  TNtuple *simplepointstree = new TNtuple("mcpoints","MCPoints from UpstreamTagger","MCEventID:MCTrackID:MCMotherId:PdgCode:Px:Py:Pz:X:Y:Z:Weight");
  //const int nentries = 100000;
 
@@ -24,7 +24,8 @@ void create_tree(){
  for(int ientry = 0;ientry<nentries;ientry++){    
     reader.SetEntry(ientry);
     //looping over hits
-    for (const UpstreamTaggerPoint& point: points){
+    for (const vetoPoint& point: sco1points){
+    //for (const UpstreamTaggerPoint& point: points){
         //accessing track to get weight
         int trackID = point.GetTrackID();
         int motherId = tracks[trackID].GetMotherId();
@@ -60,7 +61,7 @@ double GetCharge(float PdgCode){
 //reading produced ntuple with rdataframe
 void read_tree(){
  //getting file and dataframe
- TFile *inputfile = TFile::Open("mcpoints_upstreamtagger_optimized_18102022.root");
+ TFile *inputfile = TFile::Open("mcpoints_sco2point_optimized_18102022.root");
  ROOT::RDataFrame df("mcpoints",inputfile);
  
  //derivative variables, (tri-momentum, energy, mass, charge...);
@@ -71,8 +72,8 @@ void read_tree(){
  double xmax = 20.;
  double ymin = -20.;
  double ymax = 20.;
- //auto df1 = df0.Filter("1");
- auto df1 = df0.Filter(Form("X>=%f && X<=%f && Y>=%f && Y<=%f",xmin,xmax,ymin,ymax));
+ auto df1 = df0.Filter("1");
+ //auto df1 = df0.Filter(Form("X>=%f && X<=%f && Y>=%f && Y<=%f",xmin,xmax,ymin,ymax));
  //filling histograms
  auto hxy = df1.Histo2D({"hxy","xy distribution of muons;x[cm];y[cm]",140,-600,800,140,-600,800},"X","Y","Weight");
  auto hxy_zoomed = df1.Histo2D({"hxy_zoomed","xy distribution of muons;x[cm];y[cm]",400,-200,200,400,-200,200},"X","Y","Weight");
@@ -139,7 +140,7 @@ void read_tree(){
 
 void plotmuondensityhistogram(){
     //TFile *histfile = TFile::Open("plots_muonshitseduard_upstreamBIG.root");
-    TFile *histfile = TFile::Open("plots_muonshitseduard_upstreamBIG_lowangle.root");
+    TFile *histfile = TFile::Open("plots_muonshitseduard_sco2point_optimized_onlyemuarea.root");
     TCanvas *cxy = (TCanvas*) histfile->Get("cxy_zoomed_text");
 
     TH2D *hxy_zoomed_text = (TH2D*) cxy->GetPrimitive("hxy_zoomed_text");
