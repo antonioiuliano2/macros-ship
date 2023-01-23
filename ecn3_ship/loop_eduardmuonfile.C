@@ -1,10 +1,11 @@
 //still cannot use rrdataframe in cbmsim to apply selections easily, better go back to TTreeReader loops (28 September 2022)
+//create_tree() -> read_tree(0) -> plotmuondensity(0) (check input file names, naturally, (set 0, 1, 2 for different scoring planes))
 void create_tree(){
  //first, opening file, setting ttreereader
  //TFile *inputfile = TFile::Open("root:://eosuser.cern.ch//eos/user/e/edursov/ship_data/snd_ship_ecn3/muons_3_planes.root");
  //TFile *inputfile = TFile::Open("root:://eosuser.cern.ch//eos/user/e/edursov/ship_data/ntuples_for_dis/combi_ecn3_fixed_overlaps_new_field/merged_combi_ecn3_spill_2.root");
  //TFile *inputfile = TFile::Open("root:://eosuser.cern.ch//eos/user/e/edursov/ship_data/ntuples_for_dis/combi_ecn3_fixed_snd_field_off/merge_combi_ecn3_spill_snd_scor_planes_fixed_fields_11102022.root");
- TFile *inputfile = TFile::Open("root:://eosuser.cern.ch//eos/user/e/edursov/ship_data/ntuples_for_dis/optimized_18102022/merged_optimized_18102022.root");
+ TFile *inputfile = TFile::Open("root:://eosuser.cern.ch//eos/user/e/edursov/ship_data/ntuples_for_dis/optimized_18102022_check/merged_optimized_18102022.root");
  TTree *simtree = (TTree*)inputfile->Get("cbmsim");
  TTreeReader reader(simtree);
 
@@ -18,7 +19,7 @@ void create_tree(){
  const int nentries = reader.GetEntries();
  
  //TFile *outputfile = new TFile("mcpoints_allscopoints_combi_fixedfield_11102022.root","RECREATE");
- TFile *outputfile = new TFile("mcpoints_allscopoints_optimizedshield_18102022.root","RECREATE");
+ TFile *outputfile = new TFile("mcpoints_allscopoints_optimizedshield_18102022_check.root","RECREATE"); //remove _done, just now as safety
  TNtuple *simplepointstree = new TNtuple("mcpoints_allscoringplanes","MCPoints from scoring planes","MCEventID:MCTrackID:MCMotherId:PdgCode:Px:Py:Pz:X:Y:Z:Weight:ScoPlane");
  //const int nentries = 100000;
 
@@ -108,12 +109,11 @@ double GetCharge(float PdgCode){
  return charge;
 }
 
-//reading produced ntuple with rdataframe
-void read_tree(){
+//reading produced ntuple with rdataframe //which scoring plane 0 1 2
+void read_tree(int whichscoringplane){
  //getting file and dataframe
- TFile *inputfile = TFile::Open("mcpoints_allscopoints_optimizedshield_18102022.root");
+ TFile *inputfile = TFile::Open("mcpoints_allscopoints_optimizedshield_18102022_check.root");
  ROOT::RDataFrame df("mcpoints_allscoringplanes",inputfile);
- const int whichscoringplane = 0;
  //derivative variables, (tri-momentum, energy, mass, charge...);
 
  auto df0 = df.Define("P","TMath::Sqrt(Px*Px+Py*Py+Pz*Pz)").Define("Theta","TMath::ACos(Pz/P)").Define("Charge",GetCharge,{"PdgCode"}); 
@@ -139,7 +139,7 @@ void read_tree(){
  auto hThetamap = df1.Profile2D({"hThetamap","Theta map of muons;x[cm];y[cm];#theta[rad]",20,-100,100,20,-100,100,0,3.},"X","Y","Theta","Weight");
  
  //drawing histograms and saving them to a ROOT plot file
- TFile *outputfile = new TFile(Form("plots_muonshitseduard_sco%dpoint_optimized.root",whichscoringplane),"RECREATE");
+ TFile *outputfile = new TFile(Form("plots_muonshitseduard_sco%dpoint_optimized_check.root",whichscoringplane),"RECREATE");
  TCanvas *cxy = new TCanvas("cxy","xy distribution",800,800);
  hxy->DrawClone("COLZ");
  cxy->Write();
@@ -188,8 +188,8 @@ void read_tree(){
  cCharge_map->Write();
 }
 
-void plotmuondensityhistogram(){
-    TFile *histfile = TFile::Open("plots_muonshitseduard_sco0point_optimized.root");
+void plotmuondensityhistogram(int whichscoringplane){
+    TFile *histfile = TFile::Open(Form("plots_muonshitseduard_sco%dpoint_optimized_check.root",whichscoringplane));
     TCanvas *cxy = (TCanvas*) histfile->Get("cxy_zoomed_text");
 
     TH2D *hxy_zoomed_text = (TH2D*) cxy->GetPrimitive("hxy_zoomed_text");
