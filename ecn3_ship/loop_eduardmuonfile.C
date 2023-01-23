@@ -10,13 +10,16 @@ void create_tree(){
 
  //setting tracks and hits branches;
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
- TTreeReaderArray<vetoPoint> sco1points(reader,"sco_2Point"); //in the center
+ TTreeReaderArray<vetoPoint> sco0points(reader,"sco_0Point"); //at the start
+ TTreeReaderArray<vetoPoint> sco1points(reader,"sco_1Point"); //in the center
+ TTreeReaderArray<vetoPoint> sco2points(reader,"sco_2Point"); //at the end
  //TTreeReaderArray<UpstreamTaggerPoint> points(reader,"UpstreamTaggerPoint");
 
  const int nentries = reader.GetEntries();
  
- TFile *outputfile = new TFile("mcpoints_sco2point_optimized_18102022.root","RECREATE");
- TNtuple *simplepointstree = new TNtuple("mcpoints","MCPoints from UpstreamTagger","MCEventID:MCTrackID:MCMotherId:PdgCode:Px:Py:Pz:X:Y:Z:Weight");
+ //TFile *outputfile = new TFile("mcpoints_allscopoints_combi_fixedfield_11102022.root","RECREATE");
+ TFile *outputfile = new TFile("mcpoints_allscopoints_optimizedshield_18102022.root","RECREATE");
+ TNtuple *simplepointstree = new TNtuple("mcpoints_allscoringplanes","MCPoints from scoring planes","MCEventID:MCTrackID:MCMotherId:PdgCode:Px:Py:Pz:X:Y:Z:Weight:ScoPlane");
  //const int nentries = 100000;
 
  cout<<"Starting looping over entries "<<nentries<<endl;
@@ -24,6 +27,29 @@ void create_tree(){
  for(int ientry = 0;ientry<nentries;ientry++){    
     reader.SetEntry(ientry);
     //looping over hits
+    for (const vetoPoint& point: sco0points){
+    //for (const UpstreamTaggerPoint& point: points){
+        //accessing track to get weight
+        int trackID = point.GetTrackID();
+        int motherId = tracks[trackID].GetMotherId();
+
+        //separating positive and negative muons
+        int pdgcode = point.PdgCode();
+        
+        double px = point.GetPx();
+        double py = point.GetPy();
+        double pz = point.GetPz();
+        
+        double x = point.GetX();
+        double y = point.GetY();
+        double z = point.GetZ();
+        
+        double weight = tracks[trackID].GetWeight();
+        
+        simplepointstree->Fill(ientry,trackID,motherId,pdgcode,px,py,pz,x,y,z,weight,0);
+
+    }
+
     for (const vetoPoint& point: sco1points){
     //for (const UpstreamTaggerPoint& point: points){
         //accessing track to get weight
@@ -43,9 +69,33 @@ void create_tree(){
         
         double weight = tracks[trackID].GetWeight();
         
-        simplepointstree->Fill(ientry,trackID,motherId,pdgcode,px,py,pz,x,y,z,weight);
+        simplepointstree->Fill(ientry,trackID,motherId,pdgcode,px,py,pz,x,y,z,weight,1);
 
     }
+
+   for (const vetoPoint& point: sco2points){
+    //for (const UpstreamTaggerPoint& point: points){
+        //accessing track to get weight
+        int trackID = point.GetTrackID();
+        int motherId = tracks[trackID].GetMotherId();
+
+        //separating positive and negative muons
+        int pdgcode = point.PdgCode();
+        
+        double px = point.GetPx();
+        double py = point.GetPy();
+        double pz = point.GetPz();
+        
+        double x = point.GetX();
+        double y = point.GetY();
+        double z = point.GetZ();
+        
+        double weight = tracks[trackID].GetWeight();
+        
+        simplepointstree->Fill(ientry,trackID,motherId,pdgcode,px,py,pz,x,y,z,weight,2);
+
+    }
+
  }
  outputfile->cd();
  simplepointstree->Write();
@@ -61,9 +111,9 @@ double GetCharge(float PdgCode){
 //reading produced ntuple with rdataframe
 void read_tree(){
  //getting file and dataframe
- TFile *inputfile = TFile::Open("mcpoints_sco2point_optimized_18102022.root");
- ROOT::RDataFrame df("mcpoints",inputfile);
- 
+ TFile *inputfile = TFile::Open("mcpoints_allscopoints_optimizedshield_18102022.root");
+ ROOT::RDataFrame df("mcpoints_allscoringplanes",inputfile);
+ const int whichscoringplane = 0;
  //derivative variables, (tri-momentum, energy, mass, charge...);
 
  auto df0 = df.Define("P","TMath::Sqrt(Px*Px+Py*Py+Pz*Pz)").Define("Theta","TMath::ACos(Pz/P)").Define("Charge",GetCharge,{"PdgCode"}); 
@@ -72,7 +122,7 @@ void read_tree(){
  double xmax = 20.;
  double ymin = -20.;
  double ymax = 20.;
- auto df1 = df0.Filter("1");
+ auto df1 = df0.Filter(Form("ScoPlane==%d",whichscoringplane));
  //auto df1 = df0.Filter(Form("X>=%f && X<=%f && Y>=%f && Y<=%f",xmin,xmax,ymin,ymax));
  //filling histograms
  auto hxy = df1.Histo2D({"hxy","xy distribution of muons;x[cm];y[cm]",140,-600,800,140,-600,800},"X","Y","Weight");
@@ -89,7 +139,7 @@ void read_tree(){
  auto hThetamap = df1.Profile2D({"hThetamap","Theta map of muons;x[cm];y[cm];#theta[rad]",20,-100,100,20,-100,100,0,3.},"X","Y","Theta","Weight");
  
  //drawing histograms and saving them to a ROOT plot file
- TFile *outputfile = new TFile("plots_muonshitseduard_upstreamBIG_optimized_onlyemuarea.root","RECREATE");
+ TFile *outputfile = new TFile(Form("plots_muonshitseduard_sco%dpoint_optimized.root",whichscoringplane),"RECREATE");
  TCanvas *cxy = new TCanvas("cxy","xy distribution",800,800);
  hxy->DrawClone("COLZ");
  cxy->Write();
@@ -139,8 +189,7 @@ void read_tree(){
 }
 
 void plotmuondensityhistogram(){
-    //TFile *histfile = TFile::Open("plots_muonshitseduard_upstreamBIG.root");
-    TFile *histfile = TFile::Open("plots_muonshitseduard_sco2point_optimized_onlyemuarea.root");
+    TFile *histfile = TFile::Open("plots_muonshitseduard_sco0point_optimized.root");
     TCanvas *cxy = (TCanvas*) histfile->Get("cxy_zoomed_text");
 
     TH2D *hxy_zoomed_text = (TH2D*) cxy->GetPrimitive("hxy_zoomed_text");
