@@ -35,7 +35,7 @@ void generate_neutrinos(int neutrinosource = 2){ //generate neutrino produced sp
  Float_t deltaz = 3500.; //for now, let us assume exactly 40 m distance target-nutarget (we do not have the geometry yet)
  //Float_t deltaz = 4039.; //distance between start of proton target and center of neutrino target
  Double_t targetdx = 20.; //for geometrical acceptance requirement
- Double_t targetdy = targetdx;
+ Double_t targetdy = 40.;
 
  Float_t pzv;
  Double_t pt = -10000.;
@@ -315,8 +315,8 @@ Double_t nu_yield_general(int neutrinosource, const char* nu = "nu_mu", const ch
   Float_t Ninteracting = 0.;
   //Double_t mass = 8183*1e+3; //mass in grams
   //Double_t mass = 8352*1e+3; //mass in grams
-  Double_t mass = 1000*1e+3; //mass in grams
-  Double_t surface = 40. * 40.; //surface in square centimetres (squared configuration)
+  Double_t mass = 4500*1e+3; //mass in grams
+  Double_t surface = 40. * 80.; //surface in square centimetres (squared configuration)
   //Double_t surface = 1.4e+4;
    
   Double_t avogadro = 6.022e+23;
