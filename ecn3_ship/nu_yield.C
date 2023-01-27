@@ -315,7 +315,7 @@ Double_t nu_yield_general(int neutrinosource, const char* nu = "nu_mu", const ch
   Float_t Ninteracting = 0.;
   //Double_t mass = 8183*1e+3; //mass in grams
   //Double_t mass = 8352*1e+3; //mass in grams
-  Double_t mass = 4500*1e+3; //mass in grams
+  Double_t mass = 4700*1e+3; //mass in grams
   Double_t surface = 40. * 80.; //surface in square centimetres (squared configuration)
   //Double_t surface = 1.4e+4;
    
