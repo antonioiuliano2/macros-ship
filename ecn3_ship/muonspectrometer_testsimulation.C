@@ -3,7 +3,7 @@
 void muonspectrometer_testsimulation(){
 
  const int eventesclusion = 2; //0 only odd, 1 only even, 2 all;
- const float dx_acceptance = 60.; //how many we lose by reducing our station size?
+ const float dx_acceptance = 60.; //how many we lose by reducing our station size? (this is HALF SIZE)
  const float dy_acceptance = 60.; 
 
  TString prefix("root:://eosuser.cern.ch/");//for ROOTXD
@@ -27,10 +27,10 @@ void muonspectrometer_testsimulation(){
  //mu- histograms
  TH2D *hdy_dz = new TH2D("hdy_dz","At the end of spectrometer, Y distance from vy with respect to distance from vz;dz[cm];dy[cm]",30,300.,600.,60,-300.,300.);
  //TH1D *hdeltaTX_muminus = new TH1D("hdeltaTX_muminus","TX difference;DeltaTX",400,-0.02,0.02);
- TH1D *hdeltaTY_muminus = new TH1D("hdeltaTY_muminus","TY difference;DeltaTY",4000,-2.,2.);
+ TH1D *hdeltaTY_muminus = new TH1D("hdeltaTY_muminus","Delta TY Negative Muons;DeltaTY",400,-2.,2.);
  //mu+ histograms
  //TH1D *hdeltaTX_muplus = new TH1D("hdeltaTX_muplus","TX difference;DeltaTX",400,-0.02,0.02);
- TH1D *hdeltaTY_muplus = new TH1D("hdeltaTY_muplus","TY difference;DeltaTY",4000,-2.,2.);
+ TH1D *hdeltaTY_muplus = new TH1D("hdeltaTY_muplus","Delta TY Positive Muons;DeltaTY",400,-2.,2.);
 
  TH1D *hdeltaTX = new TH1D("hdeltaTX","TX difference;DeltaTX",400,-0.02,0.02);
 
@@ -66,6 +66,9 @@ void muonspectrometer_testsimulation(){
 
  const double init_xspectro = -99999.; //big value for check if they are present
 
+ const float sigma_delta_theta = 6.91005e-04; //as measured with previous iteration
+
+ double chargeeff = 0.;
 
  for(int ientry = 0;ientry<nentries;ientry++){
   
@@ -128,14 +131,15 @@ void muonspectrometer_testsimulation(){
     Double_t DeltaTX = TXdown - TXup;
     Double_t DeltaTY = TYdown - TYup;
     hdeltaTX->Fill(DeltaTX,weight);
-    if(tracks[1].GetPdgCode()==13){
-    //hdeltaTX_muminus->Fill(DeltaTX,weight);
+    if(tracks[1].GetPdgCode()==13){ //negative muon
     hdeltaTY_muminus->Fill(DeltaTY,weight);
     }
-    else{
-    //hdeltaTX_muplus->Fill(DeltaTX,weight);
+    else if(tracks[1].GetPdgCode()==-13) { //positive muon
     hdeltaTY_muplus->Fill(DeltaTY,weight);
     }
+
+    if (TMath::Abs(DeltaTY) > 3 * sigma_delta_theta) chargeeff+=weight; //as usual, requiring 3 sigma for charge separation
+
     Double_t pzy = TMath::Sqrt(pow(tracks[1].GetPy(),2) + pow(tracks[1].GetPz(),2));//opposite to magnetic field
     prof_deltaTY_p->Fill(1./TMath::Abs(DeltaTY),tracks[1].GetP());
     prof_deltaTY_pzy->Fill(1./TMath::Abs(DeltaTY),pzy);
@@ -156,6 +160,8 @@ void muonspectrometer_testsimulation(){
  cout<<"Subfraction of hits in acceptance: "<<hxy_acceptance[3]->Integral()/hxy[3]->Integral()<<endl;
  cout<<"Total acceptance: "<<hxy_acceptance[3]->Integral()/totalweight<<endl;
 
+ //**CHECKING CHARGE IDENTIFICATION**//
+ cout<<"Fraction of weighted muon events with charge identified: "<<chargeeff/hxy[3]->Integral()<<endl;
  //plotting normalized distributions
  TCanvas *c = new TCanvas();
  hmuE->Scale(1./hmuE->Integral());
@@ -187,6 +193,8 @@ void muonspectrometer_testsimulation(){
  hdeltaTY_muplus->Scale(1./hdeltaTY_muplus->Integral());
  hdeltaTY_muplus->SetLineColor(kRed);
  hdeltaTY_muplus->Draw("histo && SAMES");
+ cspectroangles->GetPad(2)->BuildLegend();
+ hdeltaTY_muminus->SetTitle("");
 
  TCanvas *cprof_pT = new TCanvas();
  prof_deltaTY_p->Draw();
