@@ -23,7 +23,7 @@ void muonspectrometer_testsimulation(){
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
  TTreeReaderArray<ShipRpcPoint> rpcpoints(reader,"ShipRpcPoint");
 
- TH1D * hmuE = new TH1D("hmuE","Muon energy;E[GeV]",400,0,400);
+ TH1D * hmuP = new TH1D("hmuP","Muon momentum;P[GeV/c]",400,0,400);
  //mu- histograms
  TH2D *hdy_dz = new TH2D("hdy_dz","At the end of spectrometer, Y distance from vy with respect to distance from vz;dz[cm];dy[cm]",30,300.,600.,60,-300.,300.);
  //TH1D *hdeltaTX_muminus = new TH1D("hdeltaTX_muminus","TX difference;DeltaTX",400,-0.02,0.02);
@@ -34,8 +34,8 @@ void muonspectrometer_testsimulation(){
 
  TH1D *hdeltaTX = new TH1D("hdeltaTX","TX difference;DeltaTX",400,-0.02,0.02);
 
- TProfile *prof_deltaTY_pzy = new TProfile("prof_deltaTY_pzy","momentum vs angular difference;pzy[GeV/c];1/dTy",200,0,200.,0,400); //deltaTY here is considered as abs
- TProfile *prof_deltaTY_p = new TProfile("prof_deltaTY_p","momentum vs angular difference;p[GeV/c];1/dTy",200,0,200.,0,400); //deltaTY here is considered as abs
+ TProfile *prof_deltaTY_pzy = new TProfile("prof_deltaTY_pzy","momentum vs angular difference;1/dTy;pzy[GeV/c];",200,0,200.,0,400); //deltaTY here is considered as abs
+ TProfile *prof_deltaTY_p = new TProfile("prof_deltaTY_p","momentum vs angular difference;1/dTy;p[GeV/c]",200,0,200.,0,400); //deltaTY here is considered as abs
 
  TF1 *fang_pzy = new TF1("fang_pzy","pol1",0,200.);
 
@@ -94,7 +94,7 @@ void muonspectrometer_testsimulation(){
   //Double_t weight = tracks[1].GetWeight();
   if (TMath::Abs(tracks[1].GetPdgCode())==13){ //saving initial muon information
 
-    hmuE->Fill(tracks[1].GetEnergy(),weight);
+    hmuP->Fill(tracks[1].GetP(),weight);
     //storing muon information
    }
    else{
@@ -164,8 +164,8 @@ void muonspectrometer_testsimulation(){
  cout<<"Fraction of weighted muon events with charge identified: "<<chargeeff/hxy[3]->Integral()<<endl;
  //plotting normalized distributions
  TCanvas *c = new TCanvas();
- hmuE->Scale(1./hmuE->Integral());
- hmuE->Draw("histo");
+ hmuP->Scale(1./hmuP->Integral());
+ hmuP->Draw("histo");
 
  TCanvas *cdy_vz = new TCanvas("cdy_vz","Distance as a function of vertex position");
  hdy_dz->Scale(1./hdy_dz->Integral());
