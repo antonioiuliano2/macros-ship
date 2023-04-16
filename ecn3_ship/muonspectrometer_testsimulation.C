@@ -1,21 +1,30 @@
 //reading numu and numubar simulation, AFTER they have cut within target acceptance with cutsim.py
+double GetParticleCharge (int pdgcode, TDatabasePDG *pdg){
+  //from PDG, get charge
+  double charge = 0.;
+  if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge();
+  else if (pdgcode > 1e+8) charge = 1.; //test storing heavy nuclei
+  return charge;
+}
 //verify muon charge separation from angular smearing along y
 void muonspectrometer_testsimulation(){
+ TDatabasePDG *pdg = TDatabasePDG::Instance(); //database of particles
+ ROOT::RVec<int> charmpdglist = {421,411,431,4122,4232,4132,4332}; //to study CharmCCDIS
 
  const int eventesclusion = 2; //0 only odd, 1 only even, 2 all;
  const float dx_acceptance = 60.; //how many we lose by reducing our station size? (this is HALF SIZE)
  const float dy_acceptance = 60.; 
 
  TString prefix("root:://eosuser.cern.ch/");//for ROOTXD
- TString simpath_mu("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/numu_CCDIS_2023_03_04_targetmovedupstream_spectromag/");
- TString simpath_mu_bar("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/numu_bar_CCDIS_2023_03_04_targetmovedupstream_spectromag/");
-
+ //TString simpath_mu("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/numu_CCDIS_2023_03_04_targetmovedupstream_spectromag/");
+ //TString simpath_mu_bar("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/numu_bar_CCDIS_2023_03_04_targetmovedupstream_spectromag/");
+ TString simpath_mu_bar("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_04_14_numu_bar_CHARMCCDIS_spectro_1_2T/");
  TRandom3 *randomgen  = new TRandom3(); //0; seed changes everytime, no seed, default to 4357 
 
  const double spectro_posres = 100.*1e-4; //100 micron, for smearing 
  
  TChain *simchain = new TChain("cbmsim");
- simchain->Add((prefix+simpath_mu+TString("inECC_ship.conical.Genie-TGeant4.root")).Data());
+ //simchain->Add((prefix+simpath_mu+TString("inECC_ship.conical.Genie-TGeant4.root")).Data());
  simchain->Add((prefix+simpath_mu_bar+TString("inECC_ship.conical.Genie-TGeant4.root")).Data());
  
  TTreeReader reader(simchain);
@@ -23,7 +32,16 @@ void muonspectrometer_testsimulation(){
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
  TTreeReaderArray<ShipRpcPoint> rpcpoints(reader,"ShipRpcPoint");
 
+ TProfile *profmuE_nuE = new TProfile("profmuE_nuE","Profile muon energy vs neutrino energy;E_mu[GeV];E_mu/E_nu",400,0,400,0,1);
+
+ TH1D * hothernudauP = new TH1D("hothernudauP","momentum of neutrino daughter, not primary lepton",400,0,40);
+ TH1D * hothernudauP_charged = new TH1D("hothernudauP_charged","Charged nu product, not primary lepton, not charm",400,0,40);
+ TH1D * hothernudauP_charm = new TH1D("hothernudauP_charm","Charmed hadron, nu product",400,0,40);
+ TH1D * hothernudauPdgCode = new TH1D("hothernudauPdgCode","PdgCode of neutrino daughters, apart the primary lepton",6000,-3000.,3000.);
+
  TH1D * hmuP = new TH1D("hmuP","Muon momentum;P[GeV/c]",400,0,400);
+ TH1D * hmuTheta = new TH1D("hmuTheta","Theta angle of muonsw;#theta[rad]",350,0.,3.5);
+ TH1D * hmuPhi = new TH1D("hmuPhi","Phi angle of muonsw;#phi[rad]",700,-3.5,3.5);
  //mu- histograms
  TH2D *hdy_dz = new TH2D("hdy_dz","At the end of spectrometer, Y distance from vy with respect to distance from vz;dz[cm];dy[cm]",30,300.,600.,60,-300.,300.);
  //TH1D *hdeltaTX_muminus = new TH1D("hdeltaTX_muminus","TX difference;DeltaTX",400,-0.02,0.02);
@@ -92,15 +110,45 @@ void muonspectrometer_testsimulation(){
   }
 
   //Double_t weight = tracks[1].GetWeight();
-  if (TMath::Abs(tracks[1].GetPdgCode())==13){ //saving initial muon information
+  //loop on tracks
+  int itrack = 0;
+  for (const ShipMCTrack& track: tracks){
+    bool ischarm = false;
+    int pdgcode = track.GetPdgCode();
+    //check if the track is a charmed hadron (pdgcode belongs to list)
+    auto searchresult = std::find(begin(charmpdglist),end(charmpdglist),TMath::Abs(pdgcode));
+    if (searchresult != end(charmpdglist)) ischarm = true;
+    //end of the check
+    double charge = GetParticleCharge(pdgcode, pdg);
+    if (itrack == 1){ 
+    //only looking at the initial muon
+     if (TMath::Abs(pdgcode)==13){ //saving initial muon information
+     profmuE_nuE->Fill(track.GetEnergy(), track.GetEnergy()/tracks[0].GetEnergy()); //no weight here, it is a tprofile, so we want the correlation
+     hmuP->Fill(track.GetP(),weight);
 
-    hmuP->Fill(tracks[1].GetP(),weight);
+     TVector3 *muonmom = new TVector3(track.GetPx(),track.GetPy(),track.GetPz());
+     hmuTheta->Fill(muonmom->Theta(),weight);
+     hmuPhi->Fill(muonmom->Phi(),weight);
+    //Double_t mytheta = TMath::ACos(tracks[1].GetPz()/tracks[1].GetP());
+    //cout<<mytheta<<" "<<muonmom->Theta()<<endl; //Naturally, they are the same. Keep here just as a Memento of my paranoia
     //storing muon information
    }
-   else{
+    else{
     cout<<"WARNING: Track 1 is not muon neutrino in event "<<ientry<<endl;
     continue; //muon missing in this event (too low kin energy)
    } 
+  }
+    else{
+    //is it a charged neutrino daughter (not the primary lepton)?
+     if (track.GetMotherId()==0){
+      hothernudauP->Fill(track.GetP(),weight);
+      if (TMath::Abs(charge) > 0 && !ischarm) hothernudauP_charged->Fill(track.GetP(),weight);
+      if (ischarm) hothernudauP_charm->Fill(track.GetP(),weight);
+      hothernudauPdgCode->Fill(track.GetPdgCode(),weight);
+     }
+   }
+   itrack++; //trackID counter 
+  }//end loop over tracks
  //first, loop over all hits to find positions of muon in spectrometer
  for (const ShipRpcPoint& rpcpoint: rpcpoints){
   int nstation = rpcpoint.GetDetectorID() - 1; //from 0 to 3 
@@ -167,17 +215,38 @@ void muonspectrometer_testsimulation(){
  hmuP->Scale(1./hmuP->Integral());
  hmuP->Draw("histo");
 
- TCanvas *cdy_vz = new TCanvas("cdy_vz","Distance as a function of vertex position");
- hdy_dz->Scale(1./hdy_dz->Integral());
- hdy_dz->Draw("COLZ");
+ TCanvas *cangles = new TCanvas();
+ hmuTheta->Scale(1./hmuTheta->Integral());
+ hmuTheta->Draw();
 
- TCanvas *cxy_up = new TCanvas("cxy_up","upstream distribution of muons",800,800);
- hxy[0]->Scale(1./hxy[0]->Integral());
- hxy[0]->Draw();
+ TCanvas *cprof_muEnuE = new TCanvas();
+ profmuE_nuE->Draw();
 
- TCanvas *cxy_down = new TCanvas("cxy_down","downstream distribution of muons",800,800);
- hxy[3]->Scale(1./hxy[3]->Integral());
- hxy[3]->Draw();
+ TCanvas *cothernudau = new TCanvas();
+ hothernudauP->Scale(1./hothernudauP->Integral());
+ //hothernudauP->Draw();
+ hothernudauP_charged->Scale(1./hothernudauP_charged->Integral());
+ hothernudauP_charged->SetLineColor(kRed);
+ //hothernudauP_charm->SetLineColor(kYellow);
+ hothernudauP_charged->Draw();
+ hothernudauP_charm->Scale(1./hothernudauP_charm->Integral());
+ hothernudauP_charm->Draw("SAME");
+ cothernudau->BuildLegend();
+ 
+ TCanvas *cotherpdgcode = new TCanvas();
+ hothernudauPdgCode->Draw();
+
+ //TCanvas *cdy_vz = new TCanvas("cdy_vz","Distance as a function of vertex position");
+ //hdy_dz->Scale(1./hdy_dz->Integral());
+ //hdy_dz->Draw("COLZ");
+
+ //TCanvas *cxy_up = new TCanvas("cxy_up","upstream distribution of muons",800,800);
+ //hxy[0]->Scale(1./hxy[0]->Integral());
+ //hxy[0]->Draw();
+
+ //TCanvas *cxy_down = new TCanvas("cxy_down","downstream distribution of muons",800,800);
+ //hxy[3]->Scale(1./hxy[3]->Integral());
+ //hxy[3]->Draw();
 
  TCanvas *cspectroangles = new TCanvas("cspectroangles","Angular differences from spectrometer");
  cspectroangles->Divide(2,1);
@@ -196,10 +265,10 @@ void muonspectrometer_testsimulation(){
  cspectroangles->GetPad(2)->BuildLegend();
  hdeltaTY_muminus->SetTitle("");
 
- TCanvas *cprof_pT = new TCanvas();
- prof_deltaTY_p->Draw();
+ //TCanvas *cprof_p = new TCanvas();
+ //prof_deltaTY_p->Draw();
 
- TCanvas *cprof_p = new TCanvas();
+ TCanvas *cprof_pT = new TCanvas();
  prof_deltaTY_pzy->SetMarkerStyle(kFullCircle);
  prof_deltaTY_pzy->Draw();
  //fang_pzy->FixParameter(0,0);
