@@ -4,16 +4,16 @@ import numpy as np
 
 
 #selection
-xmin = -20.1
-xmax = 20.1
+xmin = -20.05
+xmax = 20.05
 
-ymin = -20.1
-ymax = 20.1
+ymin = -20.05
+ymax = 20.05
 
 simchain = r.TChain("cbmsim")
 
 for ifile in range(100):
- simchain.Add("{}/ship.conical.Genie-TGeant4.root".format(ifile))
+ simchain.Add("{}/ship.conical.Genie-TGeant4.root".format(ifile+1)) #file names start from 1
 #cloning the tree, without any entry
 copyfile = r.TFile.Open(("inECC_ship.conical.Genie-TGeant4.root"),"RECREATE")
 copytree = simchain.CloneTree(0)
