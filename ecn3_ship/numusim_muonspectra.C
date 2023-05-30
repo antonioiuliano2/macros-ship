@@ -1,7 +1,9 @@
 //reading numu simulation, AFTER they have cut within target acceptance
 void numusim_muonspectra(){
  
- TFile *inputfile = TFile::Open("inECC_ship.conical.Genie-TGeant4.root");
+ TString prefix("root:://eosuser.cern.ch/");
+ TString simpath_mu_bar("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_04_14_numu_bar_CHARMCCDIS_spectro_1_2T/");
+ TFile *inputfile = TFile::Open((prefix+simpath_mu_bar+TString("inECC_ship.conical.Genie-TGeant4.root")).Data());
  TTree *simtree = (TTree*) inputfile->Get("cbmsim");
  
  TTreeReader reader(simtree);
@@ -21,7 +23,7 @@ void numusim_muonspectra(){
  for(int ientry = 0;ientry<nentries;ientry++){   
   reader.SetEntry(ientry);
 
-  if (tracks[1].GetPdgCode()==13){ //saving initial muon information
+  if (TMath::Abs(tracks[1].GetPdgCode())==13){ //saving initial muon information
     Double_t weight = tracks[1].GetWeight();
 
     hmuE->Fill(tracks[1].GetEnergy(),weight);
