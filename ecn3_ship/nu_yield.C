@@ -403,7 +403,7 @@ Double_t nu_yield_general(int neutrinosource, bool uselogbins, const char* nu = 
 
 void drawInteractingSpectra(){ //drawing the spectra of interacting CCDIS
   const double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
-  const double normship = 4e+19; //reference for one year of SND DataTaking
+  const double normship = 2e+20; //reference for one year of SND DataTaking
 
   //Drawing stored histograms for neutrinos (/home/utente/Simulations/nuyield_shipecn3/25m/)
   TFile *nuefile = TFile::Open("plots_2/results_nu_e_dis_cc.root");
@@ -445,10 +445,10 @@ void drawInteractingSpectra(){ //drawing the spectra of interacting CCDIS
   hnutau->Scale(normship/normsim);
   hnutaubar->Scale(normship/normsim);
 
-  //adding together neutrinos and antineutrinos of the same flavour
-  //hnue->Add(hnuebar);
-  //hnumu->Add(hnumubar);
-  //hnutau->Add(hnutaubar);
+  cout<<"adding together neutrinos and antineutrinos of the same flavour"<<endl;
+  hnue->Add(hnuebar);
+  hnumu->Add(hnumubar);
+  hnutau->Add(hnutaubar);
 
   //drawing and building legend
   TCanvas *cnuspectra = new TCanvas();
@@ -463,9 +463,9 @@ void drawInteractingSpectra(){ //drawing the spectra of interacting CCDIS
   hnue->Draw("histo&&SAMES");
   hnutau->Draw("histo&&SAMES");
 
-  hnuebar->Draw("histo&&SAMES");
-  hnumubar->Draw("histo&&SAMES");
-  hnutaubar->Draw("histo&&SAMES");
+  //hnuebar->Draw("histo&&SAMES");
+  //hnumubar->Draw("histo&&SAMES");
+  //hnutaubar->Draw("histo&&SAMES");
   cnuspectra->BuildLegend();
   hnumu->SetTitle("Interacting spectra");
 
