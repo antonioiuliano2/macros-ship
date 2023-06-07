@@ -32,11 +32,17 @@ void nusim_mcsresolution(){
 
  TH1D *hnpl = new TH1D("hnpl","npl of tracks from neutrino interactions",61,0,61);
  TH2D *hp_npl = new TProfile2D("hp_npl","Momentum and track length;P[GeV/c];npl",200,0,200,61,0,61);
+ TProfile *gtotres = new TProfile("gtotres","Total resolution distribution;Enu[GeV];sigmaP/P",400,0,400,0.,10.);
  TProfile2D *gres = new TProfile2D("gres","Resolution distribution;P[GeV/c];npl",200,0,200,61,0,61,0.,10.); 
+
+ double sigmaP, sigma1overP;
 
  //starting the loop
  cout<<"Start loop over events "<<nentries<<endl;
  for(int ientry = 0;ientry<nentries;ientry++){
+    TVector3 totmeasuredP(0.,0.,0.);
+    double totvarP = 0.;
+
     reader.SetEntry(ientry);
     if(targetpoints.GetSize()==0) continue;//no emulsion hits in this entry, useless for this code
     double weight = tracks[0].GetWeight();  
@@ -72,18 +78,31 @@ void nusim_mcsresolution(){
          hnpl->Fill(npl);
          int trackID = myPair.first;
          double momentum = tracks[trackID].GetP();
+         TVector3 trimomentum(tracks[trackID].GetPx(),tracks[trackID].GetPy(),tracks[trackID].GetPz());
+         double energy = tracks[trackID].GetEnergy();        
          if(npl<nplmin) continue;
-         double res = fOPERA_mcsres->Eval(momentum, npl);
-         gres->Fill(momentum,npl,res);
-         hp_npl->Fill(momentum,npl,weight);         
-   }
+         //sum together vectors of observed charged neutrino daughters
+         totmeasuredP = totmeasuredP + trimomentum;
+         double res = fOPERA_mcsres->Eval(momentum, npl); //sigma(1/P)/(1/P)
+         sigma1overP = res * (1./momentum);
+         sigmaP = sigma1overP * momentum * momentum; //from error propagation 
 
+         //cout<<"evento "<<ientry<<" traccia "<<trackID<<"pdgcode: " <<tracks[trackID].GetPdgCode()<<" motherID: "<<tracks[trackID].GetMotherId()<<" energy: "<<tracks[trackID].GetEnergy()<<" npl "<<npl<<" res "<<res<<endl;         
+         totvarP = totvarP + pow(sigmaP,2);
+         gres->Fill(momentum,npl,res);         
+         hp_npl->Fill(momentum,npl,weight);                  
+   }
+   gtotres->Fill(tracks[0].GetP(), TMath::Sqrt(totvarP)/totmeasuredP.Mag());
+ // cout<<"Test event "<<ientry<<" MC nu energy "<<tracks[0].GetP()<<" charged measured energy "<<totmeasuredP<<" pm "<<TMath::Sqrt(totvarP)<<endl;
  }//ending the event loop
  TCanvas *cnpl = new TCanvas();
  hnpl->Draw();
 
  TCanvas *cgres = new TCanvas();
  gres->Draw("COLZ");
+
+ TCanvas *cgtotres = new TCanvas();
+ gtotres->Draw();
 
  TCanvas *cp_npl = new TCanvas();
  hp_npl->Scale(1./hp_npl->Integral());
