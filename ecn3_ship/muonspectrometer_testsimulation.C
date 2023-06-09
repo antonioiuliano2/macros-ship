@@ -44,7 +44,7 @@ void muonspectrometer_testsimulation(){
  TDatabasePDG *pdg = TDatabasePDG::Instance(); //database of particles
  ROOT::RVec<int> charmpdglist = {421,411,431,4122,4232,4132,4332}; //to study CharmCCDIS
 
- const int eventesclusion = 2; //0 only odd, 1 only even, 2 all;
+ const int eventesclusion = 0; //0 only odd, 1 only even, 2 all;
  const float dx_acceptance = 60.; //how many we lose by reducing our station size? (this is HALF SIZE)
  const float dy_acceptance = 60.; 
 
@@ -66,16 +66,18 @@ void muonspectrometer_testsimulation(){
  TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
  TTreeReaderArray<ShipRpcPoint> rpcpoints(reader,"ShipRpcPoint");
 
- TProfile *profmuE_nuE = new TProfile("profmuE_nuE","Profile muon energy vs neutrino energy;E_mu[GeV];E_mu/E_nu",400,0,400,0,1);
+ TProfile *profmuE_nuE = new TProfile("profmuE_nuE","Profile muon energy vs neutrino energy;E_nu[GeV];E_mu/E_nu",400,0,400,0,1);
 
- TH1D * hothernudauP = new TH1D("hothernudauP","momentum of neutrino daughter, not primary lepton",400,0,40);
- TH1D * hothernudauP_charged = new TH1D("hothernudauP_charged","Charged nu product, not primary lepton, not charm",400,0,40);
- TH1D * hothernudauP_charm = new TH1D("hothernudauP_charm","Charmed hadron, nu product",400,0,40);
+ TH1D * hothernudauP = new TH1D("hothernudauP","momentum of neutrino daughter, not primary lepton",400,0,400);
+ TH1D * hothernudauP_charged = new TH1D("hothernudauP_charged","Charged nu product, not primary lepton, not charm",400,0,400);
+ TH1D * hothernudauP_charm = new TH1D("hothernudauP_charm","Charmed hadron, nu product",400,0,400);
  TH1D * hothernudauPdgCode = new TH1D("hothernudauPdgCode","PdgCode of neutrino daughters, apart the primary lepton",6000,-3000.,3000.);
 
  TH1D * hmuP = new TH1D("hmuP","Muon momentum;P[GeV/c]",400,0,400);
  TH1D * hmuTheta = new TH1D("hmuTheta","Theta angle of muonsw;#theta[rad]",350,0.,3.5);
  TH1D * hmuPhi = new TH1D("hmuPhi","Phi angle of muonsw;#phi[rad]",700,-3.5,3.5);
+
+ TH1D * hmuP_chargeeff = new TH1D("hmuP_chargeff","Muon momentum for detected muons;P[GeV/c]",400,0,400);
 
  TH1D *h_tot_charged_hadron_P = new TH1D("h_tot_charged_hadron_P","total hadron momentum",400,0,400);
 
@@ -92,41 +94,47 @@ void muonspectrometer_testsimulation(){
 
  TH1D *hdeltaTX = new TH1D("hdeltaTX","x projection of sagitta;SX[cm]",40,-0.2,0.2);
 
- TProfile *prof_deltaTY_pzy = new TProfile("prof_deltaTY_pzy","momentum vs angular difference;1/dTy;pzy[GeV/c];",200,0,200.,0,400); //deltaTY here is considered as abs
- TProfile *prof_deltaTY_p = new TProfile("prof_deltaTY_p","momentum vs angular difference;1/dTy;p[GeV/c]",200,0,200.,0,400); //deltaTY here is considered as abs
+ TProfile *prof_deltaTY_pzy = new TProfile("prof_deltaTY_pzy","momentum vs sagitta;1/STy;pzy[GeV/c];",100,0,10.,0,400); //deltaTY here is considered as abs
+ TProfile *prof_deltaTY_p = new TProfile("prof_deltaTY_p","momentum vs sagitta;1/S;p[GeV/c]",100,0,10.,0,400); //deltaTY here is considered as abs
 
  TF1 *fang_pzy = new TF1("fang_pzy","pol1",0,200.);
 
- TH1D *hres_pzy = new TH1D("hres_pzy","resolution of transverse momentum;res_pzy{GeV/c}",200,-1.,1.);
+ TH1D *hres_pzy = new TH1D("hres_pzy","resolution of transverse momentum;res_pzy",200,-1.,1.);
  //fang_pzy->SetParameter(0,0.);
  //fang_pzy->SetParameter(0,1.4576);
  //fang_pzy->SetParameter(1,1.8754);
 
- fang_pzy->SetParameter(0,1.47952);
- fang_pzy->SetParameter(1,1.80416);
+ fang_pzy->SetParameter(0,1.60111);
+ fang_pzy->SetParameter(1,31.2447);
 
  const int nstations = 4;
  TH2D *hxy[nstations];
  TH2D *hxy_acceptance[nstations];
+ Double_t Inacceptance_weight[nstations];
  //initialize histos
  for (int istation = 0; istation < nstations; istation++){
   hxy[istation] = new TH2D(Form("hxy[%i]",istation),Form("Muon distribution in station %i;x[cm];y[cm]",istation),400,-200,200,400,-200,200);
   hxy_acceptance[istation] = new TH2D(Form("hxy_iacceptance[%i]",istation),Form("Muon distribution in station %i acceptance studu;x[cm];y[cm]",istation),
     (int)(2*dx_acceptance),-dx_acceptance,dx_acceptance,(int)(2*dy_acceptance),-dy_acceptance,dy_acceptance);
+
+  Inacceptance_weight[istation] = 0.;
  }
  Double_t XSpectrometer[nstations], YSpectrometer[nstations], ZSpectrometer[nstations];
- Bool_t InSpectrometer[nstations]; //check if the muon passed the station
+ Bool_t InSpectrometer[nstations], InSpectrometer_acceptance[nstations]; //check if the muon passed the station
+ //the _acceptance ones are the smaller, in order to study according to the provided variable
 
  const int nentries = reader.GetEntries(true);
  cout<<"Number of events"<<nentries<<endl;
 
- int totalweight = 0; //for integral normalization
+ double totalweight = 0; //for integral normalization
 
  const double init_xspectro = -99999.; //big value for check if they are present
 
- const float sigma_delta_theta = 6.91005e-04; //as measured with previous iteration
+ const float sigma_delta_theta = 0.02122; //as measured with previous iteration
 
  double chargeeff = 0.;
+
+ double muonmomentum;
 
  double tot_charged_hadron_P;
 
@@ -140,6 +148,7 @@ void muonspectrometer_testsimulation(){
     YSpectrometer[istation] = init_xspectro;
     ZSpectrometer[istation] = init_xspectro;
     InSpectrometer[istation] = false;
+    InSpectrometer_acceptance[istation] = false;
   }
   reader.SetEntry(ientry);
   Double_t weight = tracks[0].GetWeight();
@@ -165,14 +174,16 @@ void muonspectrometer_testsimulation(){
     if (itrack == 1){ 
     //only looking at the initial muon
      if (TMath::Abs(pdgcode)==13){ //saving initial muon information
-     profmuE_nuE->Fill(track.GetEnergy(), track.GetEnergy()/tracks[0].GetEnergy()); //no weight here, it is a tprofile, so we want the correlation
-     hmuP->Fill(track.GetP(),weight);
+     profmuE_nuE->Fill(tracks[0].GetEnergy(), track.GetEnergy()/tracks[0].GetEnergy()); //no weight here, it is a tprofile, so we want the correlation
 
-     TVector3 *muonmom = new TVector3(track.GetPx(),track.GetPy(),track.GetPz());
-     hmuTheta->Fill(muonmom->Theta(),weight);
-     hmuPhi->Fill(muonmom->Phi(),weight);
+     TVector3 *muonmom_vec = new TVector3(track.GetPx(),track.GetPy(),track.GetPz());
+     muonmomentum = track.GetP();
+     hmuP->Fill(muonmomentum,weight);
+
+     hmuTheta->Fill(muonmom_vec->Theta(),weight);
+     hmuPhi->Fill(muonmom_vec->Phi(),weight);
     //2D plot theta at different momenta
-     hmuTheta_P->Fill(track.GetP(),muonmom->Theta(),weight);
+     hmuTheta_P->Fill(track.GetP(),muonmom_vec->Theta(),weight);
     //Double_t mytheta = TMath::ACos(tracks[1].GetPz()/tracks[1].GetP());
     //cout<<mytheta<<" "<<muonmom->Theta()<<endl; //Naturally, they are the same. Keep here just as a Memento of my paranoia
     //storing muon information
@@ -205,6 +216,11 @@ void muonspectrometer_testsimulation(){
    ZSpectrometer[nstation] = rpcpoint.GetZ();
    InSpectrometer[nstation] = true;
 
+   if ((TMath::Abs(XSpectrometer[nstation]) < dx_acceptance) && TMath::Abs(YSpectrometer[nstation])<dy_acceptance){
+    InSpectrometer_acceptance[nstation] = true;
+    Inacceptance_weight[nstation] += weight;
+   }
+
    hxy[nstation]->Fill(XSpectrometer[nstation],YSpectrometer[nstation], weight);
    hxy_acceptance[nstation]->Fill(XSpectrometer[nstation],YSpectrometer[nstation], weight);
    //applying smearing to X and Y
@@ -225,7 +241,13 @@ void muonspectrometer_testsimulation(){
     hdeltaTY_muplus->Fill(DeltaT[1],weight);
     }
 
-    if (TMath::Abs(DeltaT[1]) > 3 * sigma_delta_theta) chargeeff+=weight; //as usual, requiring 3 sigma for charge separation
+    if (InSpectrometer_acceptance[0]&&InSpectrometer_acceptance[1]&&
+        InSpectrometer_acceptance[2]&&InSpectrometer_acceptance[3]){
+        if (TMath::Abs(DeltaT[1]) > 3 * sigma_delta_theta){
+          chargeeff+=weight; //as usual, requiring 3 sigma for charge separation
+          hmuP_chargeeff->Fill(muonmomentum,weight);
+        }//check of 3 sigma
+    }//check of acceptance
 
     Double_t pzy = TMath::Sqrt(pow(tracks[1].GetPy(),2) + pow(tracks[1].GetPz(),2));//opposite to magnetic field
     prof_deltaTY_p->Fill(1./TMath::Abs(DeltaT[1]),tracks[1].GetP());
@@ -243,24 +265,30 @@ void muonspectrometer_testsimulation(){
  } 
 
  //**CHECKING ACCEPTANCE**//
- cout<<"Fraction of hits arriving at station 2: "<<hxy[1]->Integral()/totalweight<<endl;
+/* cout<<"Fraction of hits arriving at station 2: "<<hxy[1]->Integral()/totalweight<<endl;
  cout<<"Subfraction of hits in acceptance station 2: "<<hxy_acceptance[1]->Integral()/hxy[1]->Integral()<<endl;
  cout<<"Total acceptance station 2: "<<hxy_acceptance[1]->Integral()/totalweight<<endl;
 
  cout<<"Fraction of hits arriving at station 4: "<<hxy[3]->Integral()/totalweight<<endl;
  cout<<"Subfraction of hits in acceptance: "<<hxy_acceptance[3]->Integral()/hxy[3]->Integral()<<endl;
  cout<<"Total acceptance: "<<hxy_acceptance[3]->Integral()/totalweight<<endl;
+*/
+ cout<<"Total acceptance station 1: "<<Inacceptance_weight[0]/totalweight<<endl;
+ cout<<"Total acceptance station 2: "<<Inacceptance_weight[1]/totalweight<<endl;
+ cout<<"Total acceptance station 3: "<<Inacceptance_weight[2]/totalweight<<endl;
+ cout<<"Total acceptance station 4: "<<Inacceptance_weight[3]/totalweight<<endl;
 
  //**CHECKING CHARGE IDENTIFICATION**//
- cout<<"Fraction of weighted muon events with charge identified: "<<chargeeff/hxy[3]->Integral()<<endl;
+ cout<<"Fraction of weighted muon events with charge identified: "<<chargeeff/totalweight<<endl;
  //plotting normalized distributions
  TCanvas *c = new TCanvas();
- hmuP->Scale(1./hmuP->Integral());
+ //hmuP->Scale(1./hmuP->Integral());
  hmuP->Draw("histo");
+ hmuP_chargeeff->Draw("histo&&SAMES");
  //comparing lepton and total (charged only) hadron momentum
- h_tot_charged_hadron_P->Scale(1./h_tot_charged_hadron_P->Integral());
- h_tot_charged_hadron_P->SetLineColor(kRed);
- h_tot_charged_hadron_P->Draw("histo&&SAME");
+ //h_tot_charged_hadron_P->Scale(1./h_tot_charged_hadron_P->Integral());
+ //h_tot_charged_hadron_P->SetLineColor(kRed);
+ //h_tot_charged_hadron_P->Draw("histo&&SAME");
  c->BuildLegend();
 
  TCanvas *cangles = new TCanvas();
@@ -271,14 +299,14 @@ void muonspectrometer_testsimulation(){
  profmuE_nuE->Draw();
 
  TCanvas *cothernudau = new TCanvas();
- hothernudauP->Scale(1./hothernudauP->Integral());
- //hothernudauP->Draw();
- hothernudauP_charged->Scale(1./hothernudauP_charged->Integral());
+ //hmuP->Scale(1./hmuP->Integral());
+ hmuP->Draw("histo");
+ //hothernudauP_charged->Scale(1./hothernudauP_charged->Integral());
  hothernudauP_charged->SetLineColor(kRed);
  //hothernudauP_charm->SetLineColor(kYellow);
- hothernudauP_charged->Draw();
- hothernudauP_charm->Scale(1./hothernudauP_charm->Integral());
- hothernudauP_charm->Draw("SAME");
+ hothernudauP_charged->Draw("histo&&SAME");
+ //hothernudauP_charm->Scale(1./hothernudauP_charm->Integral());
+ //hothernudauP_charm->Draw("histo&&SAME");
  cothernudau->BuildLegend();
  
  TCanvas *cotherpdgcode = new TCanvas();
