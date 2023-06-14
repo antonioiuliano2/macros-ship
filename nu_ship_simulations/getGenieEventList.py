@@ -16,7 +16,7 @@ for entry in inputsim:
  ttreenumber = entry.GenieEventID #to be updated
  origmceventid = header.GetEventID() 
 
- genieeventid = (ttreenumber-2) * 1000 + (origmceventid-1)
+ genieeventid = (ttreenumber-1) * 1000 + (origmceventid-1)
 
  outfile.write("{}\n".format(genieeventid))
 

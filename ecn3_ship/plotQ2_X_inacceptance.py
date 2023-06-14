@@ -26,6 +26,9 @@ for line in eventlist:
  hq2_x.Fill(logx, logq2)
  #array of values within bin
  ibin = hq2_x.FindBin(logx, logq2) 
+ if(ibin==0):
+  print("ibin 0 for values ", logx, "logq2")
+  continue
  x_bin[ibin].append(logx)
  q2_bin[ibin].append(logq2)
 
