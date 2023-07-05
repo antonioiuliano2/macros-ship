@@ -11,12 +11,13 @@ class EfficiencyCut: public TObject{
             measured_momentum_nudaughterID.clear();}
         int GetEntries(){return reader.GetEntries();}
         double GetEventWeight(){return tracks[0].GetWeight();} 
-        
-        bool GeometricalEfficiency(double offsetxy = 0.1, int Nminplates = 4); //is the vertex well contained in the brick?
-        bool VisibleVertexLocation();//checking charge and momentum of neutrino daughters
+        //efficiency functions
+        int GeometricalEfficiency(double offsetxy = 0.1, int Nminplates = 4); //is the vertex well contained in the brick?
+        bool VisibleVertexLocation(double maxtantheta = 1., double minmomentum = 1.);//checking charge and momentum of neutrino daughters
         int MCSmeasurement(double maxres = 0.3, int nplmin = 3);
-
-        bool FillHistograms(); //fill histograms for this event
+        bool SpectrometerAcceptance(double posres = 100.*1e-4, double sagittares = 0.02122);
+        //fill and drawing
+        void FillHistograms(TH1D *hnuP, TH2D *hq2_x); //fill histograms for this event
 
 
         TFile* simfile;
@@ -29,9 +30,5 @@ class EfficiencyCut: public TObject{
         map<int,int> npl_nudaughterID;
         map<int,bool> measured_momentum_nudaughterID;        
         TF2 *fOPERA_mcsres;
-
-        //histograms of interest
-        TH1D *hnuP;
-        TH2D *hq2_x;
 
 };
