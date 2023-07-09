@@ -25,8 +25,9 @@ class EfficiencyCut: public TObject{
         TTreeReaderArray<ShipMCTrack> tracks;
         TTreeReaderArray<TargetPoint> targetpoints;
         TTreeReaderArray<ShipRpcPoint> rpcpoints;
- 
-        ROOT::RVec<int> primaryvisible;
+
+        map<int,ROOT::RVecD> energies_q2x;
+        ROOT::RVecI primaryvisible;
         map<int,int> npl_nudaughterID;
         map<int,bool> measured_momentum_nudaughterID;        
         TF2 *fOPERA_mcsres;

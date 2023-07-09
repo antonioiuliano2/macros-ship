@@ -154,6 +154,12 @@ void EfficiencyCut::FillHistograms(TH1D *hnuP, TH2D *hq2_x){
     //cout<<"x is "<<x<<" and Q2 is "<<Q2<<endl;
     //filling histograms
     hq2_x->Fill(TMath::Log10(x),TMath::Log10(Q2),this->GetEventWeight());
+    int whichbin = hq2_x->FindBin(TMath::Log10(x), TMath::Log10(Q2));
+    //RVec to compute average energy at each bin
+    if (energies_q2x.find(whichbin) == energies_q2x.end()) energies_q2x[whichbin] = ROOT::RVecD();
+    energies_q2x[whichbin].push_back(nuE);
+
+    //1D histogram for quick check
     hnuP->Fill(tracks[0].GetP(),this->GetEventWeight() );
 }
 

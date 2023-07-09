@@ -81,14 +81,17 @@ void numu_analysis(){
     
     std::ofstream ofs;
     ofs.open ("numu_q2x_passed_histogram.txt", std::ofstream::out);
-    ofs<<"x q2 #nu"<<endl;
+    ofs<<"x q2 Enu #nu"<<endl;
     
     for (int ibinx = 1; ibinx<= nbinsx; ibinx++)    {
      for (int ibiny = 1; ibiny<= nbinsy; ibiny++){
         double xcenter = pow(10,hq2_x_passed->GetXaxis()->GetBinCenter(ibinx));
         double ycenter = pow(10,hq2_x_passed->GetYaxis()->GetBinCenter(ibiny));
         double nreco = hq2_x->GetBinContent(ibinx,ibiny);
-        ofs<<xcenter<<" "<<ycenter<<" "<<nreco<<endl;
+        //global bin number, used for map
+        int whichbin = hq2_x_passed->GetBin(ibinx,ibiny);
+        double meanenergy = ROOT::VecOps::Mean(effcut.energies_q2x[whichbin]);
+        ofs<<xcenter<<" "<<ycenter<<" "<<meanenergy<<" "<<nreco<<endl;   
      }
     }
     ofs.close();
