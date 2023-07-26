@@ -231,12 +231,14 @@ void nu_yield(int neutrinosource = 2, bool uselogbins=false){ //passing neutrino
   cspectra->cd(9);
   Double_t nue_el =  nu_yield_general(neutrinosource,uselogbins,"nu_e","ve_ccncmix");
   Double_t nue_bar_el =  nu_yield_general(neutrinosource,uselogbins,"nu_e_bar","ve_ccncmix");
+  Double_t nue_dis_nc = nu_yield_general(neutrinosource,uselogbins,"nu_e","dis_nc");
+  Double_t nue_bar_dis_nc = nu_yield_general(neutrinosource,uselogbins,"nu_e_bar","dis_nc");
   cout<<endl;
 
 
-  cout<<"NU: "<<" "<<"CCDIS"<<" "<<"CHARM"<<" "<<"RES"<<" "<<"QE"<<" "<<"NUEEL"<<endl;
-  cout<<"NUE"<<" "<<nue_dis_cc<<" "<<nue_dis_cc_charm<<" "<<nue_res_cc<<" "<<nue_qel_cc<<" "<<nue_el<<endl;
-  cout<<"ANTINUE"<<" "<<nue_bar_dis_cc<<" "<<nue_bar_dis_cc_charm<<" "<<nue_bar_res_cc<<" "<<nue_bar_qel_cc<<" "<<nue_bar_el<<endl;
+  cout<<"NU: "<<" "<<"CCDIS"<<" "<<"CHARM"<<" "<<"RES"<<" "<<"QE"<<" "<<"NUEEL"<<" "<<"NCDIS"<<endl;
+  cout<<"NUE"<<" "<<nue_dis_cc<<" "<<nue_dis_cc_charm<<" "<<nue_res_cc<<" "<<nue_qel_cc<<" "<<nue_el<<" "<<nue_dis_nc<<endl;
+  cout<<"ANTINUE"<<" "<<nue_bar_dis_cc<<" "<<nue_bar_dis_cc_charm<<" "<<nue_bar_res_cc<<" "<<nue_bar_qel_cc<<" "<<nue_bar_el<<" "<<nue_bar_dis_nc<<endl;
   cout<<"Yields per numu"<<endl;
   TCanvas *cspectramu = new TCanvas();
   cspectramu->Divide(3,3);
@@ -260,10 +262,12 @@ void nu_yield(int neutrinosource = 2, bool uselogbins=false){ //passing neutrino
   cspectramu->cd(9);
   Double_t numu_el =nu_yield_general(neutrinosource,uselogbins,"nu_mu","ve_nc");   
   Double_t numu_bar_el =nu_yield_general(neutrinosource,uselogbins,"nu_mu_bar","ve_nc");
+  Double_t numu_dis_nc = nu_yield_general(neutrinosource,uselogbins,"nu_mu","dis_nc");
+  Double_t numu_bar_dis_nc = nu_yield_general(neutrinosource,uselogbins,"nu_mu_bar","dis_nc");
   cout<<endl;
 
-  cout<<"NUMU"<<" "<<numu_dis_cc<<" "<<numu_dis_cc_charm<<" "<<numu_res_cc<<" "<<numu_qel_cc<<" "<<numu_el<<endl;
-  cout<<"ANTINUMU"<<" "<<numu_bar_dis_cc<<" "<<numu_bar_dis_cc_charm<<" "<<numu_bar_res_cc<<" "<<numu_bar_qel_cc<<" "<<numu_bar_el<<endl;
+  cout<<"NUMU"<<" "<<numu_dis_cc<<" "<<numu_dis_cc_charm<<" "<<numu_res_cc<<" "<<numu_qel_cc<<" "<<numu_el<<" "<<numu_dis_nc<<endl;
+  cout<<"ANTINUMU"<<" "<<numu_bar_dis_cc<<" "<<numu_bar_dis_cc_charm<<" "<<numu_bar_res_cc<<" "<<numu_bar_qel_cc<<" "<<numu_bar_el<<" "<<numu_bar_dis_nc<<endl;
   
   TCanvas *cspectratau = new TCanvas();
   cspectratau->Divide(3,3);
@@ -287,9 +291,11 @@ void nu_yield(int neutrinosource = 2, bool uselogbins=false){ //passing neutrino
   cspectratau->cd(9);
   Double_t nutau_el =nu_yield_general(neutrinosource,uselogbins,"nu_tau","ve_nc");   
   Double_t nutau_bar_el =nu_yield_general(neutrinosource,uselogbins,"nu_tau_bar","ve_nc");
+  Double_t nutau_dis_nc = nu_yield_general(neutrinosource,uselogbins,"nu_tau","dis_nc");
+  Double_t nutau_bar_dis_nc = nu_yield_general(neutrinosource,uselogbins,"nu_tau_bar","dis_nc");
 
-  cout<<"NUTAU"<<" "<<nutau_dis_cc<<" "<<nutau_dis_cc_charm<<" "<<nutau_res_cc<<" "<<nutau_qel_cc<<" "<<nutau_el<<endl;
-  cout<<"ANTINUTAU"<<" "<<nutau_bar_dis_cc<<" "<<nutau_bar_dis_cc_charm<<" "<<nutau_bar_res_cc<<" "<<nutau_bar_qel_cc<<" "<<nutau_bar_el<<endl;
+  cout<<"NUTAU"<<" "<<nutau_dis_cc<<" "<<nutau_dis_cc_charm<<" "<<nutau_res_cc<<" "<<nutau_qel_cc<<" "<<nutau_el<<" "<<nutau_dis_nc<<endl;
+  cout<<"ANTINUTAU"<<" "<<nutau_bar_dis_cc<<" "<<nutau_bar_dis_cc_charm<<" "<<nutau_bar_res_cc<<" "<<nutau_bar_qel_cc<<" "<<nutau_bar_el<<" "<<nutau_bar_dis_nc<<endl;
   
 }
 
@@ -403,7 +409,7 @@ Double_t nu_yield_general(int neutrinosource, bool uselogbins, const char* nu = 
 
 void drawInteractingSpectra(){ //drawing the spectra of interacting CCDIS
   const double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
-  const double normship = 2e+20; //reference for one year of SND DataTaking
+  const double normship = 2e+20; //reference for five years of SND DataTaking
 
   //Drawing stored histograms for neutrinos (/home/utente/Simulations/nuyield_shipecn3/25m/)
   TFile *nuefile = TFile::Open("plots_2/results_nu_e_dis_cc.root");
