@@ -6,6 +6,7 @@ EfficiencyCut::EfficiencyCut(const char* inputfilename, const char* geofilename)
  reader(),
  tracks(reader,"MCTrack"),
  rpcpoints(reader,"ShipRpcPoint"),
+ strawtubespoints(reader,"strawtubesPoint"),
  targetpoints(reader,"TargetPoint")
 {
  simfile = TFile::Open(inputfilename);
@@ -16,6 +17,9 @@ EfficiencyCut::EfficiencyCut(const char* inputfilename, const char* geofilename)
  //fucntion for mcs
  fOPERA_mcsres = new TF2("fOPERA_mcsres","([0]+[1]*x)/TMath::Sqrt(y)+ ([2]+[3]*x)+([4]+[5]*x)*TMath::Sqrt(y)");
  fOPERA_mcsres->SetParameters(0.397,0.019,0.176,0.042,-0.014,-0.003);
+
+ hdeltaTX = new TH1D("hdeltaTX","TX difference;DeltaTX",400,-0.02,0.02);
+ hdeltaTY = new TH1D("hdeltaTY","TY difference;DeltaTY",400,-0.02,0.02);
 }
 
 //find brick from position in the geometry
@@ -99,9 +103,83 @@ bool EfficiencyCut::VisibleVertexLocation(double maxtantheta, double minmomentum
       } //end charged daugter condition
       trackID++;
      }//end over track loop
-    if (primaryvisible.size()>0) return true;
+    if (primaryvisible.size()>1) return true; //at least 1 or 2? Need one more than tau lepton
     else return false;
 }
+
+bool EfficiencyCut::DecaySearch(bool tausim, double maxdl = 0.4, double minkinkangle = 0.02, double minip = 10e-4, double mindaumomentum = 0.1, double maxdautantheta = 1.){
+ //looking for decay: 
+ //tausim true: we look for tau decay, 
+ //tausim false:we look for charmed hadrons
+ ROOT::RVec<int> signalpdgs;
+ if (tausim) signalpdgs = {15}; //tau lepton
+ else signalpdgs = {411, 431, 4122, 421, 4132, 4232, 4332, 441};
+
+ int trackID = 0;
+ TDatabasePDG *pdg = TDatabasePDG::Instance();
+ //primary neutrino vertex coordinates
+ double vx = tracks[0].GetStartX();
+ double vy = tracks[0].GetStartY();
+ double vz = tracks[0].GetStartZ();
+ int tauid = -1; //assuming decaying particle to have trackID 1
+ for (auto &track:tracks){ //loop over MCTracks, find decay daughters
+    //this is the particle we are looking for (tau lepton or hadron)
+    double pdgcode = track.GetPdgCode();
+    bool passed_decaysearch = true;
+    int signalparticle = signalpdgs[signalpdgs==TMath::Abs(pdgcode)].size();
+    if ( signalparticle > 0 && track.GetMotherId()==0 && tauid < 0) tauid = trackID;
+    
+    if (tauid < 0){ 
+        trackID++;
+        continue; //MCTrackID for tau lepton not yet found, go to next
+    }
+    //tau lepton angles
+    double tautx = tracks[tauid].GetPx()/tracks[tauid].GetPz();
+    double tauty = tracks[tauid].GetPy()/tracks[tauid].GetPz();
+    //condition for a visible tau decay daughter
+
+    //look for charged particles from tau decay
+    double momentum = track.GetP();
+    double charge = 0.;
+    if (pdg->GetParticle(pdgcode)) charge = pdg->GetParticle(pdgcode)->Charge(); 
+    //check if it is a tau decay daughter
+    if(track.GetMotherId()==tauid && TMath::Abs(charge)>0){ 
+        //check if the decay is "visible"
+          daughters.push_back(trackID);
+          double tx = track.GetPx()/track.GetPz();
+          double ty = track.GetPy()/track.GetPz();
+          double tantheta = TMath::Sqrt(tx * tx + ty * ty);
+        
+          double tauendx = track.GetStartX();
+          double tauendy = track.GetStartY();
+          double tauendz = track.GetStartZ();
+     
+          double taudecaylength = TMath::Sqrt(pow(tauendx - vx,2) + pow(tauendy-vy,2)+ pow(tauendz-vz,2)); 
+          double kinkangle = TMath::ATan(TMath::Sqrt(pow(tx - tautx,2)+pow(ty - tauty,2)));
+
+          //'''Impact parameter of track with respect to primary vertex (standard transverse definition)'''
+ 
+          double dz = vz - tauendz;
+          double ipx = tx * dz + tauendx - vx;
+          double ipy = ty * dz + tauendy - vy;
+          double ip = TMath::Sqrt(pow(ipx,2)+pow(ipy,2));
+
+          //*************************DECAY SEARCH**************************//
+          //cout<<"TEST daughter ID"<<trackID<<" tauID "<<endl;
+          //cout<<tauid<<" "<<taudecaylength<<" "<<ip<<" "<<kinkangle<<" "<<momentum<<" "<<tantheta<<endl;
+          if (taudecaylength > maxdl) passed_decaysearch = false;
+          if (ip < minip) passed_decaysearch = false;
+          if (kinkangle < minkinkangle) passed_decaysearch = false;
+          if (momentum < mindaumomentum || tantheta > maxdautantheta) passed_decaysearch = false;
+          //if the code was not returned by all these checks, the decay daughter is accepted
+          if (passed_decaysearch) visibledaughters.push_back(trackID);
+         } //tau daughter check
+ trackID++;
+ }//end track loop
+ if(visibledaughters.size()>0) return true;
+ else return false;
+}
+
 
 int EfficiencyCut::MCSmeasurement(double maxres, int nplmin){
     //this function must be called after VisibleVertexLocation
@@ -136,7 +214,7 @@ int EfficiencyCut::MCSmeasurement(double maxres, int nplmin){
    return 0;
 }
 
-void EfficiencyCut::FillHistograms(TH1D *hnuP, TH2D *hq2_x){
+void EfficiencyCut::FillHistograms(TH1D *hnuP, TH2D *hq2_x, TH1D* hlP){
     double nuE = tracks[0].GetEnergy(); //neutrino
     double lE = tracks[1].GetEnergy(); //primary lepton
     double v = nuE - lE; //transferred energy
@@ -160,7 +238,8 @@ void EfficiencyCut::FillHistograms(TH1D *hnuP, TH2D *hq2_x){
     energies_q2x[whichbin].push_back(nuE);
 
     //1D histogram for quick check
-    hnuP->Fill(tracks[0].GetP(),this->GetEventWeight() );
+    hnuP->Fill(tracks[0].GetP(),this->GetEventWeight() ); //neutrino momentum
+    hlP->Fill(tracks[1].GetP(),this->GetEventWeight() ); //primary lepton momentum
 }
 
 //function to compute curvature from sagitta spectrometer
@@ -180,8 +259,25 @@ ROOT::RVec<Double_t> SagittaSpectrometer(int* whichplanes, Double_t *XSpectromet
   return Sagitta;
 }
 
+//in this configuration, we have two tracking stations upstream of the magnet, two downstream. Bending Angle measurement
+ROOT::RVec<Double_t> BendingSpectrometer(int* whichplanes, Double_t *XSpectrometer, Double_t *YSpectrometer, Double_t * ZSpectrometer){
+    //0 and 1: upstream stations;
+    Double_t TXup = (XSpectrometer[whichplanes[1]] - XSpectrometer[whichplanes[0]])/(ZSpectrometer[whichplanes[1]] - ZSpectrometer[whichplanes[0]]);
+    Double_t TYup = (YSpectrometer[whichplanes[1]] - YSpectrometer[whichplanes[0]])/(ZSpectrometer[whichplanes[1]] - ZSpectrometer[whichplanes[0]]);
+    //2 and 3: downstream stations;
+    Double_t TXdown = (XSpectrometer[whichplanes[3]] - XSpectrometer[whichplanes[2]])/(ZSpectrometer[whichplanes[3]] - ZSpectrometer[whichplanes[2]]);
+    Double_t TYdown = (YSpectrometer[whichplanes[3]] - YSpectrometer[whichplanes[2]])/(ZSpectrometer[whichplanes[3]] - ZSpectrometer[whichplanes[2]]);
+  
+    ROOT::RVec<Double_t> DeltaT = {-99999.,-99999.};
+
+    DeltaT[0] = TXdown - TXup;
+    DeltaT[1] = TYdown - TYup;
+
+    return DeltaT;
+}
+
 bool EfficiencyCut::SpectrometerAcceptance(double posres, double sagittares){
- //first, looping over all rpcpoints to get the lepton
+ //first, looping over all rpcpoints to get the lepton for ID fmuonID
  const int nstations = 8;
  Double_t XSpectrometer[nstations], YSpectrometer[nstations], ZSpectrometer[nstations];
  Bool_t InSpectrometer[nstations];
@@ -192,7 +288,7 @@ bool EfficiencyCut::SpectrometerAcceptance(double posres, double sagittares){
 
  for (const ShipRpcPoint& rpcpoint: rpcpoints){
   int nstation = rpcpoint.GetDetectorID() - 1; //from 0 to 3 
-  if (rpcpoint.GetTrackID()==1 && !InSpectrometer[nstation]){ //we fill the arrays with the muon neutrino positions
+  if (rpcpoint.GetTrackID()==fmuonID && !InSpectrometer[nstation]){ //we fill the arrays with the muon neutrino positions
   
    XSpectrometer[nstation] = rpcpoint.GetX();
    YSpectrometer[nstation] = rpcpoint.GetY();
@@ -225,4 +321,89 @@ bool EfficiencyCut::SpectrometerAcceptance(double posres, double sagittares){
     }
  } 
  else return false;
+}
+//same, but using strawtubes of Decay Spectrometer this time
+bool EfficiencyCut::DecaySpectrometerAcceptance(double dsposres, double dsangularres){
+ //first, looping over all rpcpoints to get the lepton for ID fmuonID
+ const int nstations = 4; //four stations only this time
+ Double_t XSpectrometer[nstations], YSpectrometer[nstations], ZSpectrometer[nstations];
+ Bool_t InSpectrometer[nstations];
+ //initialize them to false
+ for (int istation = 0; istation < nstations; istation++){
+  InSpectrometer[istation] = false;
+ }
+
+ for (const strawtubesPoint& strawtubespoint: strawtubespoints){
+  int nstation = (strawtubespoint.GetDetectorID()/1e+7)-1; //from 0 to 3 
+  if (strawtubespoint.GetTrackID()==fmuonID && !InSpectrometer[nstation]){ //we fill the arrays with the muon neutrino positions
+  
+   XSpectrometer[nstation] = strawtubespoint.GetX();
+   YSpectrometer[nstation] = strawtubespoint.GetY();
+   ZSpectrometer[nstation] = strawtubespoint.GetZ();
+   InSpectrometer[nstation] = true;
+
+   //applying smearing to X and Y
+   XSpectrometer[nstation] = XSpectrometer[nstation] + gRandom->Gaus(0, dsposres);
+   YSpectrometer[nstation] = YSpectrometer[nstation] + gRandom->Gaus(0, dsposres);
+  }//end muon track condition
+ }//end strawtubes hit loop 
+ if (InSpectrometer[0]){ //TEST ONLY FIRST STATION
+ //if (InSpectrometer[0]&&InSpectrometer[1]&&InSpectrometer[2]&&InSpectrometer[3]){ //not arrives downstream, using upstream planes
+    int whichplanes[4] = {0,1,2,3};
+    auto DeltaT = BendingSpectrometer(whichplanes, XSpectrometer, YSpectrometer, ZSpectrometer);
+    //studying the distributions
+    hdeltaTX->Fill(DeltaT[0]);
+    hdeltaTY->Fill(DeltaT[1]);
+    //Filling histograms for study
+   /* if (TMath::Abs(DeltaT[1]) > 3 * dsangularresres) return true;
+    else{ 
+        cout<<"In acceptance, but decay spectro sagitta not enough "<<DeltaT[1]<<endl;
+        return false;
+    }*/
+    return true; //if present, always return true for now, regardless of angular deflection
+ } 
+ else return false;
+}
+
+int EfficiencyCut::DecayChannel(){
+    //tau decay channel identification: 
+    //1 -> mu
+    //2 -> e
+    //3 -> 1h
+    //4 -> 3h
+    //0 -> failed to identify
+    int nmuons = 0;
+    int nhadrons = 0;
+    int nelectrons = 0; 
+
+    for (auto trackID:daughters){
+       double pdgcode = tracks[trackID].GetPdgCode();
+       if (TMath::Abs(pdgcode) == 11) nelectrons++;
+       else if (TMath::Abs(pdgcode) == 13){ 
+        fmuonID = trackID; //storin to follow it later
+        nmuons++;
+       }
+       else nhadrons++;
+     }
+     if (nmuons == 1) return 1;
+     else if (nelectrons == 1) return 2;
+     else if (nhadrons == 1) return 3;
+     else if (nhadrons > 1) return 4;
+     /*else{
+        cout<<"At event "<<ievent<<" Unexpected channel for tau daughters (muons, electrons, hadrons): "<<nmuons<<" "<<nelectrons<<" "<<nhadrons<<endl;
+         if (nnumu > 0){          
+          cout<<"At event "<<ievent<<" not stored lepton. Stored to muon channel due to found nu_mu: "<<nnumu<<endl;
+          return 1;
+         }
+         else if (nnue > 0){          
+          cout<<"At event "<<ievent<<" not stored lepton. Stored to electron channel due to found nu_e: "<<nnue<<endl;
+          return 2;
+         }
+         else{         
+          cout<<"No muon/electron neutrino found, associating it to channel 1h"<<endl;
+          return 3;
+        }
+     }*/
+     return 0;
+
 }
