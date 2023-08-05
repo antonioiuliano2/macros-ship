@@ -1,5 +1,8 @@
 //estimate efficiency for numu CCDIS
 void numu_CHARMCCDIS_analysis(){
+
+    cout<<"Here spectrometer acceptance cuts DO NOT REQUIRE OTHER CUTS"<<endl;
+    cout<<"MuPassed requires also not DS passed"<<endl;
     //efficiency estimation parameters
     const double offsetxy = 0.1; const int Nminplates = 4; //parameters for geometrical acceptance
     const double maxtheta = 1.; const double minmomentum = 1.; // parameters for primary vertex visibility
@@ -20,7 +23,7 @@ void numu_CHARMCCDIS_analysis(){
     //histograms_passed
     TH1D *hnuP_passed = new TH1D("hnuP_passed","Neutrino momentum;P[GeV/C]",400,0,400);
     TH2D *hq2_x_passed = new TH2D("hq2_x_passed",";log10(x);log10(Q2)",20,-4.,1.,10,-1.5,3.5);
-    TH1D *hmuP_passed = new TH1D("hmuP_passed","Muons measured in SND Spectrometer;P[GeV/C]",400,0,400);
+    TH1D *hmuP_passed = new TH1D("hmuP_passed","Muons measured in SND Spectrometer but NOT entering in HS spectrometer;P[GeV/C]",400,0,400);
 
    //histograms_passed (in SHiP Decay Spectrometer instead of SND Muon Spectrometer)
     TH1D *hnuP_dspassed = new TH1D("hnuP_dspassed","Accepted events in DS;P[GeV/C]",400,0,400);
@@ -32,8 +35,8 @@ void numu_CHARMCCDIS_analysis(){
     TString simfile("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_07_09_numu_CHARMCCDIS_ECN3geom/inECC_ship.conical.Genie-TGeant4.root");
     TString geofile("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_07_09_numu_CHARMCCDIS_ECN3geom/geofile_full.conical.Genie-TGeant4.root");
     EfficiencyCut effcut = EfficiencyCut((prefix+simfile).Data(),(prefix+geofile).Data());
-    //const int nentries = effcut.GetEntries();
-    const int nentries = 1000;
+    const int nentries = effcut.GetEntries();
+    //const int nentries = 1000;
     int ninbrick = 0;
 
     double ngeomok = 0., nvisible = 0., nspectro = 0., ndecayspectro = 0, ndecaysearch = 0.;
@@ -68,13 +71,14 @@ void numu_CHARMCCDIS_analysis(){
             nvisible += effcut.GetEventWeight();
             if (checkdecaysearch){
              ndecaysearch += effcut.GetEventWeight();
-             if (checkspectrometer){ //the spectro measurement requires all the ones before
-                nspectro += effcut.GetEventWeight();            
-                effcut.FillHistograms(hnuP_passed, hq2_x_passed, hmuP_passed);
-             }
             }            
         }
      }
+    
+     if ((checkspectrometer)&&(!checkdecayspectrometer)){ //the spectro measurement requires all the ones before
+                nspectro += effcut.GetEventWeight();            
+                effcut.FillHistograms(hnuP_passed, hq2_x_passed, hmuP_passed);
+             }
 
      if (checkdecayspectrometer){ //entering HS alone!
                 ndecayspectro += effcut.GetEventWeight();
@@ -138,17 +142,21 @@ void numu_CHARMCCDIS_analysis(){
     cnuP->BuildLegend();
 
     TCanvas *cmuP = new TCanvas();
+    auto hmuStack = new THStack("hmuStack","Muons entering DS vs not entering but measured in SND");
     hmuP->Scale(1./totalweight);
     hmuP->Draw("histo");
     hmuP_passed->SetFillColor(kBlue);
     hmuP_passed->SetFillStyle(3305);
     hmuP_passed->Scale(1./totalweight);
-    hmuP_passed->Draw("SAMES&&histo");
+    //hmuP_passed->Draw("SAMES&&histo");
     hmuP_dspassed->SetLineColor(kRed);
     hmuP_dspassed->SetFillColor(kRed);
     hmuP_dspassed->SetFillStyle(3315);
     hmuP_dspassed->Scale(1./totalweight);
-    hmuP_dspassed->Draw("SAMES&&histo");
+    //hmuP_dspassed->Draw("SAMES&&histo");
+    hmuStack->Add(hmuP_dspassed);
+    hmuStack->Add(hmuP_passed);
+    hmuStack->Draw("SAMES&&histo");
     cmuP->BuildLegend();
 
 }
