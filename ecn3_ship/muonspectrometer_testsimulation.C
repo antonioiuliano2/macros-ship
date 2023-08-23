@@ -45,14 +45,15 @@ void muonspectrometer_testsimulation(){
  ROOT::RVec<int> charmpdglist = {421,411,431,4122,4232,4132,4332}; //to study CharmCCDIS
 
  const int eventesclusion = 0; //0 only odd, 1 only even, 2 all;
- const float dx_acceptance = 60.; //how many we lose by reducing our station size? (this is HALF SIZE)
- const float dy_acceptance = 60.; 
+ const float dx_acceptance = 40.; //how many we lose by reducing our station size? (this is HALF SIZE)
+ const float dy_acceptance = 80.; 
 
  TString prefix("root:://eosuser.cern.ch/");//for ROOTXD
  //TString simpath_mu("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/numu_CCDIS_2023_03_04_targetmovedupstream_spectromag/");
  //TString simpath_mu_bar("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/numu_bar_CCDIS_2023_03_04_targetmovedupstream_spectromag/");
  //TString simpath_mu_bar("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_04_14_numu_bar_CHARMCCDIS_spectro_1_2T/");
- TString simpath_mu("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_05_27_numu_CCDIS_spectrosagitta/");
+ //TString simpath_mu("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_05_27_numu_CCDIS_spectrosagitta/");
+ TString simpath_mu("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_06_17_numu_CCDIS_ECN3geom/");
  TRandom3 *randomgen  = new TRandom3(); //0; seed changes everytime, no seed, default to 4357 
 
  const double spectro_posres = 100.*1e-4; //100 micron, for smearing 
@@ -107,15 +108,12 @@ void muonspectrometer_testsimulation(){
  fang_pzy->SetParameter(0,1.60111);
  fang_pzy->SetParameter(1,31.2447);
 
- const int nstations = 4;
+ const int nstations = 8;
  TH2D *hxy[nstations];
- TH2D *hxy_acceptance[nstations];
  Double_t Inacceptance_weight[nstations];
  //initialize histos
  for (int istation = 0; istation < nstations; istation++){
   hxy[istation] = new TH2D(Form("hxy[%i]",istation),Form("Muon distribution in station %i;x[cm];y[cm]",istation),400,-200,200,400,-200,200);
-  hxy_acceptance[istation] = new TH2D(Form("hxy_iacceptance[%i]",istation),Form("Muon distribution in station %i acceptance studu;x[cm];y[cm]",istation),
-    (int)(2*dx_acceptance),-dx_acceptance,dx_acceptance,(int)(2*dy_acceptance),-dy_acceptance,dy_acceptance);
 
   Inacceptance_weight[istation] = 0.;
  }
@@ -190,6 +188,7 @@ void muonspectrometer_testsimulation(){
    }
     else{
     cout<<"WARNING: Track 1 is not muon neutrino in event "<<ientry<<endl;
+    itrack++; //trackID counter 
     continue; //muon missing in this event (too low kin energy)
    } 
   }
@@ -222,7 +221,6 @@ void muonspectrometer_testsimulation(){
    }
 
    hxy[nstation]->Fill(XSpectrometer[nstation],YSpectrometer[nstation], weight);
-   hxy_acceptance[nstation]->Fill(XSpectrometer[nstation],YSpectrometer[nstation], weight);
    //applying smearing to X and Y
    XSpectrometer[nstation] = XSpectrometer[nstation] + randomgen->Gaus(0, spectro_posres);
    YSpectrometer[nstation] = YSpectrometer[nstation] + randomgen->Gaus(0, spectro_posres);
@@ -264,15 +262,6 @@ void muonspectrometer_testsimulation(){
   
  } 
 
- //**CHECKING ACCEPTANCE**//
-/* cout<<"Fraction of hits arriving at station 2: "<<hxy[1]->Integral()/totalweight<<endl;
- cout<<"Subfraction of hits in acceptance station 2: "<<hxy_acceptance[1]->Integral()/hxy[1]->Integral()<<endl;
- cout<<"Total acceptance station 2: "<<hxy_acceptance[1]->Integral()/totalweight<<endl;
-
- cout<<"Fraction of hits arriving at station 4: "<<hxy[3]->Integral()/totalweight<<endl;
- cout<<"Subfraction of hits in acceptance: "<<hxy_acceptance[3]->Integral()/hxy[3]->Integral()<<endl;
- cout<<"Total acceptance: "<<hxy_acceptance[3]->Integral()/totalweight<<endl;
-*/
  cout<<"Total acceptance station 1: "<<Inacceptance_weight[0]/totalweight<<endl;
  cout<<"Total acceptance station 2: "<<Inacceptance_weight[1]/totalweight<<endl;
  cout<<"Total acceptance station 3: "<<Inacceptance_weight[2]/totalweight<<endl;

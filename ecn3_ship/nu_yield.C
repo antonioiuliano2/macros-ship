@@ -409,7 +409,7 @@ Double_t nu_yield_general(int neutrinosource, bool uselogbins, const char* nu = 
 
 void drawInteractingSpectra(){ //drawing the spectra of interacting CCDIS
   const double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
-  const double normship = 2e+20; //reference for five years of SND DataTaking
+  const double normship = 5e+13; //reference for five years of SND DataTaking
 
   //Drawing stored histograms for neutrinos (/home/utente/Simulations/nuyield_shipecn3/25m/)
   TFile *nuefile = TFile::Open("plots_2/results_nu_e_dis_cc.root");

@@ -14,10 +14,12 @@ void nutau_analysis(){
     //histograms
     TH1D *hnuP = new TH1D("hnuP","Neutrino momentum;P[GeV/C]",400,0,400);
     TH2D *hq2_x = new TH2D("hq2_x",";log10(x);log10(Q2)",20,-4.,1.,10,-1.5,3.5);
+    TH1D *hmuP = new TH1D("hmuP","All muons;P[GeV/C]",400,0,400);
 
     //histograms_passed
     TH1D *hnuP_passed = new TH1D("hnuP_passed","Neutrino momentum;P[GeV/C]",400,0,400);
     TH2D *hq2_x_passed = new TH2D("hq2_x_passed",";log10(x);log10(Q2)",20,-4.,1.,10,-1.5,3.5);
+    TH1D *hmuP_passed = new TH1D("hmuP_passed","Muons measured in SND Spectrometer but NOT entering in HS spectrometer;P[GeV/C]",400,0,400);
 
     TString prefix("root:://eosuser.cern.ch/");
     TString simfile("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_07_04_nutau_bar_CCDIS_ECN3geom/inECC_ship.conical.Genie-TGeant4.root");
@@ -71,15 +73,15 @@ void nutau_analysis(){
              if (decaychannel==1){ //only for muon channel
               if (checkspectrometer){
                 nspectro[decaychannel-1] += effcut.GetEventWeight();                          
-                effcut.FillHistograms(hnuP_passed, hq2_x_passed);
+                effcut.FillHistograms(hnuP_passed, hq2_x_passed, hmuP_passed);
               }
-             }
-             else effcut.FillHistograms(hnuP_passed, hq2_x_passed); //for other decay channels the previous steps are enough
-            }
-        }
-     }
+             } //end of decay channel check
+             else effcut.FillHistograms(hnuP_passed, hq2_x_passed, hmuP_passed); //for other decay channels the previous steps are enough
+            } //end of decay search check
+        } // end of visibility check
+     } //end of geometrical acceptance
 
-     effcut.FillHistograms(hnuP, hq2_x);
+     effcut.FillHistograms(hnuP, hq2_x, hmuP);
     }
     double alltotalweight = 0.;
     for (int idecaychannel = 0; idecaychannel < ndecaychannels; idecaychannel++){

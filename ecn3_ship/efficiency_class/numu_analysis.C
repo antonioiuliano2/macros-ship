@@ -5,6 +5,7 @@ void numu_analysis(){
     const double maxtheta = 1.; const double minmomentum = 1.; // parameters for primary vertex visibility
     const double posres = 100.*1e-4; const double sagittares = 0.02122; //parameters for magnetic spectrometer
     const double dsposres = 100.*1e-4; const double dssagittares = 0.02122; //parameters for magnetic spectrometer
+    cout<<"NOW SPECTROMETER ACCEPTANCE DOES NOT REQUIRE OTHER CUTS"<<endl;
 
     //histograms
     TH1D *hnuP = new TH1D("hnuP","All events;P[GeV/C]",400,0,400);
@@ -56,17 +57,16 @@ void numu_analysis(){
         ngeomok += effcut.GetEventWeight();
         if (isvisible){
             nvisible += effcut.GetEventWeight();
-            if (checkspectrometer){
+        }
+     }
+     if (checkspectrometer){
                 nspectro += effcut.GetEventWeight();
                 effcut.FillHistograms(hnuP_passed, hq2_x_passed);
             }
-            if (checkdecayspectrometer){
+     if (checkdecayspectrometer){
                 ndecayspectro += effcut.GetEventWeight();
                 effcut.FillHistograms(hnuP_dspassed, hq2_x_dspassed);
-            }
-        }
      }
-
      effcut.FillHistograms(hnuP, hq2_x);
     }
     cout<<"fraction geom ok "<<ngeomok/totalweight<<" "<<ngeomok<<endl;

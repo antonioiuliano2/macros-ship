@@ -123,7 +123,7 @@ void getnucharmresults(){
 
 void getnuincomingresults(){
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
- double normship = 5e+13; //replace to have multiple years of data taking
+ double normship = 6e+20; //replace to have multiple years of data taking
 
  TFile *nufile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/neutrinos_detector.root");
 
