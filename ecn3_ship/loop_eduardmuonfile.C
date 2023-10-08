@@ -116,14 +116,16 @@ void read_tree(int whichscoringplane){
  ROOT::RDataFrame df("mcpoints_allscoringplanes",inputfile);
  //derivative variables, (tri-momentum, energy, mass, charge...);
 
- auto df0 = df.Define("P","TMath::Sqrt(Px*Px+Py*Py+Pz*Pz)").Define("Theta","TMath::ACos(Pz/P)").Define("Charge",GetCharge,{"PdgCode"}); 
+ auto df0 = df.Define("P","TMath::Sqrt(Px*Px+Py*Py+Pz*Pz)").
+    Define("Theta","TMath::ACos(Pz/P)").Define("Charge",GetCharge,{"PdgCode"}).
+    Define("Tx","Px/Pz").Define("Ty","Py/Pz"); 
  //auto df1 = df0.Filter("Theta < 0.3");
  double xmin = -20.;
  double xmax = 20.;
  double ymin = -20.;
  double ymax = 20.;
- auto df1 = df0.Filter(Form("ScoPlane==%d",whichscoringplane));
- //auto df1 = df0.Filter(Form("X>=%f && X<=%f && Y>=%f && Y<=%f",xmin,xmax,ymin,ymax));
+ //auto df1 = df0.Filter(Form("ScoPlane==%d",whichscoringplane));
+ auto df1 = df0.Filter(Form("ScoPlane==%d",whichscoringplane)).Filter(Form("X>=%f && X<=%f && Y>=%f && Y<=%f",xmin,xmax,ymin,ymax));
  //filling histograms
  auto hxy = df1.Histo2D({"hxy","xy distribution of muons;x[cm];y[cm]",140,-600,800,140,-600,800},"X","Y","Weight");
  auto hxy_zoomed = df1.Histo2D({"hxy_zoomed","xy distribution of muons;x[cm];y[cm]",400,-200,200,400,-200,200},"X","Y","Weight");
@@ -134,10 +136,10 @@ void read_tree(int whichscoringplane){
  
  auto hChargemap = df1.Profile2D({"hChargemap","Charge map of muons;x[cm];y[cm];Charge",20,-100,100,20,-100,100,-1,1},"X","Y","Charge","Weight");
  
- auto hTheta = df1.Histo1D({"hTheta",";#theta[rad]",60,0,3.},"Theta","Weight");
+ auto hTheta = df1.Histo1D({"hTheta",";#theta[rad]",150,0,1.5},"Theta","Weight");
  auto hThetaStera = df1.Histo1D({"hThetaStera",";#theta[sr];tracks/cm^{2}",40,0,1.},"Theta","Weight");
  auto hThetamap = df1.Profile2D({"hThetamap","Theta map of muons;x[cm];y[cm];#theta[rad]",20,-100,100,20,-100,100,0,3.},"X","Y","Theta","Weight");
- 
+ auto hTxTy = df1.Histo2D({"hTxTy","Angular distribution of muons;Tx;Ty",300,-1.5,1.5,300,-1.5,1.5},"Tx","Ty","Weight");
  //drawing histograms and saving them to a ROOT plot file
  TFile *outputfile = new TFile(Form("plots_muonshitseduard_sco%dpoint_optimized_check.root",whichscoringplane),"RECREATE");
  TCanvas *cxy = new TCanvas("cxy","xy distribution",800,800);
@@ -152,7 +154,7 @@ void read_tree(int whichscoringplane){
  cxy_zoomed_text->Write();
  
  TCanvas *cTheta = new TCanvas("cTheta","Theta angle");
- hTheta->DrawClone();
+ hTheta->DrawClone("hist");
  cTheta->Write();
 
  TCanvas *cThetaStera = new TCanvas("cThetaStera","Theta angle in steradians");
@@ -186,6 +188,10 @@ void read_tree(int whichscoringplane){
  TCanvas *cCharge_map = new TCanvas("cCharge_map","Charge map of muons",800,800);
  hChargemap->DrawClone("COLZ");
  cCharge_map->Write();
+
+ TCanvas *cTxTy = new TCanvas("cTxTy","Angular distribution of muons",800,800);
+ hTxTy->DrawClone("COLZ");
+ cTxTy->Write();
 }
 
 void plotmuondensityhistogram(int whichscoringplane){
