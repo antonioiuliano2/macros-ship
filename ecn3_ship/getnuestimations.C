@@ -1,15 +1,17 @@
 //just draw histograms together, with colors as in SHiP CDS plots, get them together
+TString prepath("/home/utente/Simulations/nuyield_shipecn3/advsnd/");
+
 void getnuresults(){
 
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
  double normship =6e+20; //replace to have multiple years of data taking
 
- TFile *nuefile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_e_dis_cc.root");
- TFile *numufile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_mu_dis_cc.root");
- TFile *nutaufile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_tau_dis_cc.root");
- TFile *nuebarfile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_e_bar_dis_cc.root");
- TFile *numubarfile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_mu_bar_dis_cc.root");
- TFile *nutaubarfile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_tau_bar_dis_cc.root");
+ TFile *nuefile = TFile::Open(prepath+TString("plots_2/results_nu_e_dis_cc.root").Data());
+ TFile *numufile = TFile::Open(prepath+TString("plots_2/results_nu_mu_dis_cc.root").Data());
+ TFile *nutaufile = TFile::Open(prepath+TString("plots_2/results_nu_tau_dis_cc.root").Data());
+ TFile *nuebarfile = TFile::Open(prepath+TString("plots_2/results_nu_e_bar_dis_cc.root").Data());
+ TFile *numubarfile = TFile::Open(prepath+TString("plots_2/results_nu_mu_bar_dis_cc.root").Data());
+ TFile *nutaubarfile = TFile::Open(prepath+TString("plots_2/results_nu_tau_bar_dis_cc.root").Data());
 
 
  TH1D *nuespectrum = (TH1D*) nuefile->Get("hspectrum_nu_e_intdis_cc");
@@ -65,12 +67,12 @@ void getnucharmresults(){
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
  double normship =6e+20; //replace to have multiple years of data taking
 
- TFile *nuefile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_e_dis_cc_charm.root");
- TFile *numufile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_mu_dis_cc_charm.root");
- TFile *nutaufile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_tau_dis_cc_charm.root");
- TFile *nuebarfile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_e_bar_dis_cc_charm.root");
- TFile *numubarfile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_mu_bar_dis_cc_charm.root");
- TFile *nutaubarfile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/plots_2/results_nu_tau_bar_dis_cc_charm.root");
+ TFile *nuefile = TFile::Open(prepath+TString("plots_2/results_nu_e_dis_cc_charm.root").Data());
+ TFile *numufile = TFile::Open(prepath+TString("plots_2/results_nu_mu_dis_cc_charm.root").Data());
+ TFile *nutaufile = TFile::Open(prepath+TString("plots_2/results_nu_tau_dis_cc_charm.root").Data());
+ TFile *nuebarfile = TFile::Open(prepath+TString("plots_2/results_nu_e_bar_dis_cc_charm.root").Data());
+ TFile *numubarfile = TFile::Open(prepath+TString("plots_2/results_nu_mu_bar_dis_cc_charm.root").Data());
+ TFile *nutaubarfile = TFile::Open(prepath+TString("plots_2/results_nu_tau_bar_dis_cc_charm.root").Data());
 
 
  TH1D *nuespectrum = (TH1D*) nuefile->Get("hspectrum_nu_e_intdis_cc_charm");
@@ -125,7 +127,7 @@ void getnuincomingresults(){
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
  double normship = 6e+20; //replace to have multiple years of data taking
 
- TFile *nufile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/neutrinos_detector.root");
+ TFile *nufile = TFile::Open(prepath+TString("neutrinos_detector.root").Data());
 
  TH1D *nuespectrum = (TH1D*) nufile->Get("hnu_e");
  TH1D *numuspectrum = (TH1D*) nufile->Get("hnu_mu");
@@ -178,7 +180,7 @@ void getnuproducedresults(){
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
  double normship = 6e+20;//replace to have multiple years of data taking
 
- TFile *nufile = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/25m/pythia8_Geant4_1.0_withCharm_nu.root");
+ TFile *nufile = TFile::Open(prepath+TString("pythia8_Geant4_1.0_withCharm_nu.root").Data());
 
  TH1D *nuespectrum = (TH1D*) nufile->Get("1012");
  TH1D *numuspectrum = (TH1D*) nufile->Get("1014");
