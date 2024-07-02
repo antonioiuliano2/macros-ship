@@ -1,10 +1,11 @@
 //just draw histograms together, with colors as in SHiP CDS plots, get them together
 TString prepath("/home/utente/Simulations/nuyield_shipecn3/advsnd/");
+//TString prepath("/home/utente/Simulations/nuyield_shipecn3/advsnd_downstream/");
 
 void getnuresults(){
 
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
- double normship =6e+20; //replace to have multiple years of data taking
+ double normship = 4e+19; //replace to have multiple years of data taking
 
  TFile *nuefile = TFile::Open(prepath+TString("plots_2/results_nu_e_dis_cc.root").Data());
  TFile *numufile = TFile::Open(prepath+TString("plots_2/results_nu_mu_dis_cc.root").Data());
@@ -59,13 +60,18 @@ void getnuresults(){
  nutauspectrum->SetLineColor(kGreen);
  nutauspectrum->Draw("hist&&SAMES");
 
+ nuespectrum->SetTitle("nu_e + anti-nu_e");
+ numuspectrum->SetTitle("nu_mu + anti-nu_mu");
+ nutauspectrum->SetTitle("nu_tau + anti-nu_tau");
+ cnu->BuildLegend();
+
 
 }
 
 void getnucharmresults(){
 
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
- double normship =6e+20; //replace to have multiple years of data taking
+ double normship =4e+19; //replace to have multiple years of data taking
 
  TFile *nuefile = TFile::Open(prepath+TString("plots_2/results_nu_e_dis_cc_charm.root").Data());
  TFile *numufile = TFile::Open(prepath+TString("plots_2/results_nu_mu_dis_cc_charm.root").Data());
@@ -120,12 +126,17 @@ void getnucharmresults(){
  nutauspectrum->SetLineColor(kGreen);
  nutauspectrum->Draw("hist&&SAMES");
 
+ nuespectrum->SetTitle("nu_e + anti-nu_e");
+ numuspectrum->SetTitle("nu_mu + anti-nu_mu");
+ nutauspectrum->SetTitle("nu_tau + anti-nu_tau");
+ cnu->BuildLegend();
+
 
 }
 
 void getnuincomingresults(){
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
- double normship = 6e+20; //replace to have multiple years of data taking
+ double normship = 4e+19; //replace to have multiple years of data taking
 
  TFile *nufile = TFile::Open(prepath+TString("neutrinos_detector.root").Data());
 
@@ -174,11 +185,16 @@ void getnuincomingresults(){
  nutauspectrum->SetLineColor(kGreen);
  nutauspectrum->Draw("hist&&SAMES");
 
+ nuespectrum->SetTitle("nu_e + anti-nu_e");
+ numuspectrum->SetTitle("nu_mu + anti-nu_mu");
+ nutauspectrum->SetTitle("nu_tau + anti-nu_tau");
+ cnu->BuildLegend();
+
 }
 
 void getnuproducedresults(){
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
- double normship = 6e+20;//replace to have multiple years of data taking
+ double normship = 4e+19;//replace to have multiple years of data taking
 
  TFile *nufile = TFile::Open(prepath+TString("pythia8_Geant4_1.0_withCharm_nu.root").Data());
 

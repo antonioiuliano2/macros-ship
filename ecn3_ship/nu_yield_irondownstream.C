@@ -317,6 +317,7 @@ void BinLogX(TH1 *h)
 //general layout with FORM to estimate number of neutrino interactions 
 Double_t nu_yield_general(int neutrinosource, bool uselogbins, const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = ""){     
   TFile *xsec = TFile::Open("nu_xsec_IronSHIP.root");
+  //TFile *xsec = TFile::Open("nu_xsec_IronSHIP_emax400.root");
   //TFile *xsec = TFile::Open("Nu_xsec_full.root"); //normal splines are cut at 350 GeV
   TFile *flux = NULL;
   TString fluxfilenames[3] = {"neutrinos_detector_nocharm.root","neutrinos_detector_charm.root","neutrinos_detector.root"};
