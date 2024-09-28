@@ -43,7 +43,7 @@ void generate_neutrinos(int neutrinosource = 2, bool uselogbins=false){ //genera
 
  //Float_t deltaz = 3969.; //distance between center of proton target and center of neutrino target
  //Float_t deltaz = 2500.; //used in SHiP ECN3 Proposal(we do not have the geometry yet)
- Float_t deltaz = 2500.; //Used in AdvSND
+ Float_t deltaz = 2350.; //Used in AdvSND
  Double_t targetdx = 20.; //for geometrical acceptance requirement
  Double_t targetdy = 20.;
 
@@ -316,8 +316,8 @@ void BinLogX(TH1 *h)
 
 //general layout with FORM to estimate number of neutrino interactions 
 Double_t nu_yield_general(int neutrinosource, bool uselogbins, const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = ""){     
-  TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP.root");
-  //TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP_emax400.root");
+  //TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP.root");
+  TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP_emax400.root");
   //TFile *xsec = TFile::Open("Nu_xsec_full.root"); //normal splines are cut at 350 GeV
   TFile *flux = NULL;
   TString fluxfilenames[3] = {"neutrinos_detector_nocharm.root","neutrinos_detector_charm.root","neutrinos_detector.root"};
@@ -349,7 +349,7 @@ Double_t nu_yield_general(int neutrinosource, bool uselogbins, const char* nu = 
   const Int_t Z = 74;
 
   Float_t Ninteracting = 0.;
-  Double_t mass = 2150*1e+3; //mass in grams (AdvSND Target)
+  Double_t mass = 875*1e+3; //mass in grams (AdvSND Target)
   //Double_t mass = 3080*1e+3; //mass in grams (ship ECN3 proposal)
   Double_t surface = 40. * 40.; //surface in square centimetres (squared configuration)
   //Double_t surface = 1.4e+4;
