@@ -43,6 +43,7 @@ void testCuttingMagnet(){
     TGeoMaterial *mat = new TGeoMaterial("Vacuum",0,0,0);
     TGeoMedium   *med = new TGeoMedium("Vacuum",1,mat);
     TGeoMedium *Silicon = new TGeoMedium("Silicon",2,mat);
+    TGeoMedium *Tungsten = new TGeoMedium("Tungsten",3,mat);
 
     TGeoBBox *mybox = new TGeoBBox("mybox",1000.*cm,1000.*cm,1000.*cm);
     TGeoVolume *top = new TGeoVolume("Top",mybox,med);
@@ -117,6 +118,9 @@ void testCuttingMagnet(){
     auto Magn6_MiddleMagL = new TGeoVolume("Magn6_MiddleMagL",csL,med);
     Magn6_MiddleMagL->SetTransparency(1);
 
+
+    Magn6_MiddleMagR->SetLineColor(kRed);
+    Magn6_MiddleMagL->SetLineColor(kRed);
     top->AddNode(Magn6_MiddleMagR,0,new TGeoTranslation(0.,0.,0.));
     top->AddNode(Magn6_MiddleMagL,0,new TGeoTranslation(0.,0.,0.));
 
@@ -159,12 +163,144 @@ void testCuttingMagnet(){
     Magn5_MiddleMagL->SetTransparency(1);
 
     //inserting the volumes
+    Magn5_MiddleMagR->SetLineColor(kRed);
+    Magn5_MiddleMagL->SetLineColor(kRed);
     top->AddNode(Magn5_MiddleMagR,0,new TGeoTranslation(0.,0.,-dz_6L-dz_5R-10.));
     top->AddNode(Magn5_MiddleMagL,0,new TGeoTranslation(0.,0.,-dz_6L-dz_5R-10.));
     top->AddNode(volMagHCAL,0,new TGeoTranslation(0,0,-dz_6L-dz_5R-10.));
 
+    //Emulsion Target
+
+    const Int_t nbricks = 5;
+    cout<<"Test using "<<nbricks<< " brick "<<endl;
+   
+    const Int_t n_plates = 36;
+
+    //emulsion film parameters
+    const Double_t EmTh = 0.0070 * cm;
+    const Double_t EmX = 40. * cm;
+    const Double_t EmY = 40. * cm;
+    const Double_t PbTh = 0.0175 * cm;
+    const Double_t PassiveTh = 0.1 * cm;
+    const Double_t EPlW = 2* EmTh + PbTh;
+    const Double_t AllPW = PassiveTh + EPlW;
+    //brick packaging borders
+    const Double_t BrPackX = 2*0.0 *cm; // 1 mm gap (for now removed)
+    const Double_t BrPackY = 2*0.0 *cm;
+    const Double_t BrPackZ = 0. * cm; //no z border at the moment
+  
+    const Double_t BrickX = EmX + BrPackX;
+    const Double_t BrickY = EmY + BrPackY;
+
+    const Double_t BrickZ = n_plates * AllPW + EPlW + BrPackZ;
+  
+    const Double_t TTrackerZ = 2. * cm;
+ 
+    //const Double_t ZDimension = 22 *cm;
+    const Double_t EmTargetZDimension = nbricks* BrickZ + nbricks *TTrackerZ;
+  
+    //declaring volumes
+    TGeoBBox *EmTargetBox = new TGeoBBox("EmTargetBox",XDimension/2, YDimension/2, EmTargetZDimension/2);
+    TGeoVolume *volEmTarget = new TGeoVolume("volEmTarget",EmTargetBox, med);
+
+    TGeoBBox *Brick = new TGeoBBox("brick", BrickX/2, BrickY/2, BrickZ/2);
+    TGeoVolume *volBrick = new TGeoVolume("Brick",Brick,med);
+    volBrick->SetLineColor(kCyan);
+    //volBrick->SetTransparency(1);   
+
+    //adding ECC bricks
+    Double_t d_cl_z = - EmTargetZDimension/2;
+    //adding also TT heres
+    TGeoBBox *TT = new TGeoBBox("TT", XDimension/2, YDimension/2, (TTrackerZ)/2);
+    TGeoVolume *volTT = new TGeoVolume("TargetTracker",TT,med); //TOP
+
+    volTT->SetLineColor(kBlue);
+
+    for(int l = 0; l < nbricks; l++)
+    {
+	    volEmTarget->AddNode(volBrick,l,new TGeoTranslation(0, 0, d_cl_z +BrickZ/2));
+        volEmTarget->AddNode(volTT,l,new TGeoTranslation(0, 0, d_cl_z +BrickZ+TTrackerZ/2));
+        
+	    //6 cm is the distance between 2 columns of consecutive Target for TT placement
+	    d_cl_z += BrickZ + TTrackerZ;
+	}	
+
+  
+    //emulsion films
+    TGeoBBox *EmulsionFilm = new TGeoBBox("EmulsionFilm", EmX/2, EmY/2, EmTh/2);
+    TGeoVolume *volEmulsionFilm = new TGeoVolume("Emulsion",EmulsionFilm,med); //TOP
+    TGeoVolume *volEmulsionFilm2 = new TGeoVolume("Emulsion2",EmulsionFilm,med); //BOTTOM
+    volEmulsionFilm->SetLineColor(kBlue);
+    volEmulsionFilm2->SetLineColor(kBlue);
+    //plastic base
+
+    TGeoBBox *PlBase = new TGeoBBox("PlBase", EmX/2, EmY/2, PbTh/2);
+    TGeoVolume *volPlBase = new TGeoVolume("PlasticBase",PlBase,med);
+    volPlBase->SetLineColor(kYellow-4);
+
+    //passive tungsten layers
+    TGeoBBox *Passive = new TGeoBBox("Passive", EmX/2, EmY/2, PassiveTh/2);
+    TGeoVolume *volPassive = new TGeoVolume("volPassive",Passive,med);
+    volPassive->SetLineColor(kGray);
+
+    
+    for(Int_t n=0; n<n_plates; n++)
+    {
+      volBrick->AddNode(volPassive, n, new TGeoTranslation(0,0,-BrickZ/2+BrPackZ/2+ EPlW + PassiveTh/2 + n*AllPW)); //LEAD
+    }
+
+    for(Int_t n=0; n<n_plates+1; n++)
+    {
+      volBrick->AddNode(volEmulsionFilm2, n, new TGeoTranslation(0,0,-BrickZ/2+BrPackZ/2+ EmTh/2 + n*AllPW)); //BOTTOM
+      volBrick->AddNode(volEmulsionFilm, n, new TGeoTranslation(0,0,-BrickZ/2+BrPackZ/2+3*EmTh/2+PbTh+n*AllPW)); //TOP
+      volBrick->AddNode(volPlBase, n, new TGeoTranslation(0,0,-BrickZ/2+BrPackZ/2+EmTh+PbTh/2+n*AllPW)); //PLASTIC BASE
+    }  
+
+    
+
+    //*****Silicon Target******//
+
+    const Double_t EmTarget_SiTarget_Gap = 10.; //gap with Emulsion Target upstream
+
+    const Double_t TungstenX = XDimension;
+    const Double_t TungstenY = YDimension;
+    const Double_t TungstenZ = 0.7;
+
+    const Int_t nlayers_SiTarget = 58;
+
+    const Double_t SiTargetX = XDimension;
+    const Double_t SiTargetY = YDimension;
+    const Double_t SiTargetZ = nlayers_SiTarget * (SiZ + TungstenZ);
+
+    auto *SiTargetBox = new TGeoBBox("SiTargetBox",SiTargetX/2.,SiTargetY/2.,SiTargetZ/2.);
+    auto *volSiTarget = new TGeoVolume("volSiTarget",SiTargetBox,med);
+
+    //AddSensitiveVolume(volSNDTargetSiliconLayer) //uncomment when copying in actual class!
+
+    auto * SNDTargetTungstenBlock = new TGeoBBox("SNDTargetTungstenBlock", TungstenX/2., TungstenY/2., TungstenZ/2.);
+    auto * volSNDTargetTungstenBlock = new TGeoVolume("volSNDTargetTungstenBlock",SNDTargetTungstenBlock,Tungsten); //TOP
+    volSNDTargetTungstenBlock->SetLineColor(kGray);
+
+    for(Int_t n=0; n<nlayers_SiTarget; n++)
+    {
+      volSiTarget->AddNode(volSNDTargetTungstenBlock, n, new TGeoTranslation(0,0, -SiTargetZ/2. + n *(SiZ+TungstenZ) + TungstenZ/2. )); //W
+      volSiTarget->AddNode(volSNDTargetSiliconLayer, n*1000, new TGeoTranslation(0,0,-SiTargetZ/2. + n *(SiZ+TungstenZ) + TungstenZ + SiZ/2 )); //Silicon
+    }
+
+    
+    TGeoShapeAssembly * MagHCAL = static_cast<TGeoShapeAssembly*> (volMagHCAL->GetShape());
+    MagHCAL->ComputeBBox(); //for an assembly needs to be computed
+    Double_t dZ_MagHCAL = MagHCAL->GetDZ();
+    cout<<"TEST "<<dZ_MagHCAL<<endl;
+
+    top->AddNode(volSiTarget,0,new TGeoTranslation(0,0,-dz_6L-dz_6R-10.-5.));
+    top->AddNode(volEmTarget,0,new TGeoTranslation(0,0,-dz_6L-dz_5R-10.-5.-SiTargetZ/2.+EmTargetZDimension/2.+20.));
+
     mygeometry->CloseGeometry();
 
     mygeometry->GetTopVolume()->Draw("ogl");
+
+    //gGeoManager->CheckOverlaps(0.001);
+    //gGeoManager->PrintOverlaps();
 
 }
