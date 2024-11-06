@@ -132,9 +132,6 @@ def makeMuonDIS():
     for px,py,pz,x,y,z,pid,w in zip(*sTree[:,nStart:nEnd]):
         #conversion to FairShip Coordinates
         z -= 50
-        z *= 100
-        x*=100
-        y*=100
         pid=int(pid)
         #rc = sTree.GetEvent(k)
         #print("The number of event is",k,", time = ", time.perf_counter() - intime, " s, job = ", nJob)
