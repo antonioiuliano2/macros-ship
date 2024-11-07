@@ -13,7 +13,7 @@ TGeoArb8* BuildArb8(const char* name, Double_t *xvertices, Double_t *yvertices, 
     return arb;
 }
 
-TString PrepareBooleanOperation(TGeoVolumeAssembly* TargetVolume, TGeoVolume * SensitiveVolume, const int nlayers, const char *sensname, const char* shieldname, Double_t dzshield, Double_t sensdz, Double_t passdz){
+TString PrepareBooleanOperation(TGeoVolumeAssembly* TargetVolume, TGeoVolume * SensitiveVolume, const int nlayers, const char *sensname, const char* shieldname, Double_t dzshield, Double_t sensdz, Double_t passdz, Double_t dzoffset=0.){
     //cut shield inserts and place sensitive layers inside
     TGeoTranslation *cutT;
     TString BooleanUnionShapes("(");
@@ -22,7 +22,7 @@ TString PrepareBooleanOperation(TGeoVolumeAssembly* TargetVolume, TGeoVolume * S
         TString TranslationName("cutT");
         TranslationName += TString(shieldname);
 
-        cutT = new TGeoTranslation(TranslationName.Data(),0,0,+dzshield/2. - sensdz/2. - ilayer*(sensdz+passdz));
+        cutT = new TGeoTranslation(TranslationName.Data(),0,0,dzoffset+dzshield/2. - sensdz/2. - ilayer*(sensdz+passdz));
         cutT->RegisterYourself();
         BooleanUnionShapes += TString(sensname)+TString(":")+TranslationName;
         if (ilayer < nlayers-1) BooleanUnionShapes += " + ";
@@ -31,7 +31,8 @@ TString PrepareBooleanOperation(TGeoVolumeAssembly* TargetVolume, TGeoVolume * S
     }
     BooleanUnionShapes += ")";
     //cutting the shapes from the muon shield
-    return (TString(shieldname)+TString(" - ")+BooleanUnionShapes);
+    return BooleanUnionShapes;
+    //return (TString(shieldname)+TString(" - ")+BooleanUnionShapes);
 }
 
 void testCuttingMagnet(){
@@ -93,30 +94,32 @@ void testCuttingMagnet(){
     Double_t xvertices_6R[nvertices] = {-0.,-0.,-33.,-33.,-0.,-0.,-77.,-77.};  
     Double_t yvertices_6R[nvertices] = {117.9,-117.9,-84.9,84.9,317.9,-317.9,-240.9,240.9};
 
-    TGeoArb8 *arb = BuildArb8("arb",xvertices_6R,yvertices_6R,dz_6R/2.);
+    TGeoArb8 *arb_6R = BuildArb8("arb_6R",xvertices_6R,yvertices_6R,dz_6R/2.);
     //start cutting away!!!!
-    auto Magn6_MiddleMagR = new TGeoVolume("Magn6_MiddleMagR",arb,med); //we first build it, then we use it
+    auto Magn6_MiddleMagR = new TGeoVolume("Magn6_MiddleMagR",arb_6R,med); //we first build it, then we use it
     const Int_t nlayers_MagTargetHCAL = 50;
 
-    TString BooleanCut = PrepareBooleanOperation(volMagTargetHCAL, volSNDSensitiveLayer, nlayers_MagTargetHCAL,  "SNDSensitiveLayer" , "arb", dz_6R, SensZ, FeZ);
+    TString BooleanUnionShapes = PrepareBooleanOperation(volMagTargetHCAL, volSNDSensitiveLayer, nlayers_MagTargetHCAL,  "SNDSensitiveLayer" , "arb_6R", dz_6R, SensZ, FeZ);
+    //check how long it was in the end
+    TGeoShapeAssembly * MagTargetHCAL = static_cast<TGeoShapeAssembly*> (volMagTargetHCAL->GetShape());
+    MagTargetHCAL->ComputeBBox(); //for an assembly needs to be computed
+    Double_t dZ_MagTargetHCAL = MagTargetHCAL->GetDZ();
 
-    cout<<"Check of boolean operation "<<BooleanCut.Data()<<endl;
+    cout<<"Check of boolean operation "<<(TString("arb_6R - ")+BooleanUnionShapes).Data()<<endl;
 
-    TGeoCompositeShape *csR = new TGeoCompositeShape("csR",BooleanCut.Data());
+    TGeoCompositeShape *cs6R = new TGeoCompositeShape("cs6R",(TString("arb_6R - ")+BooleanUnionShapes).Data());
 
-    Magn6_MiddleMagR->SetShape(csR);
+    Magn6_MiddleMagR->SetShape(cs6R);
     Magn6_MiddleMagR->SetTransparency(1);
 
     Double_t dz_6L = dz_6R; 
     Double_t xvertices_6L[nvertices] = {-0.,-0.,33.,33.,-0.,-0.,77.,77.};  
     Double_t yvertices_6L[nvertices] = {117.9,-117.9,-84.9,84.9,317.9,-317.9,-240.9,240.9};
 
-    TGeoArb8 *arb_L = BuildArb8("arb_L",xvertices_6L,yvertices_6L,dz_6L/2.);
+    TGeoArb8 *arb_6L = BuildArb8("arb_6L",xvertices_6L,yvertices_6L,dz_6L/2.);
 
-    BooleanCut = PrepareBooleanOperation(volMagTargetHCAL, volSNDSensitiveLayer, nlayers_MagTargetHCAL, "SNDSensitiveLayer" , "arb_L", dz_6R, SensZ, FeZ);
-
-    TGeoCompositeShape *csL = new TGeoCompositeShape("csL",BooleanCut.Data());
-    auto Magn6_MiddleMagL = new TGeoVolume("Magn6_MiddleMagL",csL,med);
+    TGeoCompositeShape *cs6L = new TGeoCompositeShape("cs6L",(TString("arb_6L - ")+BooleanUnionShapes).Data());
+    auto Magn6_MiddleMagL = new TGeoVolume("Magn6_MiddleMagL",cs6L,med);
     Magn6_MiddleMagL->SetTransparency(1);
 
 
@@ -132,8 +135,9 @@ void testCuttingMagnet(){
     auto * SNDTargetSiliconLayer = new TGeoBBox("SNDTargetSiliconLayer", SiX/2., SiY/2., SiZ/2.);
     auto * volSNDTargetSiliconLayer = new TGeoVolume("volSNDTargetSiliconLayer",SNDTargetSiliconLayer,Silicon);
     volSNDTargetSiliconLayer->SetLineColor(kGreen);
-
-    auto *volMagHCAL = new TGeoVolumeAssembly("volMagHCAL");
+    //now MagnetHCAL is split between the two magnet sections
+    auto *volMagHCAL_6 = new TGeoVolumeAssembly("volMagHCAL_6");
+    auto *volMagHCAL_5 = new TGeoVolumeAssembly("volMagHCAL_5");
 
     const Int_t nlayers_MagHCAL = 34;
     Double_t dz_5L = 2*305. *cm;
@@ -151,18 +155,23 @@ void testCuttingMagnet(){
     cout<<yvertices_5R<<endl;
     TGeoArb8 *arb_5R = BuildArb8("arb_5R",xvertices_5R.data(),yvertices_5R.data(),dz_5R/2.);
     auto Magn5_MiddleMagR = new TGeoVolume("Magn5_MiddleMagR",arb_5R,med); //we first build it, then we use it
-    //cutting them and inserting sensitive volumes
-    BooleanCut = PrepareBooleanOperation(volMagHCAL, volSNDTargetSiliconLayer, nlayers_MagHCAL,  "SNDSensitiveLayer" , "arb_5R", dz_5R, SiZ, FeZ);
-    cout<<"Check of boolean operation magnet5"<<BooleanCut.Data()<<endl;
-    TGeoCompositeShape *cs5R = new TGeoCompositeShape("cs5R",BooleanCut.Data());
 
-    BooleanCut = PrepareBooleanOperation(volMagHCAL, volSNDTargetSiliconLayer, nlayers_MagHCAL,  "SNDSensitiveLayer" , "arb_5L", dz_5L, SiZ, FeZ);
-    TGeoCompositeShape *cs5L = new TGeoCompositeShape("cs5L",BooleanCut.Data());
+    //now also in magnet6!
+    const Int_t nlayers_MagHCAL_magnet6 = 24; //in the magnet dowstream
+    BooleanUnionShapes = PrepareBooleanOperation(volMagHCAL_6, volSNDTargetSiliconLayer, nlayers_MagHCAL_magnet6,  "SNDTargetSiliconLayer" , "arb_6R", dz_6R, SiZ, FeZ, -2*dZ_MagTargetHCAL-FeZ);
+
+    //cutting them and inserting sensitive volumes
+    BooleanUnionShapes = PrepareBooleanOperation(volMagHCAL_5, volSNDTargetSiliconLayer, nlayers_MagHCAL - nlayers_MagHCAL_magnet6, "SNDTargetSiliconLayer" , "arb_5R", dz_5R, SiZ, FeZ);
+    cout<<"Check of boolean operation magnet5"<<(TString("arb_5R - ")+BooleanUnionShapes).Data()<<endl;
+    TGeoCompositeShape *cs5R = new TGeoCompositeShape("cs5R",(TString("arb_5R - ")+BooleanUnionShapes).Data());
+
+    TGeoCompositeShape *cs5L = new TGeoCompositeShape("cs5L",(TString("arb_5L - ")+BooleanUnionShapes).Data());
 
     //inserting the volumes
     Magn5_MiddleMagR->SetLineColor(kRed);
     Magn5_MiddleMagL->SetLineColor(kRed);
-    top->AddNode(volMagHCAL,0,new TGeoTranslation(0,0,-dz_6L-dz_5R/2.-10.));
+    top->AddNode(volMagHCAL_5,0,new TGeoTranslation(0,0,-dz_6L-dz_5R/2.-10.));
+    top->AddNode(volMagHCAL_6,0,new TGeoTranslation(0,0,-dz_6L/2.));
 
     //Emulsion Target
 
@@ -255,8 +264,6 @@ void testCuttingMagnet(){
 
     //*****Silicon Target******//
 
-    const Double_t EmTarget_SiTarget_Gap = 10.; //gap with Emulsion Target upstream
-
     const Double_t TungstenX = XDimension;
     const Double_t TungstenY = YDimension;
     const Double_t TungstenZ = 0.7;
@@ -283,15 +290,18 @@ void testCuttingMagnet(){
     }
 
     
-    TGeoShapeAssembly * MagHCAL = static_cast<TGeoShapeAssembly*> (volMagHCAL->GetShape());
-    MagHCAL->ComputeBBox(); //for an assembly needs to be computed
-    Double_t dZ_MagHCAL = MagHCAL->GetDZ();
-    cout<<"TEST "<<dZ_MagHCAL<<endl;
+    TGeoShapeAssembly * MagHCAL_5 = static_cast<TGeoShapeAssembly*> (volMagHCAL_5->GetShape());
+    MagHCAL_5->ComputeBBox(); //for an assembly needs to be computed
+    Double_t dZ_MagHCAL_5 = 2*MagHCAL_5->GetDZ();
+    cout<<"TEST "<<dZ_MagHCAL_5<<endl;
     //cutting the holes in the magnet for the big targets
 
-    TGeoTranslation * T_SiTarget = new TGeoTranslation("T_SiTarget",0,0,+SiTargetZ/2.); 
+    const Double_t SiTarget_MagHCAL_Gap = 10.; //gap with Silicon Target upstream
+    const Double_t EmTarget_SiTarget_Gap = 10.; //gap with Emulsion Target upstream
+
+    TGeoTranslation * T_SiTarget = new TGeoTranslation("T_SiTarget",0,0,+dz_5R/2.-dZ_MagHCAL_5-SiTarget_MagHCAL_Gap-SiTargetZ/2.); 
     T_SiTarget->RegisterYourself();
-    TGeoTranslation * T_EmTarget = new TGeoTranslation("T_EmTarget",0,0,-SiTargetZ/2.+EmTargetZDimension/2.); 
+    TGeoTranslation * T_EmTarget = new TGeoTranslation("T_EmTarget",0,0,+dz_5R/2.-dZ_MagHCAL_5-SiTarget_MagHCAL_Gap-SiTargetZ-EmTarget_SiTarget_Gap-EmTargetZDimension/2.); 
     T_EmTarget->RegisterYourself();
 
     TGeoCompositeShape *cs5L_si = new TGeoCompositeShape("cs5L_si","cs5L-SiTargetBox:T_SiTarget");
@@ -307,14 +317,14 @@ void testCuttingMagnet(){
     top->AddNode(Magn5_MiddleMagR,0,new TGeoTranslation(0.,0.,-dz_6L-dz_5R/2.-10.));
     top->AddNode(Magn5_MiddleMagL,0,new TGeoTranslation(0.,0.,-dz_6L-dz_5R/2.-10.));
 
-    top->AddNode(volSiTarget,0,new TGeoTranslation(0,0,-dz_6L-dz_5R/2.-10.+SiTargetZ/2.));
-    top->AddNode(volEmTarget,0,new TGeoTranslation(0,0,-dz_6L-dz_5R/2.-10.-SiTargetZ/2.+EmTargetZDimension/2.));
+    top->AddNode(volSiTarget,0,new TGeoTranslation(0,0,-dz_6L-dz_5R/2.-10.+dz_5R/2.-dZ_MagHCAL_5-SiTarget_MagHCAL_Gap-SiTargetZ/2.));
+    top->AddNode(volEmTarget,0,new TGeoTranslation(0,0,-dz_6L-dz_5R/2.-10.+dz_5R/2.-dZ_MagHCAL_5-SiTarget_MagHCAL_Gap-SiTargetZ-EmTarget_SiTarget_Gap-EmTargetZDimension/2.));
 
     mygeometry->CloseGeometry();
 
+    gGeoManager->CheckOverlaps(0.001,"s");
+    gGeoManager->PrintOverlaps();
+    
     mygeometry->GetTopVolume()->Draw("ogl");
-
-    //gGeoManager->CheckOverlaps();
-    //gGeoManager->PrintOverlaps();
 
 }
