@@ -163,7 +163,7 @@ def makeMuonDIS():
             dPart.Clear()
             iMuon.Clear()
             muPart[9]=isProton
-            iMuon[0] =muPart
+            iMuon.ConstructedAt(0).Use(muPart)
             myPythia.GenerateEvent()
             myPythia.Pyedit(1)
         	#xsec=myPythia.GetPARI(1)
@@ -184,7 +184,7 @@ def makeMuonDIS():
                 #    print("sigma_DIS = ",muPart[10])
                 #print("Track ", itrk, ": ID = ",did,". E, px, py, pz = ",E,",",dpx,",",dpy,",",dpz)
                 if dPart.GetSize()==nPart: dPart.Expand(nPart+10)
-                dPart[nPart] = part
+                dPart.ConstructedAt(nPart).Use(part)
                 if itrk == 1: fcross.write(f"{xsec}\n")
             nMade+=1
             if nMade%10000==0: print('made so far ',nMade)
