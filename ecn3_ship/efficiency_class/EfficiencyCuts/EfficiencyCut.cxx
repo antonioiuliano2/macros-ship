@@ -278,7 +278,8 @@ ROOT::RVec<Double_t> BendingSpectrometer(int* whichplanes, Double_t *XSpectromet
 
 bool EfficiencyCut::SpectrometerAcceptance(double posres, double sagittares){
  //first, looping over all rpcpoints to get the lepton for ID fmuonID
- const int nstations = 8;
+ //const int nstations = 8;
+ const int nstations = 21;
  Double_t XSpectrometer[nstations], YSpectrometer[nstations], ZSpectrometer[nstations];
  Bool_t InSpectrometer[nstations];
  //initialize them to false
@@ -287,7 +288,8 @@ bool EfficiencyCut::SpectrometerAcceptance(double posres, double sagittares){
  }
 
  for (const ShipRpcPoint& rpcpoint: rpcpoints){
-  int nstation = rpcpoint.GetDetectorID() - 1; //from 0 to 3 
+  //int nstation = rpcpoint.GetDetectorID() - 1; //from 0 to 3 
+  int nstation = rpcpoint.GetDetectorID();
   if (rpcpoint.GetTrackID()==fmuonID && !InSpectrometer[nstation]){ //we fill the arrays with the muon neutrino positions
   
    XSpectrometer[nstation] = rpcpoint.GetX();
@@ -302,8 +304,8 @@ bool EfficiencyCut::SpectrometerAcceptance(double posres, double sagittares){
  }//end rpc hit loop 
 
  //if the first 4 were found, checking resolution
- if (InSpectrometer[0]&&InSpectrometer[3]&&InSpectrometer[4]&&InSpectrometer[7]){
-    int whichplanes[4] = {0,3,4,7}; //which planes to consider for the sagitta computation
+ if (InSpectrometer[0]&&InSpectrometer[9]&&InSpectrometer[10]&&InSpectrometer[19]){
+    int whichplanes[4] = {0,9,10,19}; //which planes to consider for the sagitta computation
     auto Sagitta = SagittaSpectrometer(whichplanes, XSpectrometer, YSpectrometer, ZSpectrometer);
     if (TMath::Abs(Sagitta[1]) > 3 * sagittares) return true;
     else{ 

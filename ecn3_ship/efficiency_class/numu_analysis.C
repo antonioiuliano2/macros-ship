@@ -10,18 +10,23 @@ void numu_analysis(){
     //histograms
     TH1D *hnuP = new TH1D("hnuP","All events;P[GeV/C]",400,0,400);
     TH2D *hq2_x = new TH2D("hq2_x",";log10(x);log10(Q2)",20,-4.,1.,10,-1.5,3.5);
+    TH1D *hmuP = new TH1D("hmuP","All muons;P[GeV/C]",400,0,400);
 
     //histograms_passed
     TH1D *hnuP_passed = new TH1D("hnuP_passed","Accepted events;P[GeV/C]",400,0,400);
     TH2D *hq2_x_passed = new TH2D("hq2_x_passed",";log10(x);log10(Q2)",20,-4.,1.,10,-1.5,3.5);
+    TH1D *hmuP_passed = new TH1D("hmuP_passed","Muons measured in SND Spectrometer but NOT entering in HS spectrometer;P[GeV/C]",400,0,400);
 
     //histograms_passed (in SHiP Decay Spectrometer instead of SND Muon Spectrometer)
     TH1D *hnuP_dspassed = new TH1D("hnuP_dspassed","Accepted events in DS;P[GeV/C]",400,0,400);
     TH2D *hq2_x_dspassed = new TH2D("hq2_x_dspassed",";log10(x);log10(Q2)",20,-4.,1.,10,-1.5,3.5);
+    TH1D *hmuP_dspassed = new TH1D("hmuP_dspassed","Muons measured in SND Spectrometer entering in HS spectrometer;P[GeV/C]",400,0,400);
 
     TString prefix("root:://eosuser.cern.ch/");
-    TString simfile("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_06_17_numu_CCDIS_ECN3geom/inECC_ship.conical.Genie-TGeant4.root");
-    TString geofile("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_06_17_numu_CCDIS_ECN3geom/1/geofile_full.conical.Genie-TGeant4.root");
+    //TString simfile("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_06_17_numu_CCDIS_ECN3geom/inECC_ship.conical.Genie-TGeant4.root");
+    //TString geofile("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2023_06_17_numu_CCDIS_ECN3geom/1/geofile_full.conical.Genie-TGeant4.root");
+    TString simfile("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2024_06_26_AdvSND_numuCCDIS/inECC_ship.conical.Genie-TGeant4.root");
+    TString geofile("/eos/user/a/aiuliano/public/sims_FairShip/sim_nutaudet/2024_06_26_AdvSND_numuCCDIS/1/geofile_full.conical.Genie-TGeant4.root");
     EfficiencyCut effcut = EfficiencyCut((prefix+simfile).Data(),(prefix+geofile).Data());
     const int nentries = effcut.GetEntries();
     //const int nentries = 1000;
@@ -61,13 +66,13 @@ void numu_analysis(){
      }
      if (checkspectrometer){
                 nspectro += effcut.GetEventWeight();
-                effcut.FillHistograms(hnuP_passed, hq2_x_passed);
+                effcut.FillHistograms(hnuP_passed, hq2_x_passed, hmuP_passed);
             }
      if (checkdecayspectrometer){
                 ndecayspectro += effcut.GetEventWeight();
-                effcut.FillHistograms(hnuP_dspassed, hq2_x_dspassed);
+                effcut.FillHistograms(hnuP_dspassed, hq2_x_dspassed, hmuP_dspassed);
      }
-     effcut.FillHistograms(hnuP, hq2_x);
+     effcut.FillHistograms(hnuP, hq2_x,hmuP);
     }
     cout<<"fraction geom ok "<<ngeomok/totalweight<<" "<<ngeomok<<endl;
     cout<<"fraction visible ok "<<nvisible/totalweight<<" "<<nvisible<<endl;
@@ -92,7 +97,7 @@ void numu_analysis(){
     int nbinsy = hq2_x_passed->GetNbinsY();
     
     std::ofstream ofs;
-    ofs.open ("numu_q2x_passed_histogram.txt", std::ofstream::out);
+    ofs.open ("numu_q2x_passed_histogram_test.txt", std::ofstream::out);
     ofs<<"x q2 Enu #nu"<<endl;
     
     for (int ibinx = 1; ibinx<= nbinsx; ibinx++)    {
