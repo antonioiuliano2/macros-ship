@@ -2,11 +2,11 @@ void mudis_normalization(){
 
     TString prefix("root:://eosuser.cern.ch/");
     TString simpath_mu("/eos/user/a/aiuliano/public/sims_FairShip/sim_muon_background/sim_MuDIS/2024_12_09_file2000_1000jobs/");
-    TString sigmapath("/eos/user/a/aiuliano/public/sims_FairShip/sim_muon_background/sim_MuDIS/muondis/file_2000/");
+    TString sigmapath("/home/utente/Simulations/muon_background_production/file_2000_sigmadata/");
 
     TH1D *hw1 = new TH1D("hw1","Weight 1",100,0,800);
     TH1D *hw2 = new TH1D("hw2","Weight 2",100,0,4000);
-    TH1D *hsigma = new TH1D("hsigma","DIS Sigma",100,0,10000);
+    TH1D *hsigma = new TH1D("hsigma","DIS Sigma",1000,0,0.001);
 
     const int startfile = 0;
     const int endfile = 1;
@@ -32,7 +32,7 @@ void mudis_normalization(){
             cout<<"Started new tree at entry: "<<ientry<<" "<<treenumber<<endl;            
 
             if (sigmafile.is_open()) sigmafile.close();
-            sigmafile.open((prefix+simpath_mu+TString(Form("sigmadata_%i.txt",treenumber))).Data(),ios::in);
+            sigmafile.open((sigmapath+TString(Form("sigmadata_%i.txt",treenumber))).Data(),ios::in);
         }
         double w1 = tracks[0].GetWeight();
         double w2 = tracks[2].GetWeight();
