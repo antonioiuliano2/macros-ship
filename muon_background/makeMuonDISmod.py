@@ -153,7 +153,6 @@ def makeMuonDIS():
         isProton=1 #flag 
         xsec=0
         mu = array('d', [pid, px, py, pz, E, x, y, z, w,isProton,xsec])        
-        muPart = r.TVectorD(11, mu)
         myPythia.Initialize('FIXT', mutype[pid],'p+', p)
         myPythia.Pylist(1)
         for a in range(nMult):
@@ -162,8 +161,11 @@ def makeMuonDIS():
                 isProton=0
             dPart.Clear()
             iMuon.Clear()
+            muPart = r.TVectorD(11, mu)
             muPart[9]=isProton
-            iMuon.ConstructedAt(0).Use(muPart)
+            tca_vec = iMuon.ConstructedAt(0)
+            tca_vec.ResizeTo(muPart)
+            r.std.swap(tca_vec, muPart)
             myPythia.GenerateEvent()
             myPythia.Pyedit(1)
         	#xsec=myPythia.GetPARI(1)
@@ -184,7 +186,9 @@ def makeMuonDIS():
                 #    print("sigma_DIS = ",muPart[10])
                 #print("Track ", itrk, ": ID = ",did,". E, px, py, pz = ",E,",",dpx,",",dpy,",",dpz)
                 if dPart.GetSize()==nPart: dPart.Expand(nPart+10)
-                dPart.ConstructedAt(nPart).Use(part)
+                tca_vec = dPart.ConstructedAt(nPart)
+                tca_vec.ResizeTo(part)
+                r.std.swap(tca_vec, part)
                 if itrk == 1: fcross.write(f"{xsec}\n")
             nMade+=1
             if nMade%10000==0: print('made so far ',nMade)
