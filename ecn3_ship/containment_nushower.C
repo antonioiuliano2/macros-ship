@@ -88,10 +88,17 @@ void containment_nushower(){
     hnu_p_contained->Draw("histo&&SAMES");
     c2->BuildLegend();
 
-
+    //efficiency plots
     TEfficiency *heff_vz_p = new TEfficiency (*hnu_vz_p_contained, *hnu_vz_p);
     TCanvas *c3 = new TCanvas();
     //hnu_vz_p_contained->Draw("COLZ");
     heff_vz_p->Draw("COLZ");
 
+    TEfficiency *heff_vz = new TEfficiency(*hnu_vz_contained,*hnu_vz);
+    TCanvas *c4 = new TCanvas();
+    heff_vz->Draw();
+
+    TEfficiency *heff_p = new TEfficiency(*hnu_p_contained,*hnu_p);
+    TCanvas *c5 = new TCanvas();
+    heff_p->Draw();
 }
