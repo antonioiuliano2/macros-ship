@@ -7,7 +7,9 @@ import matplotlib.pyplot as plt
 
 import pandas as pd
 
-files_dir = '/eos/user/l/lcattela/muons/files_middle' #Directory with files
+muons_sample = "old" #"middle, beginning, old"
+
+files_dir = '/eos/user/l/lcattela/muons/files_old' #Directory with files
 def get_data(file):
     with gzip.open(file,'rb') as f:
         data = pickle.load(f)
@@ -41,11 +43,14 @@ for f in os.listdir(files_dir):
     
 #all_data = np.concatenate(all_data,axis = 1)
 #writing muons in acceptance into output file
-outputfile = gzip.open("muons_acceptance_middle.pkl","wb")
+outputfile = gzip.open("muons_acceptance_old.pkl","wb")
 pickle.dump([df_acc["px"].to_numpy(),df_acc["py"].to_numpy(),df_acc["pz"].to_numpy(),
              df_acc["x"].to_numpy(),df_acc["y"].to_numpy(),df_acc["z"].to_numpy(),
              df_acc["particle"].to_numpy(),df_acc["W"].to_numpy()],outputfile)
 outputfile.close()
+
+print("Number muons in acceptance ", len(df_acc))
+print("Total weight muons in acceptance ", df_acc.sum()["W"])
 
 #px,py,pz,x,y,z,particle,W = all_data #momentum, position [in meters], particle_id [13 or -13], muons weight
 #Pt = np.sqrt(px**2+py**2)
@@ -53,7 +58,7 @@ outputfile.close()
 #plotting Ecm
 
 plt.figure()
-plt.hist2d(df_acc["x"],df_acc["y"],bins=[100,100],range=[[-0.2,0.2],[-0.2,0.2]])
+plt.hist2d(df_acc["x"],df_acc["y"],bins=[40,40],range=[[-0.2,0.2],[-0.2,0.2]])
 plt.xlabel("x[m]")
 plt.ylabel("y[m]")
 plt.show()
