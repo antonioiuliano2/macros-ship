@@ -1,15 +1,16 @@
 //Compute xy spatial distributions of muons after hadron stopper (Created by A. Iuliano 20 January 2025)
 
 void SpatialDistributions(){
+    TString prefix("root:://eosuser.cern.ch/");//for ROOTXD
     //open input files for reading as a TChain
     TDatabasePDG *pdg = TDatabasePDG::Instance(); //database of particles
     TChain *simchain = new TChain("muon_mcpoints");
 
     //const int nfiles = 67; //number of input files
-    const int nfiles = 1;
+    const int nfiles = 67;
     cout<<"reading file "<<endl;
     for (int i = 0; i < nfiles; i++){
-        simchain->Add(Form("/home/utente/Simulations/background-prod-2018/vetopoints_muons/vetopoints_scoringplane_muons_withCharmandBeauty%i.root",i*1000));
+        simchain->Add((prefix+TString(Form("/eos/user/a/aiuliano/public/sims_FairShip/sim_muon_background/vetopoints_muons2018/vetopoints_scoringplane_muons_withCharmandBeauty%i.root",i*1000))).Data());
  }
     const int nentries = simchain->GetEntries();
     cout<<"Number of events"<<nentries<<endl;
