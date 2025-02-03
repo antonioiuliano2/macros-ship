@@ -9,7 +9,7 @@ void SpatialDistributions(){
     TString prefix("root:://eospublic.cern.ch/");//for ROOTXD
 
     //outputfile
-    TFile *outputfile = new TFile("vetopoints_hadronstopper_charged.root","RECREATE");
+    TFile *outputfile = new TFile("vetopoints_hadronstopper_muons.root","RECREATE"); //actually only muons! Not worked
 
     //open input files for reading as a TChain
     TDatabasePDG *pdg = TDatabasePDG::Instance(); //database of particles
@@ -44,7 +44,7 @@ void SpatialDistributions(){
         for (const vetoPoint& vetopoint: vetopoints){
             pdgcode = vetopoint.PdgCode();
             double charge = GetCharge(pdgcode);
-            if (TMath::Abs(charge)>0.){                
+            if (TMath::Abs(pdgcode)==13){                 //we only have muons, actually
                 trackID = vetopoint.GetTrackID();
                 weight = tracks[trackID].GetWeight();
 
