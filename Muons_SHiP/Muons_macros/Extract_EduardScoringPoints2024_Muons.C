@@ -3,7 +3,7 @@ void Extract_EduardScoringPoints2024_Muons(int ifile){
     TString prefix("root:://eospublic.cern.ch/");//for ROOTXD
 
     //outputfile
-    TFile *outputfile = new TFile(Form("/home/utente/Simulations/scoringpoints_muons/scoringplane_muons_%i.root",ifile),"RECREATE");
+    TFile *outputfile = new TFile(Form("/eos/user/a/aiuliano/public/sims_FairShip/scoringplane_muons/scoringplane_muons_%i.root",ifile),"RECREATE");
     TNtuple * muon_mcpoints = new TNtuple("muon_mcpoints","MC Point in scoring plane in Muon Shield","trackID:pdgcode:x:y:z:px:py:pz:weight");
 
     //open input files for reading as a TChain
