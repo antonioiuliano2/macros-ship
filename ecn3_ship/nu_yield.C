@@ -43,8 +43,8 @@ void generate_neutrinos(int neutrinosource = 2, bool uselogbins=false){ //genera
 
  //Float_t deltaz = 3969.; //distance between center of proton target and center of neutrino target
  //Float_t deltaz = 2500.; //used in SHiP ECN3 Proposal(we do not have the geometry yet)
- Float_t deltaz = 2350.; //Used in AdvSND
- Double_t targetdx = 20.; //for geometrical acceptance requirement
+ Float_t deltaz = 3190.; //Used in AdvSND
+ Double_t targetdx = 20.; //for geometrical acceptance requirement (half-size!)
  Double_t targetdy = 20.;
 
  Float_t pzv;
@@ -341,17 +341,13 @@ Double_t nu_yield_general(int neutrinosource, bool uselogbins, const char* nu = 
   if (hxsec_p == NULL) nullp = true;
   if (hxsec_n == NULL) nulln = true;
   if (hxsec_other == NULL) nullother = true;
-  
-  //const Int_t A = 208; //initial approximation, only pb208 considered
-  // const Int_t Z = 82;
 
-  const Int_t A = 184; //initial approximation, only pb208 considered
+  const Int_t A = 184; //Tungsten as passive material
   const Int_t Z = 74;
 
   Float_t Ninteracting = 0.;
-  Double_t mass = 875*1e+3; //mass in grams (AdvSND Target)
-  //Double_t mass = 3080*1e+3; //mass in grams (ship ECN3 proposal)
-  Double_t surface = 40. * 40.; //surface in square centimetres (squared configuration)
+  Double_t mass = 1840*1e+3; //mass in grams (SND Emulsion+Silicon targets in muon shield)
+  Double_t surface = 40. * 40.; //surface in square centimetres (squared configuration) (dx and dy here are of course full size, not half size)
   //Double_t surface = 1.4e+4;
    
   Double_t avogadro = 6.022e+23;
