@@ -70,7 +70,7 @@ void statistics_error_xsec(){
 
  //then, we retrieve the cross section
  const Int_t A = 184; //Tungsten as passive material
- const char* nu="nu_mu";
+ const char* nu="nu_tau";
  const char* intmode="dis_cc";
  TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP_emax400.root");
  //N.D.R! These are for 10^-38 cm2, and they are for all protons and neutrons. We need to divide it x 184 to get it per Nucleon
@@ -87,28 +87,31 @@ void statistics_error_xsec(){
  double maxenergy = 200.; //not much point for statistics error
  int ipoint=0;
  for (int ibin=1; ibin<=nbins;ibin++){
-  double energy = numuspectrum->GetXaxis()->GetBinCenter(ibin);
+  double energy = nutauspectrum->GetXaxis()->GetBinCenter(ibin);
   if (energy<minenergy || energy>maxenergy) continue;
   double xsec = (hxsec_p->Eval(energy) + hxsec_n->Eval(energy))/(A * energy);
-  double delta_xsec = numuspectrum->GetBinError(ibin)/numuspectrum->GetBinContent(ibin)*xsec; 
+  double delta_xsec = nutauspectrum->GetBinError(ibin)/nutauspectrum->GetBinContent(ibin)*xsec; 
 
   hxsec_N_overE->AddPoint(energy,xsec);
-  hxsec_N_overE->SetPointError(ipoint,numuspectrum->GetBinWidth(ibin)/2.,delta_xsec);
+  hxsec_N_overE->SetPointError(ipoint,nutauspectrum->GetBinWidth(ibin)/2.,delta_xsec);
 
   double xsec_bar = (hxsec_bar_p->Eval(energy) + hxsec_bar_n->Eval(energy))/(A * energy);
-  double delta_xsec_bar = numubarspectrum->GetBinError(ibin)/numubarspectrum->GetBinContent(ibin)*xsec_bar; 
+  double delta_xsec_bar = nutaubarspectrum->GetBinError(ibin)/nutaubarspectrum->GetBinContent(ibin)*xsec_bar; 
 
   hxsec_bar_N_overE->AddPoint(energy,xsec_bar);
-  hxsec_bar_N_overE->SetPointError(ipoint,numubarspectrum->GetBinWidth(ibin)/2.,delta_xsec_bar);
+  hxsec_bar_N_overE->SetPointError(ipoint,nutaubarspectrum->GetBinWidth(ibin)/2.,delta_xsec_bar);
 
   ipoint++;
  }
 
  TCanvas *cxsec = new TCanvas();
- hxsec_N_overE->Draw();
  hxsec_N_overE->GetYaxis()->SetRangeUser(0.1,0.9);
+ hxsec_N_overE->Draw();
+ hxsec_bar_N_overE->SetLineColor(kBlue);
  hxsec_bar_N_overE->Draw("SAME");
+ hxsec_N_overE->SetTitle("#nu;E[GeV];#sigma_{#nuN}(E)/E[10^{-38}cm^{2}/GeV]");
+ hxsec_bar_N_overE->SetTitle("anti-#nu;E[GeV];#sigma_{#nuN}(E)/E[10^{-38}cm^{2}/GeV]");
 
  cxsec->SetLogx();
-
+ cxsec->BuildLegend();
 }
