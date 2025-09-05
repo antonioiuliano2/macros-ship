@@ -1,7 +1,7 @@
 //just draw histograms together, with colors as in SHiP CDS plots, get them together
 //TString prepath("/home/utente/Simulations/nuyield_shipecn3/advsnd/");
 //TString prepath("/home/utente/Simulations/nuyield_shipecn3/advsnd_downstream/");
-TString prepath("/home/utente/Simulations/nuyield_shipecn3/2025_02_26_nuyield_SND_MuonShieldTarget/");
+TString prepath("/home/utente/Simulations/nuyield_shipecn3/2025_08_28_nuyield_SND_EmuTargetSiliconTarget/");
 void getnuresults(){
 
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
@@ -60,9 +60,9 @@ void getnuresults(){
  nutauspectrum->SetLineColor(kGreen);
  nutauspectrum->Draw("hist&&SAMES");
 
- nuespectrum->SetTitle("nu_e + anti-nu_e");
- numuspectrum->SetTitle("nu_mu + anti-nu_mu");
- nutauspectrum->SetTitle("nu_tau + anti-nu_tau");
+ nuespectrum->SetTitle("#nu_{e} + anti#nu_{e}");
+ numuspectrum->SetTitle("#nu_{#mu} + anti#nu_{#mu}");
+ nutauspectrum->SetTitle("#nu_{#tau} + anti#nu_{#tau}");
  cnu->BuildLegend();
 
 
@@ -235,17 +235,20 @@ void getnuproducedresults(){
  numuspectrum->Add(numubarspectrum);
  nutauspectrum->Add(nutaubarspectrum);
 
- nuespectrum->SetTitle("#nu_e + anti-#nu_e");
- numuspectrum->SetTitle("#nu_#mu + anti-#nu_#mu");
- nutauspectrum->SetTitle("#nu_#tau + anti-#nu_#tau");
+ nuespectrum->SetTitle("#nu_{e} + anti#nu_{e}");
+ numuspectrum->SetTitle("#nu_{#mu} + anti#nu_{#mu}");
+ nutauspectrum->SetTitle("#nu_{#tau} + anti#nu_{#tau}");
 
  TCanvas *cnu = new TCanvas();
+ numuspectrum->GetXaxis()->SetTitle("GeV/c");
  numuspectrum->SetLineColor(kRed);
- numuspectrum->Draw();
+ numuspectrum->Draw("histo");
+ nuespectrum->GetXaxis()->SetTitle("GeV/c");
  nuespectrum->SetLineColor(kBlue);
- nuespectrum->Draw("SAMES");
+ nuespectrum->Draw("histo&&SAMES");
+ nutauspectrum->GetXaxis()->SetTitle("GeV/c");
  nutauspectrum->SetLineColor(kGreen);
- nutauspectrum->Draw("SAMES");
+ nutauspectrum->Draw("histo&&SAMES");
 
  //numuspectrum->GetYaxis()->SetRangeUser(1e+3,3e+10);
  cnu->BuildLegend();
