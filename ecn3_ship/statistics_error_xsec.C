@@ -1,4 +1,50 @@
 //obtain the statistics error from the number of neutrinos, compute errors on cross section (A Iuliano, 3 September 2025)
+TCanvas * computexsec_errors(TFile* xsec_file, const char* nu, const char* intmode, TH1D *nutauspectrum, TH1D *nutaubarspectrum, const char* charmmode=""){
+ TGraphErrors *hxsec_N_overE = new TGraphErrors();
+ TGraphErrors *hxsec_bar_N_overE = new TGraphErrors();
+ //N.D.R! These are for 10^-38 cm2, and they are for all protons and neutrons. We need to divide it x 184 to get it per Nucleon
+ const Int_t A = 184; //Tungsten as passive material
+ TGraph *hxsec_p = (TGraph*) xsec_file->Get(Form("%s_W184/%s_p%s",nu,intmode,charmmode));   
+ TGraph *hxsec_n = (TGraph*) xsec_file->Get(Form("%s_W184/%s_n%s",nu,intmode,charmmode));
+
+ TGraph *hxsec_bar_p = (TGraph*) xsec_file->Get(Form("%s_bar_W184/%s_p%s",nu,intmode,charmmode));   
+ TGraph *hxsec_bar_n = (TGraph*) xsec_file->Get(Form("%s_bar_W184/%s_n%s",nu,intmode,charmmode));
+ //we also need to divide for energy
+
+ double minenergy = 10.; //cross section is not well defined under 4 GeV
+ double maxenergy = 200.; //not much point for statistics error
+ int ipoint=0;
+ int nbins = nutauspectrum->GetNbinsX();
+ for (int ibin=1; ibin<=nbins;ibin++){
+  double energy = nutauspectrum->GetXaxis()->GetBinCenter(ibin);
+  if (energy<minenergy || energy>maxenergy) continue;
+  double xsec = (hxsec_p->Eval(energy) + hxsec_n->Eval(energy))/(A * energy);
+  double delta_xsec = nutauspectrum->GetBinError(ibin)/nutauspectrum->GetBinContent(ibin)*xsec; 
+
+  hxsec_N_overE->AddPoint(energy,xsec);
+  hxsec_N_overE->SetPointError(ipoint,nutauspectrum->GetBinWidth(ibin)/2.,delta_xsec);
+
+  double xsec_bar = (hxsec_bar_p->Eval(energy) + hxsec_bar_n->Eval(energy))/(A * energy);
+  double delta_xsec_bar = nutaubarspectrum->GetBinError(ibin)/nutaubarspectrum->GetBinContent(ibin)*xsec_bar; 
+
+  hxsec_bar_N_overE->AddPoint(energy,xsec_bar);
+  hxsec_bar_N_overE->SetPointError(ipoint,nutaubarspectrum->GetBinWidth(ibin)/2.,delta_xsec_bar);
+
+  ipoint++;
+ }
+
+ TCanvas *cxsec = new TCanvas(Form("c_%s_%s%s",nu,intmode,charmmode),Form("%s_%s%s",nu,intmode,charmmode));
+ hxsec_N_overE->GetYaxis()->SetRangeUser(0.1,0.9);
+ hxsec_N_overE->Draw();
+ hxsec_bar_N_overE->SetLineColor(kBlue);
+ hxsec_bar_N_overE->Draw("SAME");
+ hxsec_N_overE->SetTitle("#nu;E[GeV];#sigma_{#nuN}(E)/E[10^{-38}cm^{2}/GeV]");
+ hxsec_bar_N_overE->SetTitle("anti-#nu;E[GeV];#sigma_{#nuN}(E)/E[10^{-38}cm^{2}/GeV]");
+
+ cxsec->SetLogx();
+ cxsec->BuildLegend();
+ return cxsec;
+}
 
 void statistics_error_xsec(){
  //from getnuestimation(), the part where I get the histograms from file
@@ -68,50 +114,15 @@ void statistics_error_xsec(){
  nutaubarspectrum->SetTitle("anti-nu_tau");
  cnu->BuildLegend();
 
+ TFile *xsec_file = TFile::Open("nu_xsec_TungstenSHIP_emax400.root");
  //then, we retrieve the cross section
- const Int_t A = 184; //Tungsten as passive material
  const char* nu="nu_tau";
  const char* intmode="dis_cc";
- TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP_emax400.root");
- //N.D.R! These are for 10^-38 cm2, and they are for all protons and neutrons. We need to divide it x 184 to get it per Nucleon
- TGraph *hxsec_p = (TGraph*) xsec->Get(Form("%s_W184/%s_p",nu,intmode));   
- TGraph *hxsec_n = (TGraph*) xsec->Get(Form("%s_W184/%s_n",nu,intmode));
+  
+ TCanvas *cxsec_nutau = computexsec_errors(xsec_file, "nu_tau", "dis_cc", nutauspectrum, nutaubarspectrum);
+ TCanvas *cxsec_numu = computexsec_errors(xsec_file, "nu_mu", "dis_cc", numuspectrum, numubarspectrum);
+ TCanvas *cxsec_numu_charm = computexsec_errors(xsec_file, "nu_mu", "dis_cc", numuspectrum, numubarspectrum,"_charm");
 
- TGraph *hxsec_bar_p = (TGraph*) xsec->Get(Form("%s_bar_W184/%s_p",nu,intmode));   
- TGraph *hxsec_bar_n = (TGraph*) xsec->Get(Form("%s_bar_W184/%s_n",nu,intmode));
- //we also need to divide for energy
- TGraphErrors *hxsec_N_overE = new TGraphErrors();
- TGraphErrors *hxsec_bar_N_overE = new TGraphErrors();
-
- double minenergy = 10.; //cross section is not well defined under 4 GeV
- double maxenergy = 200.; //not much point for statistics error
- int ipoint=0;
- for (int ibin=1; ibin<=nbins;ibin++){
-  double energy = nutauspectrum->GetXaxis()->GetBinCenter(ibin);
-  if (energy<minenergy || energy>maxenergy) continue;
-  double xsec = (hxsec_p->Eval(energy) + hxsec_n->Eval(energy))/(A * energy);
-  double delta_xsec = nutauspectrum->GetBinError(ibin)/nutauspectrum->GetBinContent(ibin)*xsec; 
-
-  hxsec_N_overE->AddPoint(energy,xsec);
-  hxsec_N_overE->SetPointError(ipoint,nutauspectrum->GetBinWidth(ibin)/2.,delta_xsec);
-
-  double xsec_bar = (hxsec_bar_p->Eval(energy) + hxsec_bar_n->Eval(energy))/(A * energy);
-  double delta_xsec_bar = nutaubarspectrum->GetBinError(ibin)/nutaubarspectrum->GetBinContent(ibin)*xsec_bar; 
-
-  hxsec_bar_N_overE->AddPoint(energy,xsec_bar);
-  hxsec_bar_N_overE->SetPointError(ipoint,nutaubarspectrum->GetBinWidth(ibin)/2.,delta_xsec_bar);
-
-  ipoint++;
- }
-
- TCanvas *cxsec = new TCanvas();
- hxsec_N_overE->GetYaxis()->SetRangeUser(0.1,0.9);
- hxsec_N_overE->Draw();
- hxsec_bar_N_overE->SetLineColor(kBlue);
- hxsec_bar_N_overE->Draw("SAME");
- hxsec_N_overE->SetTitle("#nu;E[GeV];#sigma_{#nuN}(E)/E[10^{-38}cm^{2}/GeV]");
- hxsec_bar_N_overE->SetTitle("anti-#nu;E[GeV];#sigma_{#nuN}(E)/E[10^{-38}cm^{2}/GeV]");
-
- cxsec->SetLogx();
- cxsec->BuildLegend();
 }
+
+
