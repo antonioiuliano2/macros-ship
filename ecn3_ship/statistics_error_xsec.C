@@ -50,9 +50,13 @@ void statistics_error_xsec(){
  //from getnuestimation(), the part where I get the histograms from file
  TString prepath("/home/utente/Simulations/nuyield_shipecn3/2025_08_28_nuyield_SND_EmuTargetSiliconTarget/"); //launch from here, at least for now
 
+ double numu_deteff = 0.54; //efficiency old SHIP@ECN3 document study, 2023_07_18
+ double nutau_deteff = 0.30; // only in the muon channel, need also to consider the branching ratio
+ double tau_inmuon_br = 0.174; // don't forget, I am with you in the tau
+
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
- double normship = 4e+19; //replace to have multiple years of data taking
- //double normship = 6e+20; //15 years
+ //double normship = 4e+19; //replace to have multiple years of data taking
+ double normship = 6e+20; //15 years
  TFile *nuefile = TFile::Open(prepath+TString("logbinning_plots_2/results_nu_e_dis_cc.root").Data());
  TFile *numufile = TFile::Open(prepath+TString("logbinning_plots_2/results_nu_mu_dis_cc.root").Data());
  TFile *nutaufile = TFile::Open(prepath+TString("logbinning_plots_2/results_nu_tau_dis_cc.root").Data());
@@ -66,8 +70,8 @@ void statistics_error_xsec(){
  TH1D *nutauspectrum = (TH1D*) nutaufile->Get("hspectrum_nu_tau_intdis_cc");
 
  nuespectrum->Scale(normship/normsim);
- numuspectrum->Scale(normship/normsim);
- nutauspectrum->Scale(normship/normsim);
+ numuspectrum->Scale(normship/normsim * numu_deteff);
+ nutauspectrum->Scale(normship/normsim * nutau_deteff * tau_inmuon_br);
 
  //printing yields to screen
  cout<<"nue: Mean energy:\t"<<nuespectrum->GetMean()<<" N:\t"<<nuespectrum->Integral()<<endl;
@@ -82,8 +86,8 @@ void statistics_error_xsec(){
  TH1D *nutaubarspectrum = (TH1D*) nutaubarfile->Get("hspectrum_nu_tau_bar_intdis_cc");
 
  nuebarspectrum->Scale(normship/normsim);
- numubarspectrum->Scale(normship/normsim);
- nutaubarspectrum->Scale(normship/normsim);
+ numubarspectrum->Scale(normship/normsim * numu_deteff);
+ nutaubarspectrum->Scale(normship/normsim * nutau_deteff * tau_inmuon_br);
 
  //printing yields to screen
  cout<<"nuebar: Mean energy:\t"<<nuebarspectrum->GetMean()<<" N:\t"<<nuebarspectrum->Integral()<<endl;
@@ -114,7 +118,7 @@ void statistics_error_xsec(){
  nutaubarspectrum->SetTitle("anti-nu_tau");
  cnu->BuildLegend();
 
- TFile *xsec_file = TFile::Open("nu_xsec_TungstenSHIP_emax400.root");
+ TFile *xsec_file = TFile::Open((prepath+TString("nu_xsec_TungstenSHIP_emax400.root")).Data());
  //then, we retrieve the cross section
  const char* nu="nu_tau";
  const char* intmode="dis_cc";

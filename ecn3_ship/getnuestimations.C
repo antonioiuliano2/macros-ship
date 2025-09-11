@@ -1,6 +1,7 @@
 //just draw histograms together, with colors as in SHiP CDS plots, get them together
 //TString prepath("/home/utente/Simulations/nuyield_shipecn3/advsnd/");
 //TString prepath("/home/utente/Simulations/nuyield_shipecn3/advsnd_downstream/");
+//TString prepath("/home/utente/Simulations/nuyield_shipecn3/2025_02_26_nuyield_SND_MuonShieldTarget/");
 TString prepath("/home/utente/Simulations/nuyield_shipecn3/2025_08_28_nuyield_SND_EmuTargetSiliconTarget/");
 void getnuresults(){
 
@@ -455,6 +456,7 @@ void compareparent_nudetector(){
 
  gStyle->SetOptStat("nei");
 
+ cout<<"Fraction\t mbiasnocharm \t charm"<<endl;
  cout<<"Nue Fractions "<<nuespectrum_c->Integral()<<" "<<nuespectrum_charm->Integral()<<endl;
  cout<<"Numu Fractions "<<numuspectrum_c->Integral()<<" "<<numuspectrum_charm->Integral()<<endl;
  cout<<"Nutau Fractions "<<nutauspectrum_c->Integral()<<" "<<nutauspectrum_charm->Integral()<<endl;
@@ -523,9 +525,9 @@ void compareparent_nuinteracting(){
  const double total_numu = numuspectrum_c->Integral() + numuspectrum_charm->Integral();
  const double total_nutau = nutauspectrum_c->Integral() + nutauspectrum_charm->Integral();
 
- cout<<"Nue Fractions "<<nuespectrum_c->Integral()<<" "<<nuespectrum_charm->Integral()<<endl;
- cout<<"Numu Fractions "<<numuspectrum_c->Integral()<<" "<<numuspectrum_charm->Integral()<<endl;
- cout<<"Nutau Fractions "<<nutauspectrum_c->Integral()<<" "<<nutauspectrum_charm->Integral()<<endl;
+ //cout<<"Nue Fractions "<<nuespectrum_c->Integral()<<" "<<nuespectrum_charm->Integral()<<endl;
+ //cout<<"Numu Fractions "<<numuspectrum_c->Integral()<<" "<<numuspectrum_charm->Integral()<<endl;
+ //cout<<"Nutau Fractions "<<nutauspectrum_c->Integral()<<" "<<nutauspectrum_charm->Integral()<<endl;
 
  //scaling to the total number of neutrinos, both from mbias and charm
  nuespectrum_charm->Scale(1./total_nue);
@@ -572,6 +574,8 @@ void compareparent_nuinteracting(){
  cnu_tau->BuildLegend();
 
  gStyle->SetOptStat("nei");
+
+ cout<<"Fraction\t mbiasnocharm \t charm"<<endl;
 
  cout<<"Nue Fractions "<<nuespectrum_c->Integral()<<" "<<nuespectrum_charm->Integral()<<endl;
  cout<<"Numu Fractions "<<numuspectrum_c->Integral()<<" "<<numuspectrum_charm->Integral()<<endl;
