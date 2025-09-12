@@ -41,9 +41,9 @@ void generate_neutrinos(int neutrinosource = 2, bool uselogbins=false){ //genera
   hnu_p[-16] =  (TH1D*) fInputFile->Get("-16");
  }
 
- //Float_t deltaz = 3969.; //distance between center of proton target and center of neutrino target
+ Float_t deltaz = 2770.; //distance between center of proton target and center of neutrino target
  //Float_t deltaz = 2500.; //used in SHiP ECN3 Proposal(we do not have the geometry yet)
- Float_t deltaz = 3190.; //Used in AdvSND
+ //Float_t deltaz = 3190.; //old SHiP ECN3 before Guglielmo's work in muon shield
  Double_t targetdx = 20.; //for geometrical acceptance requirement (half-size!)
  Double_t targetdy = 20.;
 
@@ -236,9 +236,9 @@ void nu_yield(int neutrinosource = 2, bool uselogbins=false){ //passing neutrino
   cout<<endl;
 
 
-  cout<<"NU: "<<" "<<"CCDIS"<<" "<<"CHARM"<<" "<<"RES"<<" "<<"QE"<<" "<<"NUEEL"<<" "<<"NCDIS"<<endl;
-  cout<<"NUE"<<" "<<nue_dis_cc<<" "<<nue_dis_cc_charm<<" "<<nue_res_cc<<" "<<nue_qel_cc<<" "<<nue_el<<" "<<nue_dis_nc<<endl;
-  cout<<"ANTINUE"<<" "<<nue_bar_dis_cc<<" "<<nue_bar_dis_cc_charm<<" "<<nue_bar_res_cc<<" "<<nue_bar_qel_cc<<" "<<nue_bar_el<<" "<<nue_bar_dis_nc<<endl;
+  cout<<"NU:"<<"\t"<<"CCDIS"<<"\t"<<"CHARM"<<"\t"<<"RES"<<" "<<"QE"<<"\t"<<"NUEEL"<<"\t"<<"NCDIS"<<endl;
+  cout<<"NUE"<<"\t"<<nue_dis_cc<<"\t"<<nue_dis_cc_charm<<"\t"<<nue_res_cc<<"\t"<<nue_qel_cc<<"\t"<<nue_el<<"\t"<<nue_dis_nc<<endl;
+  cout<<"ANTINUE"<<"\t"<<nue_bar_dis_cc<<"\t"<<nue_bar_dis_cc_charm<<"\t"<<nue_bar_res_cc<<"\t"<<nue_bar_qel_cc<<"\t"<<nue_bar_el<<"\t"<<nue_bar_dis_nc<<endl;
   cout<<"Yields per numu"<<endl;
   TCanvas *cspectramu = new TCanvas();
   cspectramu->Divide(3,3);
@@ -266,8 +266,8 @@ void nu_yield(int neutrinosource = 2, bool uselogbins=false){ //passing neutrino
   Double_t numu_bar_dis_nc = nu_yield_general(neutrinosource,uselogbins,"nu_mu_bar","dis_nc");
   cout<<endl;
 
-  cout<<"NUMU"<<" "<<numu_dis_cc<<" "<<numu_dis_cc_charm<<" "<<numu_res_cc<<" "<<numu_qel_cc<<" "<<numu_el<<" "<<numu_dis_nc<<endl;
-  cout<<"ANTINUMU"<<" "<<numu_bar_dis_cc<<" "<<numu_bar_dis_cc_charm<<" "<<numu_bar_res_cc<<" "<<numu_bar_qel_cc<<" "<<numu_bar_el<<" "<<numu_bar_dis_nc<<endl;
+  cout<<"NUMU"<<"\t"<<numu_dis_cc<<"\t"<<numu_dis_cc_charm<<"\t"<<numu_res_cc<<"\t"<<numu_qel_cc<<"\t"<<numu_el<<"\t"<<numu_dis_nc<<endl;
+  cout<<"ANTINUMU"<<"\t"<<numu_bar_dis_cc<<"\t"<<numu_bar_dis_cc_charm<<"\t"<<numu_bar_res_cc<<"\t"<<numu_bar_qel_cc<<"\t"<<numu_bar_el<<"\t"<<numu_bar_dis_nc<<endl;
   
   TCanvas *cspectratau = new TCanvas();
   cspectratau->Divide(3,3);
@@ -294,8 +294,8 @@ void nu_yield(int neutrinosource = 2, bool uselogbins=false){ //passing neutrino
   Double_t nutau_dis_nc = nu_yield_general(neutrinosource,uselogbins,"nu_tau","dis_nc");
   Double_t nutau_bar_dis_nc = nu_yield_general(neutrinosource,uselogbins,"nu_tau_bar","dis_nc");
 
-  cout<<"NUTAU"<<" "<<nutau_dis_cc<<" "<<nutau_dis_cc_charm<<" "<<nutau_res_cc<<" "<<nutau_qel_cc<<" "<<nutau_el<<" "<<nutau_dis_nc<<endl;
-  cout<<"ANTINUTAU"<<" "<<nutau_bar_dis_cc<<" "<<nutau_bar_dis_cc_charm<<" "<<nutau_bar_res_cc<<" "<<nutau_bar_qel_cc<<" "<<nutau_bar_el<<" "<<nutau_bar_dis_nc<<endl;
+  cout<<"NUTAU"<<"\t"<<nutau_dis_cc<<"\t"<<nutau_dis_cc_charm<<"\t"<<nutau_res_cc<<"\t"<<nutau_qel_cc<<"\t"<<nutau_el<<"\t"<<nutau_dis_nc<<endl;
+  cout<<"ANTINUTAU"<<"\t"<<nutau_bar_dis_cc<<"\t"<<nutau_bar_dis_cc_charm<<"\t"<<nutau_bar_res_cc<<"\t"<<nutau_bar_qel_cc<<"\t"<<nutau_bar_el<<"\t"<<nutau_bar_dis_nc<<endl;
   
 }
 
