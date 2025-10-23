@@ -346,7 +346,7 @@ Double_t nu_yield_general(int neutrinosource, bool uselogbins, const char* nu = 
   const Int_t Z = 74;
 
   Float_t Ninteracting = 0.;
-  Double_t mass = 1840*1e+3; //mass in grams (SND Emulsion+Silicon targets in muon shield)
+  Double_t mass = 1290*1e+3; //mass in grams (SND Silicon/W target in muon shield)
   Double_t surface = 40. * 40.; //surface in square centimetres (squared configuration) (dx and dy here are of course full size, not half size)
   //Double_t surface = 1.4e+4;
    
