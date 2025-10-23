@@ -7,7 +7,7 @@
 //launch with root -l
 //>>.L nu_yield.C
 //generate_neutrinos()
-const Float_t txoffset = -0.1;
+const Float_t txoffset = 0.1;
 void generate_neutrinos(){ //generate neutrino produced spectra according to Thomas histograms
  cout<<"chosen tx offset, propagating neutrinos "<<txoffset<<endl;
 
@@ -22,7 +22,7 @@ void generate_neutrinos(){ //generate neutrino produced spectra according to Tho
  hnu_p[-16] =  (TH1D*) fInputFile->Get("2016");
 
  //Float_t deltaz = 3969.; //distance between center of proton target and center of neutrino target
- Float_t deltaz = 3500.; //for now, let us assume exactly 40 m distance target-nutarget (we do not have the geometry yet)
+ Float_t deltaz = 3000.; //for now, let us assume exactly 40 m distance target-nutarget (we do not have the geometry yet)
  //Float_t deltaz = 4039.; //distance between start of proton target and center of neutrino target
  Double_t targetdx = 20.; //for geometrical acceptance requirement
  Double_t targetdy = targetdx;
@@ -247,7 +247,7 @@ void nu_yield(){ //passing neutrino types and interaction mode to nu_yield_gener
 }
 //general layout with FORM to estimate number of neutrino interactions 
 Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = ""){     
-  TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP.root");
+  TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP_emax400.root");
   //TFile *xsec = TFile::Open("Nu_xsec_full.root"); //normal splines are cut at 350 GeV
   TFile *flux = TFile::Open(Form("neutrinos_detector_txoffset_%i.root",int(txoffset * 1000)));
 
@@ -375,7 +375,7 @@ RVec<double> GetNuYields(string foldername){
 //plot as SHiP CDS radius neutrinos
 void drawAngularPlot(){
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
- double normship = 2e+20; //reference for five years of SND DataTaking
+ double normship = 4e+19; //reference for five years of SND DataTaking
  double scalemass = 4.5;
  const int nbins = 21;
  //listing results for different radii
@@ -457,9 +457,9 @@ void drawAngularPlot(){
  TGraph *gnumu_flux = new TGraph(21, TXoffset.data(),(numu_flux + numu_bar_flux).data());
  TGraph *gnutau_flux = new TGraph(21, TXoffset.data(),(nutau_flux + nutau_bar_flux).data());
 
- gnue_flux->SetTitle("Electron neutrino and antineutrino;TXoffset");
- gnumu_flux->SetTitle("Muon neutrino and antineutrino;TXoffset");
- gnutau_flux->SetTitle("Tau neutrino and antineutrino;TXoffset");
+ gnue_flux->SetTitle("Electron neutrino and antineutrino;Tx;#nu s/(40 x 40) cm^{2} /year");
+ gnumu_flux->SetTitle("Muon neutrino and antineutrino;Tx;#nu s/(40 x 40) cm^{2} /year");
+ gnutau_flux->SetTitle("Tau neutrino and antineutrino;Tx;#nu s/(40 x 40) cm^{2} /year");
 
  //normalizing to ship data taking
  gnue_flux->Scale(normship/normsim);
