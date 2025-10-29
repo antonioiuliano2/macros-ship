@@ -7,7 +7,7 @@
 //launch with root -l
 //>>.L nu_yield.C
 //generate_neutrinos()
-const Float_t txoffset = 0.1;
+const Float_t txoffset = -0.009;
 void generate_neutrinos(){ //generate neutrino produced spectra according to Thomas histograms
  cout<<"chosen tx offset, propagating neutrinos "<<txoffset<<endl;
 
@@ -159,7 +159,7 @@ for (auto &neu:neutrinopdgs){ //start loop over neutrino flavours
 }
 ///////////////STARTING METHOD FOR ESTIMATING NEUTRINO YIELDS/////////////////////////////////////////////////////
 Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = "");
-void nu_yield(){ //passing neutrino types and interaction mode to nu_yield_general for estimation
+void nu_yield_angles(){ //passing neutrino types and interaction mode to nu_yield_general for estimation
   TCanvas *cspectra = new TCanvas();
   cspectra->Divide(3,3);
   cout<<"chosen tx offset, estimating yields for neutrinos "<<txoffset<<endl;
@@ -367,8 +367,6 @@ RVec<double> GetNuYields(string foldername){
 
     fluxfile->Close();
   }
-  cout<<foldername<<endl;
-  cout<<nuyields/(5e+13)*2e+20*4.5<<endl;
   return nuyields;
 }
 
@@ -377,10 +375,13 @@ void drawAngularPlot(){
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
  double normship = 4e+19; //reference for five years of SND DataTaking
  double scalemass = 4.5;
- const int nbins = 21;
+ const int nbins = 39;
  //listing results for different radii
   RVec<string> txoffsetnames = {
-    "-100","-90","-80","-70","-60","-50","-40","-30","-20","-10","0","10","20","30","40","50","60","70","80","90","100"
+    "-100","-90","-80","-70","-60","-50","-40","-30","-20","-10",
+    "-9","-8","-7","-6","-5","-4","-3","-2","-1","0",
+    "1","2","3","4","5","6","7","8","9",
+    "10","20","30","40","50","60","70","80","90","100"
   };
 /*  RVec<string> fluxesfilenames = {
       "plots_-100/","plots_-90/","plots_-80/","plots_-70/","plots_-60/","plots_-50/","plots_-40/","plots_-30/","plots_-20/","plots_-10/",
@@ -390,10 +391,14 @@ void drawAngularPlot(){
  //list of folder names
  RVec<string> foldernames = {
       "plots_-100/","plots_-90/","plots_-80/","plots_-70/","plots_-60/","plots_-50/","plots_-40/","plots_-30/","plots_-20/","plots_-10/",
-      "plots_0/",
+      "plots_-9/","plots_-8/","plots_-7/","plots_-6/","plots_-5/","plots_-4/","plots_-3/","plots_-2/","plots_-1/",
+      "plots_0/","plots_1/","plots_2/","plots_3/","plots_4/","plots_5/","plots_6/","plots_7/","plots_8/","plots_9/",
       "plots_10/","plots_20/","plots_30/","plots_40/","plots_50/","plots_60/","plots_70/","plots_80/","plots_90/","plots_100/"
       };
- RVec<double> TXoffset = {-0.1,-0.09,-0.08,-0.07,-0.06,-0.05,-0.04,-0.03,-0.02,-0.01,0.,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1};
+ RVec<double> TXoffset = {-0.1,-0.09,-0.08,-0.07,-0.06,-0.05,-0.04,-0.03,-0.02,-0.01,
+  -0.009,-0.008,-0.007,-0.006,-0.005,-0.004,-0.003,-0.002,-0.001,
+  0.,0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009,
+  0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1};
  //target arrays, fluxes and yields
  RVec<double> nue_flux,numu_flux,nutau_flux, nue_bar_flux, numu_bar_flux, nutau_bar_flux;
  RVec<double> nue_ccdis,numu_ccdis,nutau_ccdis, nue_bar_ccdis, numu_bar_ccdis, nutau_bar_ccdis;
@@ -423,9 +428,9 @@ void drawAngularPlot(){
   nutau_bar_ccdis.push_back(nuyields[5]);
  }
  //doing the graph. NOTE: I ADD TOGETHER NEUTRINOS AND ANTINEUTRINOS
- TGraph *gnue_ccdis = new TGraph(21, TXoffset.data(),(nue_ccdis + nue_bar_ccdis).data());
- TGraph *gnumu_ccdis = new TGraph(21, TXoffset.data(),(numu_ccdis + numu_bar_ccdis).data());
- TGraph *gnutau_ccdis = new TGraph(21, TXoffset.data(),(nutau_ccdis + nutau_bar_ccdis).data());
+ TGraph *gnue_ccdis = new TGraph(nbins, TXoffset.data(),(nue_ccdis + nue_bar_ccdis).data());
+ TGraph *gnumu_ccdis = new TGraph(nbins, TXoffset.data(),(numu_ccdis + numu_bar_ccdis).data());
+ TGraph *gnutau_ccdis = new TGraph(nbins, TXoffset.data(),(nutau_ccdis + nutau_bar_ccdis).data());
 
  gnue_ccdis->SetTitle("Electron neutrino and antineutrino;TXoffset");
  gnumu_ccdis->SetTitle("Muon neutrino and antineutrino;TXoffset");
@@ -453,9 +458,9 @@ void drawAngularPlot(){
 
  gnumu_ccdis->SetTitle(Form("CCDIS Yields with mass of %.1f ton square detector at different angular positions",scalemass));
  //same graphs for nu fluxes
- TGraph *gnue_flux = new TGraph(21, TXoffset.data(),(nue_flux + nue_bar_flux).data());
- TGraph *gnumu_flux = new TGraph(21, TXoffset.data(),(numu_flux + numu_bar_flux).data());
- TGraph *gnutau_flux = new TGraph(21, TXoffset.data(),(nutau_flux + nutau_bar_flux).data());
+ TGraph *gnue_flux = new TGraph(nbins, TXoffset.data(),(nue_flux + nue_bar_flux).data());
+ TGraph *gnumu_flux = new TGraph(nbins, TXoffset.data(),(numu_flux + numu_bar_flux).data());
+ TGraph *gnutau_flux = new TGraph(nbins, TXoffset.data(),(nutau_flux + nutau_bar_flux).data());
 
  gnue_flux->SetTitle("Electron neutrino and antineutrino;Tx;#nu s/(40 x 40) cm^{2} /year");
  gnumu_flux->SetTitle("Muon neutrino and antineutrino;Tx;#nu s/(40 x 40) cm^{2} /year");
