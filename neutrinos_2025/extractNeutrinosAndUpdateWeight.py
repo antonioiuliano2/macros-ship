@@ -25,8 +25,8 @@ weightCharm1GeV = 4895.24
 # for 10GeV beauty Production 5336 Billion PoT equivalent, weight = 9.37
 weightBeauty = 9.37
 
-# Hanae 2025 files: 10 M PoT equivalent, weight = 4895.24
-weight2025_34 = 4901960.
+# Hanae 2025 files: 1.8 Billion PoT, weight = 27778. for 5E+13 POT
+weight2025_34 = 27778.
 
 import rootUtils as ut
 h={}
@@ -93,12 +93,12 @@ def run():
 def run1GeV():
  tmp = "pythia8_Geant4_1.0_cXX.root"
  global weight
- weight = weightMbias1GeV
+ weight = weight2025_34
  #for run in range(0,19000,1000):
- for run in range(0,1000,1000):
+ for run in range(0,18000,100):
    rc = processFile(tmp.replace('XX',str(run)))
  #ut.writeHists(h,'pythia8_Geant4_1.0_c0-19000_nu.root')
- ut.writeHists(h,'pythia8_Geant4_1.0_c0-1000_nu.root')
+ ut.writeHists(h,'pythia8_Geant4_1.0_c0-18000_nu.root')
 
 def run4Charm():
  tmp = "pythia8_Geant4_charm_XX-YY_10.0.root"
