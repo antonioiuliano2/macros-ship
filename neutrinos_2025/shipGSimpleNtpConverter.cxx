@@ -4,9 +4,15 @@
 
 #include "TFile.h"
 #include "TTree.h"
+#include "TTreeReader.h"
+#include "TTreeReaderArray.h"
 #include "TMath.h"
 #include "TRandom3.h"
 
+#include "ShipMCTrack.h"
+#include "vetoPoint.h"
+
+#include <ROOT/RVec.hxx>
 #include "Tools/Flux/GSimpleNtpFlux.h"
 
 /*
@@ -35,26 +41,10 @@ int main(int argc, char **argv)
    // Set up input file
    TFile *inputfile = TFile::Open(inFileName.c_str(), "READ");
 
-   // Input variables
-   Float_t x, y, z, px, py, pz;
-   Float_t id, pythiaid, parentid;
-   Float_t w, ecut;
+   TTreeReader reader("cbmsim",inputfile); //reading file loaded before executing the script
 
-   TTree *input_tree = (TTree *)inputfile->Get("pythia8-Geant4");
-   input_tree->SetBranchAddress("x", &x);
-   input_tree->SetBranchAddress("y", &y);
-   input_tree->SetBranchAddress("z", &z);
-
-   input_tree->SetBranchAddress("px", &px);
-   input_tree->SetBranchAddress("py", &py);
-   input_tree->SetBranchAddress("pz", &pz);
-
-   input_tree->SetBranchAddress("id", &id);
-   input_tree->SetBranchAddress("pythiaid", &pythiaid);
-   input_tree->SetBranchAddress("parentid", &parentid);
-
-   input_tree->SetBranchAddress("w", &w);
-   input_tree->SetBranchAddress("ecut", &ecut);
+   TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
+   TTreeReaderArray<vetoPoint> scoringpoints(reader,"PlaneHAPoint");
 
    // Scoring plane info
    // Find a Minimum and Maximum of the x, y, z axis (FLUKA coordinates) cm
@@ -89,15 +79,27 @@ int main(int argc, char **argv)
    double max_weight = -1e10;
    double max_energy = 0;
 
+   ROOT::VecOps::RVec<int> pdglist_neutrinos = {12, 14, 16};
 
-   for (Long64_t i = 0; i < input_tree->GetEntries(); i++) {
-      input_tree->GetEntry(i);
-      
+   for (Long64_t i = 0; i < (reader.GetTree())->GetEntries(); i++) {
+    reader.Next();
+    //**********************loop on scoring plane points************
+    for (const vetoPoint &scoringpoint: scoringpoints){   
+      int pdgcode = scoringpoint.PdgCode();
+      if (ROOT::VecOps::Any(pdglist_neutrinos == pdgcode) == false) {
+        continue; // skip non-neutrinos
+      }
       gsimple_entry->Reset();
       aux_entry->Reset();
       gsimple_entry->metakey = metakey;
 
-      z = 165.6400; //FOR THIS TESTING FILE, ALL NEUTRINOS ARE GENERATED AT THIS Z, SO WE CAN SET IT TO A FIXED VALUE. IN FUTURE, THIS SHOULD BE TAKEN FROM THE FILE.
+      double x = scoringpoint.GetX();
+      double y = scoringpoint.GetY();
+      double z = scoringpoint.GetZ();
+
+      double px = scoringpoint.GetPx();
+      double py = scoringpoint.GetPy();
+      double pz = scoringpoint.GetPz();
 
       min_z = TMath::Min(min_z, z);
       max_z = TMath::Max(max_z, z);
@@ -107,9 +109,9 @@ int main(int argc, char **argv)
       max_y = TMath::Max(max_y, y);
 
 
-      gsimple_entry->pdg = id;
-      gsimple_entry->wgt = w;
-      gsimple_entry->vtxx = x * 1 / 100; // in m
+      gsimple_entry->pdg = pdgcode;
+      gsimple_entry->wgt = 1; //In a single file all events have the same weight;
+      gsimple_entry->vtxx = x * 1 / 100; // convert from cm to m
       gsimple_entry->vtxy = y * 1 / 100;
       gsimple_entry->vtxz = z * 1 / 100;
       gsimple_entry->dist = 0.; // Distance from hadron decay point to neutrino "vertex", to use for oscillations,
@@ -121,9 +123,7 @@ int main(int argc, char **argv)
       gsimple_entry->E = TMath::Sqrt(px*px + py*py + pz*pz);
 
       // Set auxiliary data
-      aux_entry->auxint.push_back(parentid);
-      aux_entry->auxint.push_back(pythiaid);
-      aux_entry->auxint.push_back(ecut);
+      aux_entry->auxint.push_back(scoringpoint.GetTrackID()); //trackID
 
 
       // Accumulate metadata
@@ -134,6 +134,7 @@ int main(int argc, char **argv)
 
       // All done!
       tOut->Fill();
+      }
    }
    
 
@@ -163,9 +164,7 @@ int main(int argc, char **argv)
    meta_entry->seed = ran->GetSeed();
    meta_entry->metakey = metakey;
 
-   meta_entry->auxintname.push_back("parentid");
-   meta_entry->auxintname.push_back("pythiaid");
-   meta_entry->auxintname.push_back("ecut");
+   meta_entry->auxintname.push_back("TrackID");
 
    metaOut->Fill();
 
