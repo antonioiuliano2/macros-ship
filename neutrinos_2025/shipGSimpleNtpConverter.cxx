@@ -4,6 +4,7 @@
 
 #include "TFile.h"
 #include "TTree.h"
+#include "TChain.h"
 #include "TTreeReader.h"
 #include "TTreeReaderArray.h"
 #include "TMath.h"
@@ -29,7 +30,7 @@ int main(int argc, char **argv)
       return -1;
    }
 
-   std::string inFileName = std::string(argv[1]);
+   std::string inFolderName = std::string(argv[1]);
    std::string outFileName = std::string(argv[2]);
    double pot_number = std::stod(argv[3]);
 
@@ -38,10 +39,13 @@ int main(int argc, char **argv)
 
    std::cout << "Start converting" << std::endl;
 
-   // Set up input file
-   TFile *inputfile = TFile::Open(inFileName.c_str(), "READ");
+   // Set up input chain
+   TChain *inputchain = new TChain("cbmsim");
+   for (int ifile = 0; ifile < 18000; ifile = ifile + 100){
+      inputchain->Add(TString(inFolderName.c_str())+TString(Form("/pythia8_Geant4_1.0_c%d",ifile))+TString(".root"));
+   }
 
-   TTreeReader reader("cbmsim",inputfile); //reading file loaded before executing the script
+   TTreeReader reader(inputchain); //reading file loaded before executing the script
 
    TTreeReaderArray<ShipMCTrack> tracks(reader,"MCTrack");
    TTreeReaderArray<vetoPoint> scoringpoints(reader,"PlaneHAPoint");
@@ -80,9 +84,8 @@ int main(int argc, char **argv)
    double max_energy = 0;
 
    ROOT::VecOps::RVec<int> pdglist_neutrinos = {12, 14, 16};
-
-   for (Long64_t i = 0; i < (reader.GetTree())->GetEntries(); i++) {
-    reader.Next();
+   std::cout<<"Start looping over entries "<<reader.GetEntries(true)<<std::endl;
+   while (reader.Next()) {
     //**********************loop on scoring plane points************
     for (const vetoPoint &scoringpoint: scoringpoints){   
       int pdgcode = scoringpoint.PdgCode();
@@ -160,7 +163,7 @@ int main(int argc, char **argv)
    for (int i = 0; i < 3; i++)
       meta_entry->windowDir2[i] = plane_dir2[i] * 1 / 100;
 
-   meta_entry->infiles.push_back(inFileName);
+   meta_entry->infiles.push_back(inFolderName);
    meta_entry->seed = ran->GetSeed();
    meta_entry->metakey = metakey;
 
