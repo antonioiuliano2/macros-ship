@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
    // Set up input chain
    TChain *inputchain = new TChain("cbmsim");
-   for (int ifile = 0; ifile < 18000; ifile = ifile + 100){
+   for (int ifile = 0; ifile < 5300; ifile = ifile + 100){
       inputchain->Add(TString(inFolderName.c_str())+TString(Form("/pythia8_Geant4_1.0_c%d",ifile))+TString(".root"));
    }
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
    double max_weight = -1e10;
    double max_energy = 0;
 
-   ROOT::VecOps::RVec<int> pdglist_neutrinos = {12, 14, 16};
+   ROOT::VecOps::RVec<int> pdglist_neutrinos = {-12, 12, -14, 14, -16, 16};
    std::cout<<"Start looping over entries "<<reader.GetEntries(true)<<std::endl;
    while (reader.Next()) {
     //**********************loop on scoring plane points************
