@@ -19,7 +19,9 @@ void neutrino_fluxes_cascade(){ //projecting neutrino fluxes to the target
  tree->SetBranchAddress("weight",&w);
  tree->SetBranchAddress("Cascadek",&Cascadek);
  
- Float_t deltaz = 3969.; //distance between center of proton target and start of neutrino target
+ Float_t deltaz = 5000.; //distance between center of proton target and start of neutrino target
+ Float_t xcenter = 125.; //from 1.0m to 1.5m
+ Float_t ycenter = 0.;
  //Float_t deltaz = 5500.;
  Float_t tanx,tany; //angles and positions after projections
 
@@ -58,7 +60,7 @@ void neutrino_fluxes_cascade(){ //projecting neutrino fluxes to the target
  TH1D *hr_nutau_primary = new TH1D("hr_nutau_primary","Beam profile of tau nu and antinu;r[cm]",200,0,2000);
  TH1D *hr_nutau_cascade = new TH1D("hr_nutau_cascade","Beam profile of tau nu and antinu;r[cm]",200,0,2000);
 
- Double_t targetdx = 40., targetdy = 40.;
+ Double_t targetdx = 25., targetdy = 20.;
  //Double_t targetdx = 55, targetdy = 55;
  cout<<"N NEUTRINOS AND MUONS: "<<nneutrinos<<endl;
  for (int i = 0; i < nneutrinos; i++){
@@ -83,7 +85,7 @@ void neutrino_fluxes_cascade(){ //projecting neutrino fluxes to the target
 
  nall[id] +=w;
 
- if(TMath::Abs(start[0]) < targetdx && TMath::Abs(start[1]) < targetdy){ //checking how many neutrinos are inside the detector
+ if(TMath::Abs(start[0]-xcenter) < targetdx && TMath::Abs(start[1]-ycenter) < targetdy){ //checking how many neutrinos are inside the detector
   nnudet += w;
   ndet[id] += w;
   if(Cascadek==1) hspectrumdet_primary[id]->Fill(momentum,w);
@@ -238,6 +240,58 @@ void drawhistos(){
 ///////////////STARTING METHOD FOR ESTIMATING NEUTRINO YIELDS/////////////////////////////////////////////////////
 Double_t nu_yield_general(const char* nu = "nu_tau", const char* intmode = "dis_cc", const char* charmmode = "");
 void nu_yield(){ //passing neutrino types and interaction mode to nu_yield_general for estimation  
+  TCanvas *cspectrae = new TCanvas();
+  cspectrae->Divide(3,3);
+  cout<<"Yields per nue"<<endl;
+  cspectrae->cd(1);
+  Double_t nue_dis_cc_charm =nu_yield_general("nu_e","dis_cc","_charm");
+  cspectrae->cd(2);
+  Double_t nue_bar_dis_cc_charm =nu_yield_general("nu_e_bar","dis_cc","_charm");
+  cspectrae->cd(3);
+  Double_t nue_dis_cc = nu_yield_general("nu_e","dis_cc");
+  cspectrae->cd(4);
+  Double_t nue_bar_dis_cc =nu_yield_general("nu_e_bar","dis_cc");
+  cspectrae->cd(5);
+  Double_t nue_qel_cc =nu_yield_general("nu_e","qel_cc");
+  cspectrae->cd(6);
+  Double_t nue_bar_qel_cc =nu_yield_general("nu_e_bar","qel_cc");
+  cspectrae->cd(7);  
+  Double_t nue_res_cc =nu_yield_general("nu_e","res_cc");
+  cspectrae->cd(8);
+  Double_t nue_bar_res_cc =nu_yield_general("nu_e_bar","res_cc");
+  cspectrae->cd(9);
+  Double_t nue_el =nu_yield_general("nu_e","ve_ccncmix");   
+  Double_t nue_bar_el =nu_yield_general("nu_e_bar","ve_ccncmix");
+
+  cout<<"NUe"<<" "<<nue_dis_cc<<" "<<nue_dis_cc_charm<<" "<<nue_res_cc<<" "<<nue_qel_cc<<" "<<nue_el<<endl;
+  cout<<"ANTINUe"<<" "<<nue_bar_dis_cc<<" "<<nue_bar_dis_cc_charm<<" "<<nue_bar_res_cc<<" "<<nue_bar_qel_cc<<" "<<nue_bar_el<<endl;
+  
+  TCanvas *cspectramu = new TCanvas();
+  cspectramu->Divide(3,3);
+  cout<<"Yields per numu"<<endl;
+  cspectramu->cd(1);
+  Double_t numu_dis_cc_charm =nu_yield_general("nu_mu","dis_cc","_charm");
+  cspectramu->cd(2);
+  Double_t numu_bar_dis_cc_charm =nu_yield_general("nu_mu_bar","dis_cc","_charm");
+  cspectramu->cd(3);
+  Double_t numu_dis_cc = nu_yield_general("nu_mu","dis_cc");
+  cspectramu->cd(4);
+  Double_t numu_bar_dis_cc =nu_yield_general("nu_mu_bar","dis_cc");
+  cspectramu->cd(5);
+  Double_t numu_qel_cc =nu_yield_general("nu_mu","qel_cc");
+  cspectramu->cd(6);
+  Double_t numu_bar_qel_cc =nu_yield_general("nu_mu_bar","qel_cc");
+  cspectramu->cd(7);  
+  Double_t numu_res_cc =nu_yield_general("nu_mu","res_cc");
+  cspectramu->cd(8);
+  Double_t numu_bar_res_cc =nu_yield_general("nu_mu_bar","res_cc");
+  cspectramu->cd(9);
+  Double_t numu_el =nu_yield_general("nu_mu","ve_nc");   
+  Double_t numu_bar_el =nu_yield_general("nu_mu_bar","ve_nc");
+
+  cout<<"NUmu"<<" "<<numu_dis_cc<<" "<<numu_dis_cc_charm<<" "<<numu_res_cc<<" "<<numu_qel_cc<<" "<<numu_el<<endl;
+  cout<<"ANTINUmu"<<" "<<numu_bar_dis_cc<<" "<<numu_bar_dis_cc_charm<<" "<<numu_bar_res_cc<<" "<<numu_bar_qel_cc<<" "<<numu_bar_el<<endl;
+  
   TCanvas *cspectratau = new TCanvas();
   cspectratau->Divide(3,3);
   cout<<"Yields per nutau"<<endl;
@@ -267,7 +321,7 @@ void nu_yield(){ //passing neutrino types and interaction mode to nu_yield_gener
 }
 //general layout with FORM to estimate number of neutrino interactions 
 Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_cc", const char* charmmode = ""){     
-  TFile *xsec = TFile::Open("Nu_xsec_full.root"); //normal splines are cut at 350 GeV
+  TFile *xsec = TFile::Open("nu_xsec_TungstenSHIP.root"); //normal splines are cut at 350 GeV
   TFile *flux = TFile::Open("neutrinos_detector_decays10M.root");
 
   //const char* nu = "nu_mu"; //neutrino type
@@ -279,22 +333,19 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   TH1D *hfluxnucascade = (TH1D*) flux->Get(Form("h%s_cascade",nu));
 
   bool nullp = false, nulln = false, nullother = false; //for DIS both are possible, but not for other interactions
-  TGraph *hxsec_p = (TGraph*) xsec->Get(Form("%s_Pb208/%s_p%s",nu,intmode,charmmode));   
-  TGraph *hxsec_n = (TGraph*) xsec->Get(Form("%s_Pb208/%s_n%s",nu,intmode,charmmode));
-  TGraph *hxsec_other = (TGraph*) xsec->Get(Form("%s_Pb208/%s%s",nu,intmode,charmmode));
+  TGraph *hxsec_p = (TGraph*) xsec->Get(Form("%s_W184/%s_p%s",nu,intmode,charmmode));   
+  TGraph *hxsec_n = (TGraph*) xsec->Get(Form("%s_W184/%s_n%s",nu,intmode,charmmode));
+  TGraph *hxsec_other = (TGraph*) xsec->Get(Form("%s_W184/%s%s",nu,intmode,charmmode));
   if (hxsec_p == NULL) nullp = true;
   if (hxsec_n == NULL) nulln = true;
   if (hxsec_other == NULL) nullother = true;
-  
-  const Int_t A = 208; //initial approximation, only pb208 considered
-  const Int_t Z = 82;
 
-  Float_t Ninteracting = 0.;
-  Float_t Ninteractingcascade = 0.;
-  Double_t mass = 8183*1e+3; //mass in grams
-  //Double_t surface = 90.3 * 74.9; //surface in square centimetres (rectangular configuration)
-  Double_t surface = 80. * 80.; //surface in square centimetres (squared configuration)
-  //Double_t surface = 1.4e+4;
+  const Int_t A = 184; //tungsen material
+  const Int_t Z = 74;
+
+  Float_t Ninteracting = 0., Ninteractingcascade = 0.;;
+  Double_t mass = 2200*1e+3; //mass in grams (2.2 ton, 560 emulsions of W)
+  Double_t surface = 50. * 40.; //surface in square centimetres (squared configuration)
   
   Double_t avogadro = 6.022e+23;
   Double_t NT = mass/A * avogadro;  
@@ -304,7 +355,6 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   TGraph *hxsec_total = new TGraph(); //summing protons and neutrons when both are present
   TH1D *hspectrum_int = new TH1D(Form("hspectrum_%s_int%s%s",nu,intmode,charmmode),Form("Spettro neutrini %s interagenti in %s%s",nu,intmode,charmmode), 400, 0, 400); 
   TH1D *hspectrum_intcascade = new TH1D(Form("hspectrum_%s_intcascade%s%s",nu,intmode,charmmode),Form("Spettro neutrini %s interagenti in %s%s",nu,intmode,charmmode), 400, 0, 400);
-  TH1D *htest = new TH1D(Form("htest_%s_int%s%s",nu,intmode,charmmode),Form("Spettro neutrini %s interagenti in %s%s",nu,intmode,charmmode), 400, 0, 400); 
 
   for (int n = 0; n < hfluxnu->GetNbinsX(); n++){
   
@@ -323,7 +373,6 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   Ninteracting = ysec *1e-38 * NT * y/surface * hfluxnu->GetBinWidth(n+1);  
   Ninteractingcascade = ysec *1e-38 * NT * ycascade/surface * hfluxnucascade->GetBinWidth(n+1);  
   
-  htest->SetBinContent(n+1,hfluxnu->GetBinWidth(n+1)*y);
   hspectrum_int->SetBinContent(n+1,Ninteracting);
 
   hspectrum_intcascade->SetBinContent(n+1,Ninteractingcascade);
@@ -344,9 +393,6 @@ Double_t nu_yield_general(const char* nu = "nu_mu", const char* intmode = "dis_c
   outputfile->Write();
   hxsec_total->Write("xsec");
   outputfile->Close();
-  //cout<<"TEST "<<htest->GetEntries()<<endl;
-  //Double_t countingtest = htest->Integral();
-  //cout<<"Test conteggio "<<counting<<"integrale manuale "<<countingtest<<endl;
   return yield+yieldcascade;
 }
 
