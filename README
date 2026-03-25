@@ -1,18 +1,33 @@
-I am tired of not remembering why I changed a macro and when. Let's see if this fancy DVS can help me!
+# Personal repo of SHiP related macros
 
-Nusrv9 cannot connect to GitHub repository server. Adding a second repository on GitLab. 
-Therefore, when I need to connect my modifications to the nusrv9 scripts, I need to do
+Reorganized to have clear (well, a bit more clear) folders for each project:
 
-git pull
+* shipcharm: not working on it anymore, kept mostly for archive;
 
-git fetch gitlab
+* Muons_SHiP: input muons, especially to evaluate noise to emulsions and other detectors:
 
-git merge gitlab/master #to merge with modifications from github
+* muon_background: background evaluation from muon interactions. For now, muonDIS
 
-git push gitlab #saving on gitlab
+* neutrinos_old, neutrions_2018, neutrinos_2025: input neutrino fluxes, and related codes. To be merged in a single folder
 
-git push origin #saving on gitlab
+* condor_scripts: input for HTCondor submissions
 
-Then git pull as usual
+* bash: bash related code, may be also inserted in the related project(s)
 
-Hello again
+* nu_ship_simulations: all code to analyze neutrino event simulations after the FairShip/Geant4 simulation. Special case, efficiency scripts
+
+* FEDRA: all FEDRA related stuff, may overlap a lot with macros-snd;
+
+* general_utils: any small general script which can work on any project. I.e. drawrootvolume.
+
+* testscripts: small templates used to test functions before adding them to a project;
+
+* tutorials: scripts designed especially for some tutorials sessions;
+
+* helps: some markdown notes, written for documentation before my gitbook repo;
+
+## To do
+
+Arrange more clear structure within the project subfolders.
+
+I would avoid deleting old code, but I should avoid also being overwhelmed by it and unable to find useful code anymore.
