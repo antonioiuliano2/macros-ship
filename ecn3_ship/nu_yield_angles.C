@@ -375,12 +375,11 @@ void drawAngularPlot(){
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
  double normship = 4e+19; //reference for five years of SND DataTaking
  double scalemass = 4.5;
- const int nbins = 39;
+ const int nbins = 21;
  //listing results for different radii
   RVec<string> txoffsetnames = {
     "-100","-90","-80","-70","-60","-50","-40","-30","-20","-10",
-    "-9","-8","-7","-6","-5","-4","-3","-2","-1","0",
-    "1","2","3","4","5","6","7","8","9",
+    "0",
     "10","20","30","40","50","60","70","80","90","100"
   };
 /*  RVec<string> fluxesfilenames = {
@@ -391,13 +390,11 @@ void drawAngularPlot(){
  //list of folder names
  RVec<string> foldernames = {
       "plots_-100/","plots_-90/","plots_-80/","plots_-70/","plots_-60/","plots_-50/","plots_-40/","plots_-30/","plots_-20/","plots_-10/",
-      "plots_-9/","plots_-8/","plots_-7/","plots_-6/","plots_-5/","plots_-4/","plots_-3/","plots_-2/","plots_-1/",
-      "plots_0/","plots_1/","plots_2/","plots_3/","plots_4/","plots_5/","plots_6/","plots_7/","plots_8/","plots_9/",
+      "plots_0",
       "plots_10/","plots_20/","plots_30/","plots_40/","plots_50/","plots_60/","plots_70/","plots_80/","plots_90/","plots_100/"
       };
  RVec<double> TXoffset = {-0.1,-0.09,-0.08,-0.07,-0.06,-0.05,-0.04,-0.03,-0.02,-0.01,
-  -0.009,-0.008,-0.007,-0.006,-0.005,-0.004,-0.003,-0.002,-0.001,
-  0.,0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009,
+  0.,
   0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1};
  //target arrays, fluxes and yields
  RVec<double> nue_flux,numu_flux,nutau_flux, nue_bar_flux, numu_bar_flux, nutau_bar_flux;
@@ -472,16 +469,22 @@ void drawAngularPlot(){
  gnutau_flux->Scale(normship/normsim);
 
  TCanvas *cgraphflux = new TCanvas();
+ gnumu_flux->SetLineWidth(0);
  gnumu_flux->SetMarkerColor(kRed);
  gnumu_flux->SetMarkerStyle(20);
+ gnumu_flux->SetMarkerSize(2);
  gnumu_flux->Draw("AP");
- gnumu_flux->GetYaxis()->SetRangeUser(1,1e+20);
+ gnumu_flux->GetYaxis()->SetRangeUser(1e+10,1e+18);
+ gnue_flux->SetLineWidth(0);
  gnue_flux->SetMarkerColor(kBlue);
  gnue_flux->SetMarkerStyle(32);
+ gnue_flux->SetMarkerSize(2);
  gnue_flux->Draw("P && SAME");
+ gnutau_flux->SetLineWidth(0);
  gnutau_flux->SetMarkerColor(kBlack);
  gnutau_flux->Draw("P && SAME"); 
  gnutau_flux->SetMarkerStyle(21);
+ gnutau_flux->SetMarkerSize(2);
  cgraphflux->BuildLegend();
  cgraphflux->SetLogy();
  cgraphflux->Draw("g");
