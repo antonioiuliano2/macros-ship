@@ -2,9 +2,9 @@
 
 void compare_spectra_targetsimulations(){
 
-    TFile *simfile_2018 = TFile::Open("/home/utente/Simulations/nuhistos_Thomas_noCharmFalse/pythia8_Geant4_1.0_c0-19000_nu.root");
+    TFile *simfile_2018 = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/nuhistos_bkgproductions/bkg2018/nuhistos_Thomas_noCharmFalse/pythia8_Geant4_1.0_c0-19000_nu.root");
     //TFile *simfile_2018 = TFile::Open("/home/utente/Simulations/pythia8_Geant4_1.0_c_nu.root");
-    TFile *simfile_2025 = TFile::Open("/home/utente/Simulations/nuyield_shipecn3/2026_03_17_nuyield_Hanae_34/pythia8_Geant4_1.0_c0-18000_nu.root");
+    TFile *simfile_2026 = TFile::Open("/afs/cern.ch/work/a/aiuliano/public/nuhistos_bkgproductions/bkg2026/nuhistos_Hanae2026_noCharmFalse/pythia8_Geant4_1.0_c0-157_nu.root");
 
     //nue comparison
     TH1D * hnu_e_2018 = (TH1D*) simfile_2018->Get("1012");
@@ -13,8 +13,8 @@ void compare_spectra_targetsimulations(){
     hnu_e_2018->Add(hnu_e_bar_2018);
     hnu_e_2018->SetTitle("electron neutrino from 2018 production");
 
-    TH1D * hnu_e_2025 = (TH1D*) simfile_2025->Get("1012");
-    TH1D * hnu_e_bar_2025 = (TH1D*) simfile_2025->Get("2012");
+    TH1D * hnu_e_2025 = (TH1D*) simfile_2026->Get("1012");
+    TH1D * hnu_e_bar_2025 = (TH1D*) simfile_2026->Get("2012");
 
     hnu_e_2025->Add(hnu_e_bar_2025);
     hnu_e_2025->SetTitle("electron neutrino from 2025 production");
@@ -26,8 +26,8 @@ void compare_spectra_targetsimulations(){
     hnu_mu_2018->Add(hnu_mu_bar_2018);
     hnu_mu_2018->SetTitle("muon neutrino from 2018 production");
 
-    TH1D * hnu_mu_2025 = (TH1D*) simfile_2025->Get("1014");
-    TH1D * hnu_mu_bar_2025 = (TH1D*) simfile_2025->Get("2014");
+    TH1D * hnu_mu_2025 = (TH1D*) simfile_2026->Get("1014");
+    TH1D * hnu_mu_bar_2025 = (TH1D*) simfile_2026->Get("2014");
 
     hnu_mu_2025->Add(hnu_mu_bar_2025);
     hnu_mu_2025->SetTitle("muon neutrino from 2025 production");
@@ -39,8 +39,8 @@ void compare_spectra_targetsimulations(){
     hnu_tau_2018->Add(hnu_tau_bar_2018);
     hnu_tau_2018->SetTitle("tau neutrino from 2018 production");
 
-    TH1D * hnu_tau_2025 = (TH1D*) simfile_2025->Get("1016");
-    TH1D * hnu_tau_bar_2025 = (TH1D*) simfile_2025->Get("2016");
+    TH1D * hnu_tau_2025 = (TH1D*) simfile_2026->Get("1016");
+    TH1D * hnu_tau_bar_2025 = (TH1D*) simfile_2026->Get("2016");
 
     hnu_tau_2025->Add(hnu_tau_bar_2025);
     hnu_tau_2025->SetTitle("tau neutrino from 2025 production");
@@ -55,7 +55,7 @@ void compare_spectra_targetsimulations(){
     cnue->SetLogy();
     
     hnu_e_2018->SetTitle("2018 production (mbias file)");
-    hnu_e_2025->SetTitle("2025 production (34 sample)");
+    hnu_e_2025->SetTitle("2026 production");
     cnue->BuildLegend();
 
     TCanvas *cnumu = new TCanvas("cnumu","Muon neutrino momentum at production");
@@ -66,7 +66,7 @@ void compare_spectra_targetsimulations(){
     cnumu->SetLogy();
     
     hnu_mu_2018->SetTitle("2018 production (mbias file)");
-    hnu_mu_2025->SetTitle("2025 production (34 sample)");
+    hnu_mu_2025->SetTitle("2026 production");
     cnumu->BuildLegend();
 
     TCanvas *cnutau = new TCanvas("cnutau","Tau neutrino momentum at production");
@@ -77,6 +77,6 @@ void compare_spectra_targetsimulations(){
     cnutau->SetLogy();
     
     hnu_tau_2018->SetTitle("2018 production (mbias file)");
-    hnu_tau_2025->SetTitle("2025 production (34 sample)");
+    hnu_tau_2025->SetTitle("2026 production");
     cnutau->BuildLegend();
 }
