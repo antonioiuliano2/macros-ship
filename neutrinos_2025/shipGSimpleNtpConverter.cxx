@@ -25,12 +25,18 @@ int main(int argc, char **argv)
 {
 
    if (argc != 4) {
-      std::cout << "Three arguments required: path to target sim file AND output file name AND number of pp collisions used "
+      std::cout << "Three arguments required: file with paths to target sim files AND output file name AND number of pot used "
                 << std::endl;
       return -1;
    }
 
-   std::string inFolderName = std::string(argv[1]);
+   std::ifstream inputfile(argv[1]);
+
+   if (!inputfile.is_open()) {
+        std::cerr << "Error in opening input file!" << std::endl;
+        return 1;
+   }
+
    std::string outFileName = std::string(argv[2]);
    double pot_number = std::stod(argv[3]);
 
@@ -41,8 +47,12 @@ int main(int argc, char **argv)
 
    // Set up input chain
    TChain *inputchain = new TChain("cbmsim");
-   for (int ifile = 0; ifile < 5300; ifile = ifile + 100){
-      inputchain->Add(TString(inFolderName.c_str())+TString(Form("/pythia8_Geant4_1.0_c%d",ifile))+TString(".root"));
+
+   std::string line;
+    
+   //loop input text file
+   while (std::getline(inputfile, line)) {
+      inputchain->Add(line.c_str());
    }
 
    TTreeReader reader(inputchain); //reading file loaded before executing the script
@@ -163,7 +173,7 @@ int main(int argc, char **argv)
    for (int i = 0; i < 3; i++)
       meta_entry->windowDir2[i] = plane_dir2[i] * 1 / 100;
 
-   meta_entry->infiles.push_back(inFolderName);
+   meta_entry->infiles.push_back(argv[1]);
    meta_entry->seed = ran->GetSeed();
    meta_entry->metakey = metakey;
 
