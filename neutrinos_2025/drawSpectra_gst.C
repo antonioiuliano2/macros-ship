@@ -13,12 +13,16 @@ void drawSpectra_gst(){
  auto hE_nu_mu = df1.Filter("abs(neu)==14").Histo1D({"hE_nu_mu","Muon neutrino energy spectrum;E[GeV]",400,0.,400.},"Ev");
  auto hE_nu_tau = df1.Filter("abs(neu)==16").Histo1D({"hE_nu_tau","Tau neutrino energy spectrum;E[GeV]",400,0.,400.},"Ev");
 
- hE_nu_e->Scale(normship/normsim);
- hE_nu_mu->Scale(normship/normsim);
- hE_nu_tau->Scale(normship/normsim);
+ //hE_nu_e->Scale(normship/normsim);
+ //hE_nu_mu->Scale(normship/normsim);
+ //hE_nu_tau->Scale(normship/normsim);
 
+ hE_nu_e->Scale(1./hE_nu_mu->Integral());
+ hE_nu_tau->Scale(1./hE_nu_mu->Integral());
+ hE_nu_mu->Scale(1./hE_nu_mu->Integral());
     
  TCanvas *c1 = new TCanvas();
+ 
  hE_nu_mu->SetLineColor(kRed);
  hE_nu_tau->SetLineColor(kGreen);
 
