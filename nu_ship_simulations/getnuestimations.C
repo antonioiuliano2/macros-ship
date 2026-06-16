@@ -2,8 +2,8 @@
 //TString prepath("/home/utente/Simulations/nuyield_shipecn3/advsnd/");
 //TString prepath("/home/utente/Simulations/nuyield_shipecn3/advsnd_downstream/");
 //TString prepath("/home/utente/Simulations/nuyield_shipecn3/2025_02_26_nuyield_SND_MuonShieldTarget/");
-//TString prepath("/home/utente/Simulations/nuyield_shipecn3/2025_08_28_nuyield_SND_EmuTargetSiliconTarget/");
-TString prepath("/home/utente/Simulations/nuyield_shipecn3/2026_06_08_nuyield_Hanae_Kirill_merged/");
+//TString prepath("/home/utente/Simulations/nuyield_shipecn3/2025_10_09_nuyield_SND_Si_W/");
+TString prepath("/home/utente/Simulations/nuyield_shipecn3/2026_06_14_nuyield_Hanae_makeCascade_merged/");
 void getnuresults(){
 
  double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
