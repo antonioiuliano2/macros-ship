@@ -1,0 +1,9 @@
+executable =  makecascade.sh
+arguments = $(ClusterID) $(ProcId) 
+output                = output/makecascade.$(ClusterId).$(ProcId).out
+error                 = error/makecascade.$(ClusterId).$(ProcId).err
+log                   = log/makecascade.$(ClusterId).log
+getenv = False
+notification = Never
++JobFlavour             ="tomorrow"
+queue 1000

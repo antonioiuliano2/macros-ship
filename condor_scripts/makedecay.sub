@@ -1,0 +1,11 @@
+executable =  makedecay.sh
+arguments = $(ClusterID) $(ProcId) 
+output                = output/makedecay.$(ClusterId).$(ProcId).out
+error                 = error/makedecay.$(ClusterId).$(ProcId).err
+log                   = log/makedecay.$(ClusterId).log
+getenv = False
+notification = Never
++JobFlavour             ="microcentury"
+on_exit_remove          = (ExitBySignal == False) && (ExitCode == 0)
+max_retries             = 3
+queue 1000
