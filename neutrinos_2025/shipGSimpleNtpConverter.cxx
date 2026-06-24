@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 
    //cascade file, charmed hadron decays into neutrinos
    TFile *CascadeDecayFile = TFile::Open(argv[4]);
-   double pot_number_cascade = std::stod(argv[3]); //different normalization for cascade file
+   double pot_number_cascade = std::stod(argv[5]); //different normalization for cascade file
    TTree *DecayTree = (TTree*)CascadeDecayFile->Get("Decay");
 
    //define branches
