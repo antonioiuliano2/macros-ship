@@ -24,8 +24,8 @@
 int main(int argc, char **argv)
 {
 
-   if (argc != 4) {
-      std::cout << "Three arguments required: file with paths to target sim files AND output file name AND number of pot used "
+   if (argc != 6) {
+      std::cout << "FIVE arguments required: file with paths to target sim files AND output file name AND number of pot used AND file with paths to cascade decay AND number of pot used for cascade decay"
                 << std::endl;
       return -1;
    }
@@ -149,7 +149,72 @@ int main(int argc, char **argv)
       tOut->Fill();
       }
    }
-   
+   std::cout << "Start converting cascade file" << std::endl;
+
+   //cascade file, charmed hadron decays into neutrinos
+   TFile *CascadeDecayFile = TFile::Open(argv[4]);
+   double pot_number_cascade = std::stod(argv[3]); //different normalization for cascade file
+   TTree *DecayTree = (TTree*)CascadeDecayFile->Get("Decay");
+
+   //define branches
+   Float_t px_d, py_d, pz_d, E_d; //_d is to notify from the decay tree
+   Float_t wgt_d;
+   Float_t pdg_d;
+   DecayTree->SetBranchAddress("px", &px_d);
+   DecayTree->SetBranchAddress("py", &py_d);
+   DecayTree->SetBranchAddress("pz", &pz_d);
+   DecayTree->SetBranchAddress("E", &E_d);
+   DecayTree->SetBranchAddress("weight", &wgt_d);
+   DecayTree->SetBranchAddress("id", &pdg_d);
+
+   const double Emin = 1.; //GeV, minimum energy of neutrinos to be considered
+
+   //start looping over the decay tree
+   const int nentries = DecayTree->GetEntries();
+   std::cout<<"Start looping over entries "<<nentries<<std::endl;
+   for (int i = 0; i < nentries; ++i) {
+      DecayTree->GetEntry(i);
+      if (E_d < Emin) continue; //skip low energy neutrinos
+      gsimple_entry->pdg = pdg_d;
+      gsimple_entry->wgt = wgt_d * pot_number / pot_number_cascade; //normalize to the same POT as the main file
+
+      gsimple_entry->px = px_d; // in GeV/c
+      gsimple_entry->py = py_d;
+      gsimple_entry->pz = pz_d;
+      gsimple_entry->E = E_d;
+
+      double tx = px_d / pz_d;
+      double ty = py_d / pz_d;
+
+      double zstart = 0; //starting point from zero;
+      double z = min_z; //at the scoring plane (cm)
+      double x = tx * (z - zstart); //propagate to the scoring plane
+      double y = ty * (z - zstart);
+
+      min_x = TMath::Min(min_x, x);
+      max_x = TMath::Max(max_x, x);
+      min_y = TMath::Min(min_y, y);
+      max_y = TMath::Max(max_y, y);
+
+      gsimple_entry->vtxx = x * 1 / 100; // convert from cm to m
+      gsimple_entry->vtxy = y * 1 / 100;
+      gsimple_entry->vtxz = z * 1 / 100;
+
+      // Set auxiliary data
+      aux_entry->auxint.push_back(-1); //trackID not present in the decay tree, set to -1
+
+
+      // Accumulate metadata
+      pdglist.insert(gsimple_entry->pdg);
+      min_weight = TMath::Min(min_weight, gsimple_entry->wgt);
+      max_weight = TMath::Max(max_weight, gsimple_entry->wgt);
+      max_energy = TMath::Max(max_energy, gsimple_entry->E);
+
+      // All done!
+      tOut->Fill();
+
+   }
+
 
    // plane corner and plane direction of the scoring plane (The scoring plane is tilted)
    double plane_corner[] = {min_x, min_y, min_z};
