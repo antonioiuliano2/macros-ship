@@ -94,7 +94,7 @@ int main(int argc, char **argv)
    double max_energy = 0;
 
    ROOT::VecOps::RVec<int> pdglist_neutrinos = {-12, 12, -14, 14, -16, 16};
-   std::cout<<"Start looping over entries "<<reader.GetEntries(true)<<std::endl;
+   std::cout<<"Start loop over entries "<<reader.GetEntries(true)<<std::endl;
    while (reader.Next()) {
     //**********************loop on scoring plane points************
     for (const vetoPoint &scoringpoint: scoringpoints){   
@@ -176,6 +176,9 @@ int main(int argc, char **argv)
       DecayTree->GetEntry(i);
       if (E_d < Emin) continue; //skip low energy neutrinos
       gsimple_entry->pdg = pdg_d;
+      if (ROOT::VecOps::Any(pdglist_neutrinos == pdg_d) == false) {
+        continue; // skip non-neutrinos
+      }
       gsimple_entry->wgt = wgt_d * pot_number / pot_number_cascade; //normalize to the same POT as the main file
 
       gsimple_entry->px = px_d; // in GeV/c
