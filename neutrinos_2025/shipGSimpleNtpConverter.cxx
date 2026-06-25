@@ -94,6 +94,8 @@ int main(int argc, char **argv)
    double max_energy = 0;
 
    ROOT::VecOps::RVec<int> pdglist_neutrinos = {-12, 12, -14, 14, -16, 16};
+   ROOT::VecOps::RVec<int> charmExtern = {4332, 4232, 4132, 4232, 4122, 431, 411, 421, 15};
+   
    std::cout<<"Start loop over entries "<<reader.GetEntries(true)<<std::endl;
    while (reader.Next()) {
     //**********************loop on scoring plane points************
@@ -102,6 +104,13 @@ int main(int argc, char **argv)
       if (ROOT::VecOps::Any(pdglist_neutrinos == pdgcode) == false) {
         continue; // skip non-neutrinos
       }
+      int nu_ID = scoringpoint.GetTrackID();
+      int nu_motherID = tracks[nu_ID].GetMotherId();
+      int nu_motherPDG = tracks[nu_motherID].GetPdgCode();
+      if (ROOT::VecOps::Any(charmExtern == TMath::Abs(nu_motherPDG)) == true) {
+        continue; // skip neutrinos from charmed hadron decays, they will be added later from the cascade file
+      }
+
       gsimple_entry->Reset();
       aux_entry->Reset();
       gsimple_entry->metakey = metakey;
