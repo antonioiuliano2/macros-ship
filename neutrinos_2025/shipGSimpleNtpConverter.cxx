@@ -97,7 +97,7 @@ int main(int argc, char **argv)
    std::cout<<"Start loop over entries "<<reader.GetEntries(true)<<std::endl;
    while (reader.Next()) {
     //**********************loop on scoring plane points************
-    for (const vetoPoint &scoringpoint: scoringpoints){   
+    for (const vetoPoint &scoringpoint: scoringpoints){
       int pdgcode = scoringpoint.PdgCode();
       if (ROOT::VecOps::Any(pdglist_neutrinos == pdgcode) == false) {
         continue; // skip non-neutrinos
@@ -135,10 +135,6 @@ int main(int argc, char **argv)
       //massless neutrinos
       gsimple_entry->E = TMath::Sqrt(px*px + py*py + pz*pz);
 
-      // Set auxiliary data
-      aux_entry->auxint.push_back(scoringpoint.GetTrackID()); //trackID
-
-
       // Accumulate metadata
       pdglist.insert(gsimple_entry->pdg);
       min_weight = TMath::Min(min_weight, gsimple_entry->wgt);
@@ -172,13 +168,19 @@ int main(int argc, char **argv)
    //start looping over the decay tree
    const int nentries = DecayTree->GetEntries();
    std::cout<<"Start looping over entries "<<nentries<<std::endl;
-   for (int i = 0; i < nentries; ++i) {
-      DecayTree->GetEntry(i);
+   for (int ientry = 0; ientry < nentries; ientry++) {
+      DecayTree->GetEntry(ientry);
+      if (ientry%100000 == 0) std::cout<<"Processing entry "<<ientry<<std::endl;
       if (E_d < Emin) continue; //skip low energy neutrinos
-      gsimple_entry->pdg = pdg_d;
       if (ROOT::VecOps::Any(pdglist_neutrinos == pdg_d) == false) {
         continue; // skip non-neutrinos
       }
+
+      gsimple_entry->Reset();
+      aux_entry->Reset();
+      gsimple_entry->metakey = metakey;
+
+      gsimple_entry->pdg = pdg_d;
       gsimple_entry->wgt = wgt_d * pot_number / pot_number_cascade; //normalize to the same POT as the main file
 
       gsimple_entry->px = px_d; // in GeV/c
@@ -202,10 +204,6 @@ int main(int argc, char **argv)
       gsimple_entry->vtxx = x * 1 / 100; // convert from cm to m
       gsimple_entry->vtxy = y * 1 / 100;
       gsimple_entry->vtxz = z * 1 / 100;
-
-      // Set auxiliary data
-      aux_entry->auxint.push_back(-1); //trackID not present in the decay tree, set to -1
-
 
       // Accumulate metadata
       pdglist.insert(gsimple_entry->pdg);
@@ -244,8 +242,6 @@ int main(int argc, char **argv)
    meta_entry->infiles.push_back(argv[1]);
    meta_entry->seed = ran->GetSeed();
    meta_entry->metakey = metakey;
-
-   meta_entry->auxintname.push_back("TrackID");
 
    metaOut->Fill();
 
