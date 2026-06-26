@@ -213,6 +213,8 @@ int main(int argc, char **argv)
       gsimple_entry->vtxx = x * 1 / 100; // convert from cm to m
       gsimple_entry->vtxy = y * 1 / 100;
       gsimple_entry->vtxz = z * 1 / 100;
+      gsimple_entry->dist = 0.; // Distance from hadron decay point to neutrino "vertex", to use for oscillations,
+                                      // for example. Don't use.
 
       // Accumulate metadata
       pdglist.insert(gsimple_entry->pdg);
