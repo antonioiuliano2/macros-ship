@@ -1,6 +1,7 @@
 //Script to convert a flat NTuple to a GSimpleNtpEntry format, using RDataFrame. 
 // The input ntuple is the output of the makeDecay. 
 // The output is a GSimpleNtpEntry format ntuple, with an additional TTree for metadata.
+TString output_file_name("all100Runs_Decay_Cascade1000k_gsimple_output.root");
 
 genie::flux::GSimpleNtpEntry gsimpleentry(float E, float pdg, float px, float py, float pz, float weight){
     genie::flux::GSimpleNtpEntry e;
@@ -14,7 +15,7 @@ genie::flux::GSimpleNtpEntry gsimpleentry(float E, float pdg, float px, float py
     e.vtxz      = 400. * 1 / 100;
     e.dist = 0.;
     e.wgt = weight;
-    e.metakey = TString("gsimple_output.root").Hash();
+    e.metakey = TString(output_file_name).Hash();
     e.metakey &= 0x7FFFFFFF;
     return e;
 }
@@ -26,7 +27,6 @@ void rdataframe_decay2gsimple_converter(){
     
     // Open your flat custom input TTree
     ROOT::RDataFrame df("Decay", (prepath + inputfile).Data());
-    TString output_file_name("all100Runs_Decay_Cascade1000k_gsimple_output.root");
 
     auto dfminE = df.Filter("E > 1."); //filter out low energy neutrinos
     auto dfneutrinos = dfminE.Filter("TMath::Abs(id) == 12 || TMath::Abs(id) == 14 || TMath::Abs(id) == 16");
