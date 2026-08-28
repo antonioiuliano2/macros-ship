@@ -20,7 +20,9 @@ void nuyieldtable_gst(){
     auto dfnutau_bar_cc = dfcc.Filter("neu==-16");
 
     auto dfnc = df.Filter("nc");
-
+    //we also need nc with pi^0
+    auto dfnc_pi0 = dfnc.Filter("nfpi0>0");
+    //retrieve the number of events for each category
     auto nue_cc = dfnue_cc.Count();
     auto numu_cc = dfnumu_cc.Count();
     auto nutau_cc = dfnutau_cc.Count();
@@ -30,8 +32,10 @@ void nuyieldtable_gst(){
     auto nutau_bar_cc = dfnutau_bar_cc.Count();
 
     auto nu_nc = dfnc.Count();
+    auto nu_nc_pi0 = dfnc_pi0.Count();
 
-
+    //print the results
+    cout<<"Scale factor: "<<scale_factor<<endl;
     //cout<<"NU:"<<"\t"<<"CCDIS"<<"\t"<<"CHARM"<<"\t"<<"RES"<<" "<<"QE"<<"\t"<<"NUEEL"<<"\t"<<"NCDIS"<<endl;
     cout<<"NU:"<<"\t"<< "CC"<<endl;
     cout<<"NUE"<<"\t"<<nue_cc.GetValue() * scale_factor<<endl;
@@ -47,6 +51,7 @@ void nuyieldtable_gst(){
     cout<<"NUTAU + ANTI_NUTAU"<<"\t"<<(nutau_cc.GetValue() + nutau_bar_cc.GetValue()) * scale_factor<<endl;
 
     cout<<"ALL NC"<<"\t"<<nu_nc.GetValue() * scale_factor<<endl;
+    cout<<"ALL NC with pi0"<<"\t"<<nu_nc_pi0.GetValue() * scale_factor<<endl;
 
     
 }
