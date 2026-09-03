@@ -4,10 +4,10 @@ void nuyieldtable_gst(){
     const double normship = 6e+20; //15 years of data taking
     double scale_factor = normship/normsim;
 
-    TString prepath = "/home/antonio/Simulations/GENIE_sims/2026_08_27_4e19_allflavours_calorimeter/";
-    ROOT::RDataFrame df("gst",prepath+TString("nuyield_4e19_calorimeter.gst.root").Data());
-    //TString prepath = "/home/antonio/Simulations/GENIE_sims/2026_07_03_4e19_allflavours_calorimeter/";
-    //ROOT::RDataFrame df("gst",prepath+TString("calorimeter_4e19.gst.root").Data());
+    TString prepath = "/home/antonio/Simulations/GENIE_sims/2026_08_27_4e19_allflavours_neutrino_detector/";
+    ROOT::RDataFrame df("gst",prepath+TString("neutrino_detector_4e19.gst.root").Data());
+    //TString prepath = "/home/antonio/Simulations/GENIE_sims/2026_08_27_4e19_allflavours_calorimeter/";
+    //ROOT::RDataFrame df("gst",prepath+TString("nuyield_4e19_calorimeter.gst.root").Data());
 
     auto dfcc = df.Filter("cc");
 
