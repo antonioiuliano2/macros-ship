@@ -69,18 +69,8 @@ MeshData createPlateMesh(int ePlate, double eXmin, double eXmax, double eYmin, d
 }
 
 void convert_fedratracks_seacucumberhits(){
-    /*
-    using Vec3 = std::array<double, 3>;
-    //creating the hit container
-    auto model = ROOT::RNTupleModel::Create();
-    //auto mcP = model->MakeField<std::vector<SHiP::MCParticle>>("mcParticles");
-    auto simH = model->MakeField<std::vector<SHiP::SimHit>>("simHits");
-    //auto simR = model->MakeField<SHiP::SimResult>("simResult");
-    auto writer = ROOT::RNTupleWriter::Recreate(std::move(model), "events", "demo_display_tracks.root");
-    */
-    //input tracks
-    TFile *inputfile = TFile::Open("/home/utente/Simulations/RUN6_training_30_March_2021/b000006/b000006.0.0.0.trk.root","READ");
-    TTree *tracktree = (TTree*) inputfile->Get("tracks");
+
+    //input tracks (automatically reads linked_tracks.root)
 
     EdbDataProc *dproc = new EdbDataProc();
     TCut tracksel("nseg>10");
@@ -88,9 +78,8 @@ void convert_fedratracks_seacucumberhits(){
     EdbPVRec *ali = new EdbPVRec();
     ali = dproc->PVR();
     ali->FillCell(30,30,0.009,0.009);
-    //tracktree.SetAlias("trk","t.") #points create confusion to python
     const std::string outDir = "web/data";
-    //setting branches
+    //setting area sets
 
     EdbEDAAreaSet *areaset = new EdbEDAAreaSet();
     areaset->SetAreas(ali);
@@ -105,29 +94,12 @@ void convert_fedratracks_seacucumberhits(){
             continue;
         }
         ej << "{\"event\":" << itrk << ",\"hits\":[";
-        //simH->clear(); //for now, each event is a track
         EdbTrackP * tr = (EdbTrackP*) ali->eTracks->At(itrk);
-       // temptrack->Copy(EdbTrackP(trk));
         //start loop on segments associated to the track
         int nseg = tr->N();
         cout<<"Track: " << itrk << " with " << nseg << " segments" <<endl;
         for (int i = 0; i< nseg; i++){
             EdbSegP *seg = tr->GetSegmentF(i);
-            /*
-            SHiP::SimHit h;
-            h.detectorId = seg->Plate();
-            h.trackId = seg->Track();
-            h.pdgCode = seg->Flag(); //if montecarlo, provide pdgcode
-            Vec3 vecpos = {seg->X(), seg->Y(), seg->Z()}; 
-            Vec3 vecmom = {seg->TX(), seg->TY(), 1};  //if known momentum, can also provide actual momentum magnitude
-            h.position = vecpos;
-            h.momentum = vecmom;
-            h.energyDeposit = seg->W();
-            h.time = 1.;
-            h.pathLength = 1.;
-            simH->push_back(h);
-            */
-
             if (i) ej << ',';
             ej << "{\"x\":" << seg->X() *1e-3 << ",\"y\":" << seg->Y() *1e-3
                << ",\"z\":" << seg->Z() *1e-3 << ",\"e\":" << seg->W()
@@ -135,8 +107,6 @@ void convert_fedratracks_seacucumberhits(){
         }
         ej << "]";
         ej << "}\n";
-        //simR->hits = *simH;  // bundle
-        //writer->Fill();
     }
     for (int iplate=0; iplate<=areaset->N(); iplate++){
         EdbEDAArea *platearea = areaset->GetArea(iplate);
