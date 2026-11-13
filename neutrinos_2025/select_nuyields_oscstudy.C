@@ -1,6 +1,15 @@
-
+/*
+Expected neutrino yields in the SHiP Scattering Detector (SD) and in the Hidden Sector Calorimeter (Calorimeter)
+After applying selections for the combined acceptance for the neutrino oscillation paper.
+To launch it:
+ root -l
+  >> .L select_nuyields_oscstudy.C
+  >> SD_Selected()
+  >> Calo_Selected()
+Required access to SHiP EOS experiment filespace for input files.
+*/
 bool angular_acceptance(double vx, double vy, double vz){
-    //angular threshold, obtained by 40 x 40 square centimeters at first iron section
+    //angular threshold, obtained by 40 x 40 square centimeters at first iron section (see Section II.D)
     const double thetamax = 0.00686;
     //const double thetamax = 0.0100; //full MTC
     const double zstart = 0.;
@@ -13,37 +22,40 @@ bool angular_acceptance(double vx, double vy, double vz){
 }
 
 bool max_vz_calo(double vz){
-    //for now, only electromagnetic part
-    const double maxvz = 98.61;
+    //require maximum z of interaction vertex for acceptance
+    const double maxvz = 98.61; //m, GENIE uses SI Units, reference system SHiP geometry as gdml file
     if (vz > maxvz) return false;
     else return true;
 }
 bool max_vz_SD(double vz){
-    //for now, only electromagnetic part
-    const double maxvz = 28.37;
+    //require maximum z of interaction vertex for acceptance
+    const double maxvz = 28.37; //m, GENIE uses SI Units, reference system SHiP geometry as gdml file
     if (vz > maxvz) return false;
     else return true;
 }
 
 void SD_Selected(){
+    //selected neutrino yields in the SHiP Scattering Detector (SD)
+    //rescale from simulation normalization to total data taking expected in SHiP
     const double normsim = 4e+19; //one year of data taking simulated
     const double normship = 6e+20; //15 years of data taking
     double scale_factor = normship/normsim;
-
+    //open GST Tree file from GENIE (converted from GHEP native format with gntpc utility)
     TString prepath = "/eos/experiment/ship/user/aiuliano/GENIE_sims/2026_08_27_4e19_allflavours_neutrino_detector/";
     ROOT::RDataFrame df("gst",prepath+TString("neutrino_detector_4e19.gst.root").Data());
 
     TFile *hfile = new TFile("histo_neutrinos_SD.root","RECREATE");
-
+    //apply zcut
     auto df0 = df.Filter(max_vz_SD,{"vtxz"});
+    //apply angular acceptance
     auto df1  = df0.Filter(angular_acceptance,{"vtxx","vtxy","vtxz"});
-
+    //histograms for debugging, not included in the paper
     auto hzy_all = df.Histo2D({"hzy_all","zy of vertices;vz[m];vy[m]",100,26.,32.,80,-4.,4.},"vtxz","vtxy");
     auto hzy_selected = df1.Histo2D({"hzy_selected","zy of selected vertices;vz[m];vy[m]",100,26.,32.,80,-4.,4.},"vtxz","vtxy");
 
     auto hE_all = df.Filter("cc&&TMath::Abs(neu)==14").Histo1D({"hE_all","Energy of CC muon neutrinos;E[GeV]",75,0.,150.},"Ev");
     auto hE_selected = df1.Filter("cc&&TMath::Abs(neu)==14").Histo1D({"hE_selected","Energy of CC selected muon neutrinos;E[GeV]",75,0.,150.},"Ev");
-    //everything else remains the same
+    //select charged current events, and separate by neutrino flavour
     auto dfcc = df1.Filter("cc");
 
     auto dfnue_cc = dfcc.Filter("neu==12");
@@ -53,9 +65,9 @@ void SD_Selected(){
     auto dfnue_bar_cc = dfcc.Filter("neu==-12");
     auto dfnumu_bar_cc = dfcc.Filter("neu==-14");
     auto dfnutau_bar_cc = dfcc.Filter("neu==-16");
-
+    //select neutral current events, we cannot identify flavour here
     auto dfnc = df1.Filter("nc");
-    //we also need nc with pi^0
+    //we also need to select number of nc with pi^0
     auto dfnc_pi0 = dfnc.Filter("nfpi0>0");
     //retrieve the number of events for each category
     auto nue_cc = dfnue_cc.Count();
@@ -71,7 +83,7 @@ void SD_Selected(){
 
     //print the results
     cout<<"Scale factor: "<<scale_factor<<endl;
-    //cout<<"NU:"<<"\t"<<"CCDIS"<<"\t"<<"CHARM"<<"\t"<<"RES"<<" "<<"QE"<<"\t"<<"NUEEL"<<"\t"<<"NCDIS"<<endl;
+
     cout<<"NU:"<<"\t"<< "CC"<<endl;
     cout<<"NUE"<<"\t"<<nue_cc.GetValue() * scale_factor<<endl;
     cout<<"NUMU"<<"\t"<<numu_cc.GetValue() * scale_factor<<endl;
@@ -88,7 +100,7 @@ void SD_Selected(){
     cout<<"ALL NC"<<"\t"<<nu_nc.GetValue() * scale_factor<<endl;
     cout<<"ALL NC with pi0"<<"\t"<<nu_nc_pi0.GetValue() * scale_factor<<endl;
 
-    
+    //draw the debugging histograms
 
     TCanvas *cyz = new TCanvas();
     hzy_selected->SetMarkerColor(kRed);
@@ -109,25 +121,27 @@ void SD_Selected(){
 }
 
 void Calorimeter_Selected(){
+    //selected neutrino yields in the SHiP Hidden Sector Calorimeter
     const double normsim = 4e+19; //one year of data taking simulated
     const double normship = 6e+20; //15 years of data taking
     double scale_factor = normship/normsim;
-
+    //open GST Tree file from GENIE (converted from GHEP native format with gntpc utility)
     TString prepath = "/eos/experiment/ship/user/aiuliano/GENIE_sims/2026_08_27_4e19_allflavours_calorimeter/";
     ROOT::RDataFrame df("gst",prepath+TString("nuyield_4e19_calorimeter.gst.root").Data());
 
     TFile *hfile = new TFile("histo_neutrinos_calorimeter.root","RECREATE");
-
+    //apply zcut
     auto df0 = df.Filter(max_vz_calo,{"vtxz"});
+    //apply angular acceptance
     auto df1  = df0.Filter(angular_acceptance,{"vtxx","vtxy","vtxz"});
-
+    //histograms for debugging, not included in the paper
     auto hzy_all = df.Histo2D({"hzy_all","zy of selected vertices",100,96.,100.,80,-4.,4.},"vtxz","vtxy");
     auto hzy_selected = df1.Histo2D({"hzy_selected","zy of selected vertices",100,96.,100.,80,-4.,4.},"vtxz","vtxy");
 
     auto hE_all = df.Filter("cc&&TMath::Abs(neu)==14").Histo1D({"hE_all","Energy of CC muon neutrinos;E[GeV]",75,0.,150.},"Ev");
     auto hE_selected = df1.Filter("cc&&TMath::Abs(neu)==14").Histo1D({"hE_selected","Energy of CC selected muon neutrinos;E[GeV]",75,0.,150.},"Ev");
 
-    //everything else remains the same
+    //select charged current events, and separate by neutrino flavour
     auto dfcc = df1.Filter("cc");
 
     auto dfnue_cc = dfcc.Filter("neu==12");
@@ -138,8 +152,9 @@ void Calorimeter_Selected(){
     auto dfnumu_bar_cc = dfcc.Filter("neu==-14");
     auto dfnutau_bar_cc = dfcc.Filter("neu==-16");
 
+    //select neutral current events, we cannot identify flavour here
     auto dfnc = df1.Filter("nc");
-    //we also need nc with pi^0
+    //we also need to select number of nc with pi^0
     auto dfnc_pi0 = dfnc.Filter("nfpi0>0");
     //retrieve the number of events for each category
     auto nue_cc = dfnue_cc.Count();
@@ -171,7 +186,7 @@ void Calorimeter_Selected(){
 
     cout<<"ALL NC"<<"\t"<<nu_nc.GetValue() * scale_factor<<endl;
     cout<<"ALL NC with pi0"<<"\t"<<nu_nc_pi0.GetValue() * scale_factor<<endl;
-
+    //draw the debugging histograms
     TCanvas *cyz = new TCanvas();
     hzy_selected->SetMarkerColor(kRed);
     hzy_all->DrawClone("SCAT");
