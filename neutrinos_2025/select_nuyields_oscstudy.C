@@ -33,12 +33,16 @@ void SD_Selected(){
     TString prepath = "/eos/experiment/ship/user/aiuliano/GENIE_sims/2026_08_27_4e19_allflavours_neutrino_detector/";
     ROOT::RDataFrame df("gst",prepath+TString("neutrino_detector_4e19.gst.root").Data());
 
+    TFile *hfile = new TFile("histo_neutrinos_SD.root","RECREATE");
+
     auto df0 = df.Filter(max_vz_SD,{"vtxz"});
     auto df1  = df0.Filter(angular_acceptance,{"vtxx","vtxy","vtxz"});
 
     auto hzy_all = df.Histo2D({"hzy_all","zy of vertices;vz[m];vy[m]",100,26.,32.,80,-4.,4.},"vtxz","vtxy");
     auto hzy_selected = df1.Histo2D({"hzy_selected","zy of selected vertices;vz[m];vy[m]",100,26.,32.,80,-4.,4.},"vtxz","vtxy");
 
+    auto hE_all = df.Filter("cc&&TMath::Abs(neu)==14").Histo1D({"hE_all","Energy of CC muon neutrinos;E[GeV]",75,0.,150.},"Ev");
+    auto hE_selected = df1.Filter("cc&&TMath::Abs(neu)==14").Histo1D({"hE_selected","Energy of CC selected muon neutrinos;E[GeV]",75,0.,150.},"Ev");
     //everything else remains the same
     auto dfcc = df1.Filter("cc");
 
@@ -84,12 +88,23 @@ void SD_Selected(){
     cout<<"ALL NC"<<"\t"<<nu_nc.GetValue() * scale_factor<<endl;
     cout<<"ALL NC with pi0"<<"\t"<<nu_nc_pi0.GetValue() * scale_factor<<endl;
 
+    
+
     TCanvas *cyz = new TCanvas();
     hzy_selected->SetMarkerColor(kRed);
     hzy_all->DrawClone("SCAT");
     hzy_selected->DrawClone("SCAT&&SAME");
     cyz->Draw();
 
+    TCanvas *cE = new TCanvas();
+    hE_all->DrawClone();
+    cE->Draw();
+    hE_all->Write();
+
+    TCanvas *cE_selected = new TCanvas();
+    hE_selected->DrawClone();
+    cE_selected->Draw();
+    hE_selected->Write();
 
 }
 
@@ -101,11 +116,16 @@ void Calorimeter_Selected(){
     TString prepath = "/eos/experiment/ship/user/aiuliano/GENIE_sims/2026_08_27_4e19_allflavours_calorimeter/";
     ROOT::RDataFrame df("gst",prepath+TString("nuyield_4e19_calorimeter.gst.root").Data());
 
+    TFile *hfile = new TFile("histo_neutrinos_calorimeter.root","RECREATE");
+
     auto df0 = df.Filter(max_vz_calo,{"vtxz"});
     auto df1  = df0.Filter(angular_acceptance,{"vtxx","vtxy","vtxz"});
 
     auto hzy_all = df.Histo2D({"hzy_all","zy of selected vertices",100,96.,100.,80,-4.,4.},"vtxz","vtxy");
     auto hzy_selected = df1.Histo2D({"hzy_selected","zy of selected vertices",100,96.,100.,80,-4.,4.},"vtxz","vtxy");
+
+    auto hE_all = df.Filter("cc&&TMath::Abs(neu)==14").Histo1D({"hE_all","Energy of CC muon neutrinos;E[GeV]",75,0.,150.},"Ev");
+    auto hE_selected = df1.Filter("cc&&TMath::Abs(neu)==14").Histo1D({"hE_selected","Energy of CC selected muon neutrinos;E[GeV]",75,0.,150.},"Ev");
 
     //everything else remains the same
     auto dfcc = df1.Filter("cc");
@@ -158,5 +178,14 @@ void Calorimeter_Selected(){
     hzy_selected->DrawClone("SCAT&&SAME");
     cyz->Draw();
 
+    TCanvas *cE = new TCanvas();
+    hE_all->DrawClone();
+    hE_all->Write();
+    cE->Draw();
+
+    TCanvas *cE_selected = new TCanvas();
+    hE_selected->DrawClone();
+    hE_selected->Write();
+    cE_selected->Draw();
 
 }

@@ -1,15 +1,15 @@
 //print table of nu yield from gst file
 void nuyieldtable_gst(){
     const double normsim = 4e+19; //one year of data taking simulated
-    const double normship = 6e+20; //15 years of data taking
+    const double normship = 4e+19; //15 years of data taking
     double scale_factor = normship/normsim;
 
-    TString prepath = "/home/antonio/Simulations/GENIE_sims/2026_08_27_4e19_allflavours_neutrino_detector/";
-    ROOT::RDataFrame df("gst",prepath+TString("neutrino_detector_4e19.gst.root").Data());
+    TString prepath = "/home/antonio/Simulations/GENIE_sims/2026_06_25_1year_allflavours_SiliconTarget/";
+    ROOT::RDataFrame df("gst",prepath+TString("nu_1year_mbiasnocharm_pluscascade_gst.root").Data());
     //TString prepath = "/home/antonio/Simulations/GENIE_sims/2026_08_27_4e19_allflavours_calorimeter/";
     //ROOT::RDataFrame df("gst",prepath+TString("nuyield_4e19_calorimeter.gst.root").Data());
 
-    auto dfcc = df.Filter("cc");
+    auto dfcc = df.Filter("cc&&dis");
 
     auto dfnue_cc = dfcc.Filter("neu==12");
     auto dfnumu_cc = dfcc.Filter("neu==14");
@@ -37,7 +37,7 @@ void nuyieldtable_gst(){
     //print the results
     cout<<"Scale factor: "<<scale_factor<<endl;
     //cout<<"NU:"<<"\t"<<"CCDIS"<<"\t"<<"CHARM"<<"\t"<<"RES"<<" "<<"QE"<<"\t"<<"NUEEL"<<"\t"<<"NCDIS"<<endl;
-    cout<<"NU:"<<"\t"<< "CC"<<endl;
+    cout<<"NU:"<<"\t"<< "CCDIS"<<endl;
     cout<<"NUE"<<"\t"<<nue_cc.GetValue() * scale_factor<<endl;
     cout<<"NUMU"<<"\t"<<numu_cc.GetValue() * scale_factor<<endl;
     cout<<"NUTAU"<<"\t"<<nutau_cc.GetValue() * scale_factor<<endl;
