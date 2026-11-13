@@ -1,12 +1,14 @@
 import ROOT as r
 import sys
 import os
-
+noCharm = False #keep neutrinos from charmed hadrons and tau leptons by default
 mbiasfile = str(sys.argv[1])
 outFileName = str(sys.argv[2])
 pot_number = int(sys.argv[3])
-cascadefile = str(sys.argv[4])
-pot_number_cascade = int(sys.argv[5])
+if len(sys.argv) > 5:
+ noCharm = True #if a cascade decay file is provided, do not keep neutrinos from charmed hadrons and tau leptons
+ cascadefile = str(sys.argv[4])
+ pot_number_cascade = int(sys.argv[5])
 
 norm_pot = pot_number #normalization pot, same as mbias by default
 
@@ -32,14 +34,14 @@ tOut.Branch("aux", aux_entry)
 # Scoring plane info
 # Find a Minimum and Maximum of the x, y, z axis cm
 
-min_z = 999
-max_z = -999
+min_z = 999.
+max_z = -999.
 # Max x, min x
-min_x = 999
-max_x = -999
+min_x = 999.
+max_x = -999.
 #Max y, min y
-min_y = 999
-max_y = -999
+min_y = 999.
+max_y = -999.
 
 pdglist = set() #extract all pdg codes of neutrinos in the scoring plane, to be used for metadata
 min_weight = 1e10
@@ -71,7 +73,7 @@ def read_mbias_flux(filename, Emin = 1.):
             if abs(pdgcode) not in neutrinos:
                 continue
             moID = abs(sTree.MCTrack[t.GetMotherId()].GetPdgCode())
-            if moID in charmExtern:
+            if moID in charmExtern and noCharm:
                 continue  # take heavy flavours from separate production
   
             px = v.GetPx()
@@ -179,8 +181,12 @@ def read_cascadedecay_file(filename, Emin = 1.):
         tOut.Fill()
 
 #reading the two input files and filling tree
+print("Start converting mbias production")
 read_mbias_flux(mbiasfile, Emin = 1.)
-read_cascadedecay_file(cascadefile, Emin = 1.)    
+
+if len(sys.argv) > 5:
+ print("Start converting cascade production")
+ read_cascadedecay_file(cascadefile, Emin = 1.)    
 
 # plane corner and plane direction of the scoring plane
 
@@ -202,14 +208,16 @@ meta_entry.minWgt = min_weight
 meta_entry.protons = pot_number # Number of protons on target
 
 for i in range(3):
-     meta_entry.windowBase[i] = plane_corner[i] * 1 / 100 # convert from cm to m
-     meta_entry.windowDir1[i] = plane_dir1[i] * 1 / 100
-     meta_entry.windowDir2[i] = plane_dir2[i] * 1 / 100
-
-print("Start converting mbias production")
+    # meta_entry.windowBase.__setitem__(i,plane_corner[i] * 1 / 100) # convert from cm to m
+    meta_entry.windowDir1[i] = plane_dir1[i] * 1 / 100
+    meta_entry.windowDir2[i] = plane_dir2[i] * 1 / 100
+print("Scoring plane corner: ", meta_entry.windowBase[0], meta_entry.windowBase[1], meta_entry.windowBase[2])
+print("Scoring plane direction 1: ", meta_entry.windowDir1[0], meta_entry.windowDir1[1], meta_entry.windowDir1[2])
+print("Scoring plane direction 2: ", meta_entry.windowDir2[0], meta_entry.windowDir2[1], meta_entry.windowDir2[2])
+#help(meta_entry.windowDir2)
 meta_entry.infiles.push_back(mbiasfile)
-print("Start converting cascade production")
-meta_entry.infiles.push_back(cascadefile)
+if len(sys.argv) > 5:
+ meta_entry.infiles.push_back(cascadefile)
 
 meta_entry.seed = ran.GetSeed()
 meta_entry.metakey = metakey
