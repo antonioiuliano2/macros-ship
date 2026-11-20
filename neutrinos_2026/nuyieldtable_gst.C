@@ -1,0 +1,63 @@
+//print table of nu yield from gst file
+void nuyieldtable_gst(){
+    const double normsim = 4e+19; //one year of data taking simulated
+    const double normship = 4e+19; //15 years of data taking
+    double scale_factor = normship/normsim;
+
+    TString prepath = "/home/antonio/Simulations/GENIE_sims/2026_11_16_1year_SupportMTCGeometry/";
+    //ROOT::RDataFrame df("gst",prepath+TString("2026_11_16_NeutrinoDetector1year_allflavours.gst.root").Data());
+    ROOT::RDataFrame df("gst",prepath+TString("G21tunecheck.gst.root").Data());
+    //TString prepath = "/home/antonio/Simulations/GENIE_sims/2026_08_27_4e19_allflavours_calorimeter/";
+    //ROOT::RDataFrame df("gst",prepath+TString("nuyield_4e19_calorimeter.gst.root").Data());
+
+    //auto df0 = df.Filter("vtxz > 26.4887 && vtxz < 27.8950 "); //select only events in the target region (meters)
+    auto df0 = df.Filter("vtxz > 26.4887 && vtxz < 28.105"); //select only events in the target+SiPad region (meters)
+    auto dfcc = df0.Filter("cc&&dis");
+
+    auto dfnue_cc = dfcc.Filter("neu==12");
+    auto dfnumu_cc = dfcc.Filter("neu==14");
+    auto dfnutau_cc = dfcc.Filter("neu==16");
+
+    auto dfnue_bar_cc = dfcc.Filter("neu==-12");
+    auto dfnumu_bar_cc = dfcc.Filter("neu==-14");
+    auto dfnutau_bar_cc = dfcc.Filter("neu==-16");
+
+    auto dfnc = df0.Filter("nc");
+    //we also need nc with pi^0
+    auto dfnc_pi0 = dfnc.Filter("nfpi0>0");
+    //retrieve the number of events for each category
+    auto nue_cc = dfnue_cc.Count();
+    auto numu_cc = dfnumu_cc.Count();
+    auto nutau_cc = dfnutau_cc.Count();
+
+    auto nue_bar_cc = dfnue_bar_cc.Count();
+    auto numu_bar_cc = dfnumu_bar_cc.Count();
+    auto nutau_bar_cc = dfnutau_bar_cc.Count();
+
+    auto nu_nc = dfnc.Count();
+    auto nu_nc_pi0 = dfnc_pi0.Count();
+
+    auto nue_plusbar_ccdis_mean = dfcc.Filter("neu==12||neu==-12").Mean("Ev");
+    auto numu_plusbar_ccdis_mean = dfcc.Filter("neu==14||neu==-14").Mean("Ev");
+    auto nutau_plusbar_ccdis_mean = dfcc.Filter("neu==16||neu==-16").Mean("Ev");
+    //print the results
+    cout<<"Scale factor: "<<scale_factor<<endl;
+    //cout<<"NU:"<<"\t"<<"CCDIS"<<"\t"<<"CHARM"<<"\t"<<"RES"<<" "<<"QE"<<"\t"<<"NUEEL"<<"\t"<<"NCDIS"<<endl;
+    cout<<"NU:"<<"\t"<< "CCDIS"<<endl;
+    cout<<"NUE"<<"\t"<<nue_cc.GetValue() * scale_factor<<endl;
+    cout<<"NUMU"<<"\t"<<numu_cc.GetValue() * scale_factor<<endl;
+    cout<<"NUTAU"<<"\t"<<nutau_cc.GetValue() * scale_factor<<endl;
+
+    cout<<"ANTI_NUE"<<"\t"<<nue_bar_cc.GetValue() * scale_factor<<endl;
+    cout<<"ANTI_NUMU"<<"\t"<<numu_bar_cc.GetValue() * scale_factor<<endl;
+    cout<<"ANTI_NUTAU"<<"\t"<<nutau_bar_cc.GetValue() * scale_factor<<endl;
+
+    cout<<"NUE + ANTI_NUE"<<"\t"<<(nue_cc.GetValue() + nue_bar_cc.GetValue()) * scale_factor<<"Mean E "<<nue_plusbar_ccdis_mean.GetValue()<<endl;
+    cout<<"NUMU + ANTI_NUMU"<<"\t"<<(numu_cc.GetValue() + numu_bar_cc.GetValue()) * scale_factor<<"Mean E "<<numu_plusbar_ccdis_mean.GetValue()<<endl;
+    cout<<"NUTAU + ANTI_NUTAU"<<"\t"<<(nutau_cc.GetValue() + nutau_bar_cc.GetValue()) * scale_factor<<"Mean E "<<nutau_plusbar_ccdis_mean.GetValue()<<endl;
+
+    cout<<"ALL NC"<<"\t"<<nu_nc.GetValue() * scale_factor<<endl;
+    cout<<"ALL NC with pi0"<<"\t"<<nu_nc_pi0.GetValue() * scale_factor<<endl;
+
+    
+}

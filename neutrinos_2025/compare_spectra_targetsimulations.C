@@ -71,6 +71,7 @@ void compare_cascade(){
     hnu_e_2018->GetXaxis()->SetTitle("P [GeV/c]");
     hnu_e_2018->Draw("histo");
     hnu_e_2026->SetLineColor(kRed);
+    hnu_e_2026->SetName("hnu_e_2026");
     hnu_e_2026->Draw("histo && SAMES");
     cnue->SetLogy();
     
@@ -82,6 +83,7 @@ void compare_cascade(){
     hnu_mu_2018->GetXaxis()->SetTitle("P [GeV/c]");
     hnu_mu_2018->Draw("histo");
     hnu_mu_2026->SetLineColor(kRed);
+    hnu_mu_2026->SetName("hnu_mu_2026");
     hnu_mu_2026->Draw("histo && SAMES");
     cnumu->SetLogy();
     
@@ -93,6 +95,7 @@ void compare_cascade(){
     hnu_tau_2018->GetXaxis()->SetTitle("P [GeV/c]");
     hnu_tau_2018->Draw("histo");
     hnu_tau_2026->SetLineColor(kRed);
+    hnu_tau_2026->SetName("hnu_tau_2026");
     hnu_tau_2026->Draw("histo && SAMES");
     cnutau->SetLogy();
     
@@ -209,8 +212,9 @@ void compare_mbiasnocharm_pluscascade(){
     double normsim = 5e+13; //reference of simulation weights (aka. POT for one spill)
     double normship = 4e+19;//replace to have multiple years of data taking
     
-    TFile *simfile_2018 = TFile::Open("/home/utente/Simulations/nuhistos_comparisons/mbias_pluscascade_distributions_comparisons/pythia8_Geant4_1.0_withCharm_nu.root");    
-    TFile *simfile_2026 = TFile::Open("/home/utente/Simulations/nuhistos_comparisons/mbias_pluscascade_distributions_comparisons/pythia8_Geant4_1.0_withCharm_nu_makecascade2026_W.root");
+    TFile *simfile_2018 = TFile::Open("/home/antonio/Simulations/pythia8_Geant4_1.0_withCharm_nu.root");    
+    //TFile *simfile_2026 = TFile::Open("/home/utente/Simulations/nuhistos_comparisons/mbias_pluscascade_distributions_comparisons/pythia8_Geant4_1.0_withCharm_nu_makecascade2026_W.root");
+    TFile *simfile_2026 = TFile::Open("/home/antonio/Simulations/inputs_gevgen_fnal/flux_gsimple_2026_10_22_finaltargetproduction/neutrinos_histograms_gsimple.root");
 
     //nue comparison
     TH1D * hnu_e_2018 = (TH1D*) simfile_2018->Get("1012");

@@ -9,27 +9,29 @@ void nuyieldtable_gst(){
     //TString prepath = "/home/antonio/Simulations/GENIE_sims/2026_08_27_4e19_allflavours_calorimeter/";
     //ROOT::RDataFrame df("gst",prepath+TString("nuyield_4e19_calorimeter.gst.root").Data());
 
-    auto dfcc = df.Filter("cc&&dis");
+    auto df0 = df.Filter("vtxz > 2648.87 && vtxz < 2789.50 "); //select only events in the target region
 
-    auto dfnue_cc = dfcc.Filter("neu==12");
-    auto dfnumu_cc = dfcc.Filter("neu==14");
-    auto dfnutau_cc = dfcc.Filter("neu==16");
+    auto dfccdis = df0.Filter("cc&&dis");
 
-    auto dfnue_bar_cc = dfcc.Filter("neu==-12");
-    auto dfnumu_bar_cc = dfcc.Filter("neu==-14");
-    auto dfnutau_bar_cc = dfcc.Filter("neu==-16");
+    auto dfnue_ccdis = dfccdis.Filter("neu==12");
+    auto dfnumu_ccdis = dfccdis.Filter("neu==14");
+    auto dfnutau_ccdis = dfccdis.Filter("neu==16");
 
-    auto dfnc = df.Filter("nc");
+    auto dfnue_bar_ccdis = dfccdis.Filter("neu==-12");
+    auto dfnumu_bar_ccdis = dfccdis.Filter("neu==-14");
+    auto dfnutau_bar_ccdis = dfccdis.Filter("neu==-16");
+
+    auto dfnc = df0.Filter("nc");
     //we also need nc with pi^0
     auto dfnc_pi0 = dfnc.Filter("nfpi0>0");
     //retrieve the number of events for each category
-    auto nue_cc = dfnue_cc.Count();
-    auto numu_cc = dfnumu_cc.Count();
-    auto nutau_cc = dfnutau_cc.Count();
+    auto nue_ccdis = dfnue_cc.Count();
+    auto numu_ccdis = dfnumu_cc.Count();
+    auto nutau_ccdis = dfnutau_cc.Count();
 
-    auto nue_bar_cc = dfnue_bar_cc.Count();
-    auto numu_bar_cc = dfnumu_bar_cc.Count();
-    auto nutau_bar_cc = dfnutau_bar_cc.Count();
+    auto nue_bar_ccdis = dfnue_bar_ccdis.Count();
+    auto numu_bar_ccdis = dfnumu_bar_ccdis.Count();
+    auto nutau_bar_ccdis = dfnutau_bar_ccdis.Count();
 
     auto nu_nc = dfnc.Count();
     auto nu_nc_pi0 = dfnc_pi0.Count();
@@ -38,17 +40,17 @@ void nuyieldtable_gst(){
     cout<<"Scale factor: "<<scale_factor<<endl;
     //cout<<"NU:"<<"\t"<<"CCDIS"<<"\t"<<"CHARM"<<"\t"<<"RES"<<" "<<"QE"<<"\t"<<"NUEEL"<<"\t"<<"NCDIS"<<endl;
     cout<<"NU:"<<"\t"<< "CCDIS"<<endl;
-    cout<<"NUE"<<"\t"<<nue_cc.GetValue() * scale_factor<<endl;
-    cout<<"NUMU"<<"\t"<<numu_cc.GetValue() * scale_factor<<endl;
-    cout<<"NUTAU"<<"\t"<<nutau_cc.GetValue() * scale_factor<<endl;
+    cout<<"NUE"<<"\t"<<nue_ccdis.GetValue() * scale_factor<<endl;
+    cout<<"NUMU"<<"\t"<<numu_ccdis.GetValue() * scale_factor<<endl;
+    cout<<"NUTAU"<<"\t"<<nutau_ccdis.GetValue() * scale_factor<<endl;
 
-    cout<<"ANTI_NUE"<<"\t"<<nue_bar_cc.GetValue() * scale_factor<<endl;
-    cout<<"ANTI_NUMU"<<"\t"<<numu_bar_cc.GetValue() * scale_factor<<endl;
-    cout<<"ANTI_NUTAU"<<"\t"<<nutau_bar_cc.GetValue() * scale_factor<<endl;
+    cout<<"ANTI_NUE"<<"\t"<<nue_bar_ccdis.GetValue() * scale_factor<<endl;
+    cout<<"ANTI_NUMU"<<"\t"<<numu_bar_ccdis.GetValue() * scale_factor<<endl;
+    cout<<"ANTI_NUTAU"<<"\t"<<nutau_bar_ccdis.GetValue() * scale_factor<<endl;
 
-    cout<<"NUE + ANTI_NUE"<<"\t"<<(nue_cc.GetValue() + nue_bar_cc.GetValue()) * scale_factor<<endl;
-    cout<<"NUMU + ANTI_NUMU"<<"\t"<<(numu_cc.GetValue() + numu_bar_cc.GetValue()) * scale_factor<<endl;
-    cout<<"NUTAU + ANTI_NUTAU"<<"\t"<<(nutau_cc.GetValue() + nutau_bar_cc.GetValue()) * scale_factor<<endl;
+    cout<<"NUE + ANTI_NUE"<<"\t"<<(nue_ccdis.GetValue() + nue_bar_ccdis.GetValue()) * scale_factor<<endl;
+    cout<<"NUMU + ANTI_NUMU"<<"\t"<<(numu_ccdis.GetValue() + numu_bar_ccdis.GetValue()) * scale_factor<<endl;
+    cout<<"NUTAU + ANTI_NUTAU"<<"\t"<<(nutau_ccdis.GetValue() + nutau_bar_ccdis.GetValue()) * scale_factor<<endl;
 
     cout<<"ALL NC"<<"\t"<<nu_nc.GetValue() * scale_factor<<endl;
     cout<<"ALL NC with pi0"<<"\t"<<nu_nc_pi0.GetValue() * scale_factor<<endl;
