@@ -28,6 +28,8 @@ def process_charm_dataframe(df, outputfilename):
  Emin = 0
  Emax = 400
 
+ hE_all = df.Histo1D(("hE_all","Energy of all charmed hadrons",nbins,0,Emax),"E")
+ 
  df_dpm = df.Filter("TMath::Abs(id)==411")
  hE_dpm = df_dpm.Histo1D(("hE_dpm","Energy of charged mesons",nbins,0,Emax),"E")
 
@@ -42,6 +44,7 @@ def process_charm_dataframe(df, outputfilename):
 
  outputfile = r.TFile(outputfilename,"RECREATE")
 
+ hE_all.Write()
  hE_d0.Write()
  hE_ds.Write()
  hE_dpm.Write()
