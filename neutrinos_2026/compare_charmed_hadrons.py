@@ -8,6 +8,7 @@ def openP8cascade(nfiles_p8):
 
  for ifile in range(nfiles_p8):
     P8CascadeChain.AddFile(P8CascadePath+"cascade_msel4_W_FTFT_{}.root".format(ifile))
+ print("Total Number of entries in Pythia8 {} input files is {}".format(nfiles_p8,P8CascadeChain.GetEntries()))
  p8_df = r.RDataFrame(P8CascadeChain)
  return p8_df
 
@@ -18,6 +19,7 @@ def openP6cascade(nfiles_p6):
  P6CascadeChain = r.TChain("pythia6")
  for ifile in range(nfiles_p6):
     P6CascadeChain.AddFile(P6CascadePath+"Run_{}_Cascade1000k-parp16-MSTP82-1-MSEL4-ntuple.root".format(ifile))
+ print("Total Number of entries in Pythia6 {} input files is {}".format(nfiles_p6,P6CascadeChain.GetEntries()))
  p6_df = r.RDataFrame(P6CascadeChain)
  return p6_df
 
@@ -47,10 +49,10 @@ def process_charm_dataframe(df, outputfilename):
 
  outputfile.Close()
 #Pythia8
-nfiles_p8 = 400
+nfiles_p8 = 10
 p8_df = openP8cascade(nfiles_p8)
 process_charm_dataframe(p8_df,"histos_P8_{}_files.root".format(nfiles_p8))
-Pythia6
+#Pythia6
 nfiles_p6 = 1
 p6_df = openP6cascade(nfiles_p6)
 process_charm_dataframe(p6_df,"histos_P6_{}_files.root".format(nfiles_p6))
