@@ -52,10 +52,45 @@ def process_charm_dataframe(df, outputfilename):
 
  outputfile.Close()
 #Pythia8
-nfiles_p8 = 10
-p8_df = openP8cascade(nfiles_p8)
-process_charm_dataframe(p8_df,"histos_P8_{}_files.root".format(nfiles_p8))
+#nfiles_p8 = 215
+#p8_df = openP8cascade(nfiles_p8)
+#process_charm_dataframe(p8_df,"histos_P8_{}_files.root".format(nfiles_p8))
 #Pythia6
-nfiles_p6 = 1
-p6_df = openP6cascade(nfiles_p6)
-process_charm_dataframe(p6_df,"histos_P6_{}_files.root".format(nfiles_p6))
+#nfiles_p6 = 1
+#p6_df = openP6cascade(nfiles_p6)
+#process_charm_dataframe(p6_df,"histos_P6_{}_files.root".format(nfiles_p6))
+
+#read histofiles, compare plots
+
+p6histos = r.TFile.Open("histos_P6_1_files.root")
+p8histos = r.TFile.Open("histos_P8_215_files.root")
+
+def plot_comparison(histoname):
+
+ c = r.TCanvas("c_"+histoname)
+ hE_p6 = p6histos.Get(histoname)
+ hE_p8 = p8histos.Get(histoname)
+
+ if histoname != "hE_all":
+  #fraction over all simulated charmed hadrons
+  hE_p6.Scale(1./p6histos.Get("hE_all").Integral())
+  hE_p8.Scale(1./p8histos.Get("hE_all").Integral())
+
+ hE_p6.SetName(hE_p8.GetName()+"_pythia6")
+ hE_p8.SetName(hE_p8.GetName()+"_pythia8")
+ hE_p6.SetTitle("Pythia6 Charm Cascade Production")
+ hE_p8.SetTitle("Pythia8 Charm Cascade Production")
+
+ hE_p8.SetLineColor(r.kRed)
+ hE_p6.Draw("histo")
+ hE_p8.Draw("histo&&SAMES")
+ c.BuildLegend()
+ hE_p6.SetTitle("Charm Cascade Comparison "+histoname+";E[GeV];fraction over all charmed hadrons [%]")
+ c.Draw()
+
+r.gStyle.SetOptStat("nemri")
+plot_comparison("hE_all")
+plot_comparison("hE_d0")
+plot_comparison("hE_dpm")
+plot_comparison("hE_ds")
+plot_comparison("hE_lambdac")
