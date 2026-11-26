@@ -62,6 +62,7 @@ for i in range(reader.GetNEntries()):
          h_ID.Fill(h.detector_id)
          #now, get subdetector_id, according to detector_id
          subdetectorID, detname = SND.get_subdetID(h.detector_id,h.position[2])
+         per_detector[detname] += 1
          h_subids[detname].Fill(subdetectorID)
 
 print(f"{path}: {reader.GetNEntries()} events")
