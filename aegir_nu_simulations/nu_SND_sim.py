@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2026 CERN for the benefit of the SHiP Collaboration
 # SPDX-License-Identifier: LGPL-3.0-or-later
-"""A first look at an aegir file (booklet ch. 10): hits per detector, and
-where along the beam the straw hits are.
-
-    cp $CODE/analysis/first_sim.py .
-    python first_sim.py muon_gun.root
-
-Copy it to work/ and extend it in the exercises.
+"""
+Example of reading a SND simulation file and plotting some distributions.
+Tested in pixi aegir shell
 """
 
 import collections
