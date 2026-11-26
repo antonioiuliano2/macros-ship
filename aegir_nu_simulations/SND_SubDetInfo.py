@@ -1,5 +1,14 @@
 '''information about position of SND subdetectors, to be used in the analysis of the hits in the SND'''
 
+import os
+import sys
+
+def finish(status=0):
+    """Flush and exit without PyROOT teardown (see _alive)."""
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(status)
+
 def get_Si_X_number(hit_z):
     """among the 120 stations, which one does the hit belong to"""
     Si_Zmin = 26488.7
@@ -35,4 +44,9 @@ def get_subdetID(hit_detectorID, hit_z):
         return get_Si_X_number(hit_z), "HGC"
     else:
         print("No Valid Detector Number {}! Please check".format(hit_detectorID))
-        return -1, "Unknown"
+        finish(-1)
+        return -1, "Unknown" #should not be reached anyway
+    
+
+    
+    

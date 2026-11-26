@@ -11,17 +11,14 @@ Copy it to work/ and extend it in the exercises.
 """
 
 import collections
-import os
 import sys
+
 
 import ROOT
 import SND_SubDetInfo as SND
 
-def finish(status=0):
-    """Flush and exit without PyROOT teardown (see _alive)."""
-    sys.stdout.flush()
-    sys.stderr.flush()
-    os._exit(status)
+def finish():
+    SND.finish()  # leave without PyROOT's teardown, which can crash
 
 #sys.path.append(os.path.join(os.environ.get("CODE", ""), "analysis"))
 #import shipfiles as sf  # noqa: E402
@@ -47,6 +44,7 @@ h_subids = {"HGC":h_HGC_ids,"MGC":h_MGC_ids,"MTC":h_MTC_ids}
 
 ROOT.gStyle.SetOptStat(111111)
 
+cm2m = 0.001
 SND_ZSTART = 26425.000 #units are in mm
 SND_ZMTCSTART = 28000.000
 SND_ZEND = 31475.000
@@ -56,9 +54,9 @@ for i in range(reader.GetNEntries()):
         if (h.position[2] > SND_ZSTART and h.position[2] < SND_ZEND):
          #if(h.pdg_code == 13 and h.track_id == 1):
          #print(i,h.position[0],h.position[1],h.position[2])
-         h_z.Fill(h.position[2] / 1000.0)
-         h_xy.Fill(h.position[0] / 1000.0, h.position[1] / 1000.0)
-         h_zy.Fill(h.position[2] / 1000.0, h.position[1] / 1000.0)
+         h_z.Fill(h.position[2] * cm2m)
+         h_xy.Fill(h.position[0] * cm2m, h.position[1] * cm2m)
+         h_zy.Fill(h.position[2] * cm2m, h.position[1] * cm2m)
          h_ID.Fill(h.detector_id)
          #now, get subdetector_id, according to detector_id
          subdetectorID, detname = SND.get_subdetID(h.detector_id,h.position[2])
@@ -83,7 +81,8 @@ h_zy.Draw("COLZ")
 cID = ROOT.TCanvas("cID","",800,800)
 h_ID.Draw()
 #c2D_zy.SaveAs("SND_ZY.pdf")
-#sf.finish()  # leave without PyROOT's teardown, which can crash
+#SND.finish()  # leave without PyROOT's teardown, which can crash 
+# (do it manually, so you can modify the plots in the interactive session)
 
 cDetIds = ROOT.TCanvas("cDetIDs")
 cDetIds.Divide(2,2)
